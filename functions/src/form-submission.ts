@@ -3,15 +3,23 @@ import * as admin from 'firebase-admin';
 
 const db = admin.firestore();
 
+interface FormSubmission {
+    formId: string;
+    data: Record<string, any>;
+    submitterName?: string;
+    submitterEmail?: string;
+    submitterId?: string;
+}
+
 export const onFormSubmission = functions.firestore
     .document('submissions/{submissionId}')
-    .onCreate(async (snap: functions.Change<functions.firestore.DocumentSnapshot>, context: functions.EventContext) => {
-        const submission = snap.data();
+    .onCreate(async (snapshot: functions.firestore.QueryDocumentSnapshot, context: functions.EventContext) => {
+        const submission = snapshot.data() as FormSubmission;
         const submissionId = context.params.submissionId;
 
         try {
             // Update submission with metadata
-            await snap.ref.update({
+            await snapshot.ref.update({
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 status: 'pending',
                 submissionId: submissionId,
@@ -49,7 +57,7 @@ export const onFormSubmission = functions.firestore
         }
     });
 
-async function sendSubmissionEmail(formData: any, submission: any) {
+async function sendSubmissionEmail(formData: any, submission: FormSubmission) {
     // This would integrate with your email service
     // For now, we'll just log the intent
     console.log('Email notification would be sent for submission:', {

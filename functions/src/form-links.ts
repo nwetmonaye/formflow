@@ -4,7 +4,17 @@ import { v4 as uuidv4 } from 'uuid';
 
 const db = admin.firestore();
 
-export const generateFormLink = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
+interface FormLinkData {
+    formId: string;
+    isPublic?: boolean;
+    expiresAt?: string;
+}
+
+interface ValidateFormAccessData {
+    linkId: string;
+}
+
+export const generateFormLink = functions.https.onCall(async (data: FormLinkData, context: functions.https.CallableContext) => {
     // Verify user is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
@@ -62,7 +72,7 @@ export const generateFormLink = functions.https.onCall(async (data: any, context
 });
 
 // Function to validate form access
-export const validateFormAccess = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
+export const validateFormAccess = functions.https.onCall(async (data: ValidateFormAccessData, context: functions.https.CallableContext) => {
     const { linkId } = data;
 
     try {

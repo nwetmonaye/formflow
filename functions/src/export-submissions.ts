@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as express from 'express';
-import * as cors from 'cors';
+import express from 'express';
+import cors from 'cors';
 
 const db = admin.firestore();
 const app = express();
@@ -11,9 +11,19 @@ app.use(cors({ origin: true }));
 
 export const exportSubmissions = functions.https.onRequest(app);
 
+interface ExportRequest {
+    formId: string;
+    format?: string;
+    filters?: {
+        status?: string;
+        dateFrom?: string;
+        dateTo?: string;
+    };
+}
+
 app.post('/export', async (req: express.Request, res: express.Response) => {
     try {
-        const { formId, format = 'csv', filters = {} } = req.body;
+        const { formId, format = 'csv', filters = {} }: ExportRequest = req.body;
 
         // Verify form exists
         const formDoc = await db.collection('forms').doc(formId).get();
@@ -23,6 +33,10 @@ app.post('/export', async (req: express.Request, res: express.Response) => {
         }
 
         const formData = formDoc.data();
+        if (!formData) {
+            res.status(404).json({ error: 'Form data not found' });
+            return;
+        }
 
         // Build query for submissions
         let query = db.collection('submissions').where('formId', '==', formId);
@@ -41,7 +55,7 @@ app.post('/export', async (req: express.Request, res: express.Response) => {
         }
 
         const submissionsSnapshot = await query.get();
-        const submissions = submissionsSnapshot.docs.map((doc: any) => ({
+        const submissions = submissionsSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
         }));

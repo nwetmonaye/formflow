@@ -5,7 +5,7 @@ import * as nodemailer from 'nodemailer';
 const db = admin.firestore();
 
 // Email configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
     service: 'gmail', // or your preferred email service
     auth: {
         user: functions.config().email?.user || 'your-email@gmail.com',
@@ -13,7 +13,14 @@ const transporter = nodemailer.createTransporter({
     },
 });
 
-export const sendEmailNotification = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
+interface EmailData {
+    to: string;
+    subject: string;
+    html: string;
+    type: string;
+}
+
+export const sendEmailNotification = functions.https.onCall(async (data: EmailData, context: functions.https.CallableContext) => {
     // Verify user is authenticated
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');

@@ -3,11 +3,20 @@ import * as admin from 'firebase-admin';
 
 const db = admin.firestore();
 
+interface FormSubmission {
+    formId: string;
+    status: string;
+    submitterEmail?: string;
+    submitterId?: string;
+    approvedBy?: string;
+    comments?: string;
+}
+
 export const onFormApproval = functions.firestore
     .document('submissions/{submissionId}')
     .onUpdate(async (change: functions.Change<functions.firestore.DocumentSnapshot>, context: functions.EventContext) => {
-        const before = change.before.data();
-        const after = change.after.data();
+        const before = change.before.data() as FormSubmission;
+        const after = change.after.data() as FormSubmission;
         const submissionId = context.params.submissionId;
 
         // Only process if status changed
@@ -61,7 +70,7 @@ export const onFormApproval = functions.firestore
         }
     });
 
-async function sendApprovalEmail(formData: any, submission: any) {
+async function sendApprovalEmail(formData: any, submission: FormSubmission) {
     console.log('Approval email would be sent:', {
         formTitle: formData.title,
         submitterEmail: submission.submitterEmail,
