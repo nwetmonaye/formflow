@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:formflow/constants/style.dart';
-import 'package:formflow/screens/my_forms_screen.dart';
+import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,17 +9,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyBlPlYZKa2jtYb2uNEKHNexpk07IFSRJuo",
-      authDomain: "formflow-b0484.firebaseapp.com",
-      projectId: "formflow-b0484",
-      storageBucket: "formflow-b0484.firebasestorage.app",
-      messagingSenderId: "951373712327",
-      appId: "1:951373712327:web:45c7f78e3ed2b783f9a7e2",
-      measurementId: "G-BG0G0MHPGG",
-    ),
-  );
+  await FirebaseService.initializeFirebase();
+
+  // Sign in anonymously for demo
+  try {
+    final userCredential = await FirebaseService.signInAnonymously();
+    print('✅ Signed in anonymously as: ${userCredential.user?.uid}');
+  } catch (e) {
+    print('❌ Error signing in anonymously: $e');
+  }
 
   // Test Firebase Firestore connection
   try {
@@ -76,7 +74,7 @@ class FormFlowApp extends StatelessWidget {
         fontFamily: 'Plus Jakarta Sans',
         useMaterial3: true,
       ),
-      home: const MyFormsScreen(),
+      home: const HomeScreen(),
     );
   }
 }

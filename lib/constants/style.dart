@@ -126,6 +126,12 @@ class KStyle {
     fontWeight: FontWeight.w400,
   );
 
+  static TextStyle bodyMdRegularTextStyle = const TextStyle(
+    fontSize: 16,
+    fontFamily: 'Plus Jakarta Sans',
+    fontWeight: FontWeight.w400,
+  );
+
   static TextStyle labelLgBoldTextStyle = const TextStyle(
     fontSize: 18,
     fontFamily: 'Plus Jakarta Sans',
