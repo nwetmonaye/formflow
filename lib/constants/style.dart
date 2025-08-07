@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class KStyle {
-  static Color cPrimaryColor = const Color(0xFF469CD6);
+  static Color cPrimaryColor = const Color(0xFF356BF8);
+  static Color cSelectedColor = const Color(0xFFEBF0FE);
+  static Color cNotiColor = const Color(0xFFDB340B);
   static Color cWhiteColor = const Color(0xFFFFFFFF);
   static Color cBlackColor = const Color(0xFF000000);
   static Color cRedColor = const Color(0xFFD12800);
@@ -42,10 +44,16 @@ class KStyle {
   static Color c3CGreenColor = const Color(0xFF3CC3DF);
   static Color c6EGreenColor = const Color(0xFF6ED10C);
 
+  static TextStyle headingTextStyle = const TextStyle(
+    fontSize: 32,
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+  );
+
   static TextStyle heading2TextStyle = const TextStyle(
-    fontSize: 24,
-    fontFamily: 'Plus Jakarta Sans',
-    fontWeight: FontWeight.w700,
+    fontSize: 32,
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w500,
   );
 
   static TextStyle heading3TextStyle = const TextStyle(
