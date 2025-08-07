@@ -56,6 +56,14 @@ class KStyle {
     fontWeight: FontWeight.w500,
   );
 
+  static TextStyle labelTextStyle = const TextStyle(
+    fontSize: 16,
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w500,
+  );
+
+  //*************************************** */
+
   static TextStyle heading3TextStyle = const TextStyle(
     fontSize: 18,
     fontFamily: 'Plus Jakarta Sans',
@@ -154,12 +162,6 @@ class KStyle {
 
   static TextStyle titleTextStyle = const TextStyle(
     fontSize: 14,
-    fontFamily: 'Roboto',
-    fontWeight: FontWeight.w400,
-  );
-
-  static TextStyle labelTextStyle = const TextStyle(
-    fontSize: 10,
     fontFamily: 'Roboto',
     fontWeight: FontWeight.w400,
   );
