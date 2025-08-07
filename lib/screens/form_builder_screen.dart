@@ -5,6 +5,7 @@ import 'package:formflow/widgets/question_type_dialog.dart';
 import 'package:formflow/widgets/question_card.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class FormBuilderScreen extends StatefulWidget {
   final form_model.FormModel? form; // If null, create new form
@@ -223,132 +224,213 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                   ),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(Icons.arrow_back, color: KStyle.cBlackColor),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Form Builder',
-                        style: KStyle.heading3TextStyle.copyWith(
-                          color: KStyle.cBlackColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      if (_isSaving) ...[
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.green),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Saving...',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: Colors.green,
-                          ),
-                        ),
-                      ] else ...[
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Saved changes',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ],
+                  // Breadcrumbs
+                  Text(
+                    'My Forms / ${_form.title}',
+                    style: KStyle.labelSmRegularTextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
+                    ),
                   ),
+                  const SizedBox(height: 16),
+                  // Main header row
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: () {
-                          // TODO: Implement approval settings
-                        },
-                        icon: Icon(Icons.settings, color: KStyle.cPrimaryColor),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: _canShare
-                            ? () {
-                                if (_form.shareLink != null) {
-                                  // Copy to clipboard
-                                  // TODO: Implement clipboard functionality
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          'Link copied: ${_form.shareLink}'),
-                                    ),
-                                  );
-                                }
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _canShare
-                              ? KStyle.cPrimaryColor.withOpacity(0.1)
-                              : KStyle.cE3GreyColor,
-                          foregroundColor: _canShare
-                              ? KStyle.cPrimaryColor
-                              : KStyle.c72GreyColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.people, size: 16),
-                        label: Text(
-                          'Share',
-                          style: KStyle.labelSmRegularTextStyle,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: _isPublishing ? null : _publishForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: KStyle.cPrimaryColor,
-                          foregroundColor: KStyle.cWhiteColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: _isPublishing
-                            ? const SizedBox(
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Text(
+                              _form.title,
+                              style: KStyle.headingTextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            if (_isSaving) ...[
+                              const SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                      Colors.green),
                                 ),
-                              )
-                            : const Icon(Icons.arrow_upward, size: 16),
-                        label: Text(
-                          _isPublishing ? 'Publishing...' : 'Publish',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.cWhiteColor,
-                          ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Saving...',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ] else ...[
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Saved changes',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: KStyle.cF4GreyColor,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Draft',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: KStyle.c72GreyColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              // TODO: Implement approval settings
+                            },
+                            icon: Container(
+                              width: 24,
+                              height: 24,
+                              child: SvgPicture.asset(
+                                'assets/icons/settings.svg',
+                                width: 17,
+                                height: 17,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          IconButton(
+                            onPressed: () {
+                              // TODO: Implement preview
+                            },
+                            icon: Container(
+                              width: 24,
+                              height: 24,
+                              child: SvgPicture.asset(
+                                'assets/icons/eye.svg',
+                                width: 17,
+                                height: 17,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          IconButton(
+                            onPressed: _canShare
+                                ? () {
+                                    if (_form.shareLink != null) {
+                                      // Copy to clipboard
+                                      // TODO: Implement clipboard functionality
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Link copied: ${_form.shareLink}'),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                : null,
+                            icon: Container(
+                              width: 22,
+                              height: 22,
+                              child: SvgPicture.asset(
+                                'assets/icons/copy.svg',
+                                width: 17,
+                                height: 17,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _canShare
+                                ? () {
+                                    if (_form.shareLink != null) {
+                                      // Copy to clipboard
+                                      // TODO: Implement clipboard functionality
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Link copied: ${_form.shareLink}'),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _canShare
+                                  ? KStyle.cPrimaryColor.withOpacity(0.1)
+                                  : KStyle.cE3GreyColor,
+                              foregroundColor: _canShare
+                                  ? KStyle.cPrimaryColor
+                                  : KStyle.c72GreyColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Icons.people, size: 16),
+                            label: Text(
+                              'Share',
+                              style: KStyle.labelSmRegularTextStyle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _isPublishing ? null : _publishForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: KStyle.cPrimaryColor,
+                              foregroundColor: KStyle.cWhiteColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: _isPublishing
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.arrow_upward, size: 16),
+                            label: Text(
+                              _isPublishing ? 'Publishing...' : 'Publish',
+                              style: KStyle.labelSmRegularTextStyle.copyWith(
+                                color: KStyle.cWhiteColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -368,10 +450,17 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: KStyle.cWhiteColor,
-                        border: Border.all(color: KStyle.cE3GreyColor),
+                        border: Border(
+                          left: BorderSide(
+                            color: KStyle.cPrimaryColor,
+                            width: 4,
+                          ),
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Expanded(
                             child: _isEditingTitle
@@ -412,10 +501,10 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                   ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(
-                            Icons.edit,
-                            size: 16,
-                            color: KStyle.c72GreyColor,
+                          SvgPicture.asset(
+                            'assets/icons/edit.svg',
+                            width: 17,
+                            height: 17,
                           ),
                         ],
                       ),
@@ -441,13 +530,14 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                       );
                     }).toList(),
 
+                    const SizedBox(height: 24),
+
                     // Add Question Button
                     Center(
                       child: ElevatedButton.icon(
                         onPressed: _addQuestion,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              KStyle.cPrimaryColor.withOpacity(0.1),
+                          backgroundColor: KStyle.cSelectedColor,
                           foregroundColor: KStyle.cPrimaryColor,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -457,7 +547,15 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        icon: const Icon(Icons.add, size: 20),
+                        icon: Container(
+                          width: 20,
+                          height: 20,
+                          child: SvgPicture.asset(
+                            'assets/icons/plus_blank.svg',
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
                         label: Text(
                           'Add Question',
                           style: KStyle.labelMdRegularTextStyle.copyWith(

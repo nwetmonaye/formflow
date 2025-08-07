@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedFilter = 'All';
-  final List<String> filters = ['All', 'Active', 'Draft', 'Closed'];
+  final List<String> filters = ['All', 'Live', 'Draft', 'Closed'];
   int selectedNavItem = 0; // 0 = My Forms, 1 = Cohorts, 2 = Notifications
 
   @override

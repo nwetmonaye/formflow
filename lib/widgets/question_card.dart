@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
@@ -121,7 +122,12 @@ class _QuestionCardState extends State<QuestionCard> {
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: KStyle.cWhiteColor,
-            border: Border.all(color: KStyle.cE3GreyColor),
+            border: Border.all(
+              color: widget.isSelected
+                  ? KStyle.cPrimaryColor
+                  : KStyle.cE3GreyColor,
+              width: widget.isSelected ? 2 : 1,
+            ),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
@@ -163,27 +169,6 @@ class _QuestionCardState extends State<QuestionCard> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: widget.onDuplicate,
-                      icon: Icon(
-                        Icons.copy,
-                        size: 16,
-                        color: KStyle.c72GreyColor,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      onPressed: widget.onDelete,
-                      icon: Icon(
-                        Icons.delete,
-                        size: 16,
-                        color: KStyle.cDBRedColor,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
                   ],
                 ),
               ),
@@ -199,21 +184,47 @@ class _QuestionCardState extends State<QuestionCard> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                 child: Row(
                   children: [
-                    Text(
-                      'Required',
-                      style: KStyle.labelSmRegularTextStyle.copyWith(
-                        color: KStyle.cBlackColor,
+                    Expanded(
+                        child: Row(
+                      children: [
+                        Text(
+                          'Required',
+                          style: KStyle.labelSmRegularTextStyle.copyWith(
+                            color: KStyle.cBlackColor,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Switch(
+                          value: widget.field.required,
+                          onChanged: (value) {
+                            final updatedField =
+                                widget.field.copyWith(required: value);
+                            widget.onUpdate(updatedField);
+                          },
+                          activeColor: KStyle.cPrimaryColor,
+                        ),
+                      ],
+                    )),
+                    IconButton(
+                      onPressed: widget.onDuplicate,
+                      icon: SvgPicture.asset(
+                        'assets/icons/plus.svg',
+                        width: 17,
+                        height: 17,
                       ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: widget.field.required,
-                      onChanged: (value) {
-                        final updatedField =
-                            widget.field.copyWith(required: value);
-                        widget.onUpdate(updatedField);
-                      },
-                      activeColor: KStyle.cPrimaryColor,
+                    const SizedBox(width: 16),
+                    IconButton(
+                      onPressed: widget.onDelete,
+                      icon: SvgPicture.asset(
+                        'assets/icons/delete.svg',
+                        width: 17,
+                        height: 17,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
