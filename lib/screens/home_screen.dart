@@ -43,21 +43,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: KStyle.cPrimaryColor,
-                          borderRadius: BorderRadius.circular(4),
+                      Text(
+                        'form',
+                        style: KStyle.heading2TextStyle.copyWith(
+                          color: KStyle.cBlackColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'form.',
-                        style: KStyle.heading2TextStyle.copyWith(
+                      Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
                           color: KStyle.cPrimaryColor,
-                          fontWeight: FontWeight.w600,
+                          borderRadius: BorderRadius.circular(50),
                         ),
                       ),
                     ],
