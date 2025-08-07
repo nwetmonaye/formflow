@@ -438,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<FormModel> _filterForms(List<FormModel> forms, String filter) {
     switch (filter) {
-      case 'Active':
+      case 'Live':
         return forms.where((form) => form.status == 'active').toList();
       case 'Draft':
         return forms.where((form) => form.status == 'draft').toList();
