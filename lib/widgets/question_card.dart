@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'dart:async';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
+import 'package:intl/intl.dart';
 
 class QuestionCard extends StatefulWidget {
   final form_model.FormField field;
@@ -159,7 +160,6 @@ class _QuestionCardState extends State<QuestionCard> {
                         textInputAction: TextInputAction.next,
                         keyboardType: TextInputType.text,
                         textCapitalization: TextCapitalization.none,
-                        textDirection: TextDirection.ltr,
                         style: KStyle.labelMdRegularTextStyle.copyWith(
                           color: KStyle.cBlackColor,
                         ),
@@ -265,7 +265,6 @@ class _QuestionCardState extends State<QuestionCard> {
                 ? TextInputType.number
                 : TextInputType.text,
             textCapitalization: TextCapitalization.none,
-            textDirection: TextDirection.ltr,
             style: KStyle.labelSmRegularTextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
@@ -391,10 +390,15 @@ class _QuestionCardState extends State<QuestionCard> {
       case 'date':
         return Row(
           children: [
-            Icon(
-              Icons.calendar_today,
-              size: 16,
-              color: KStyle.c72GreyColor,
+            GestureDetector(
+              onTap: () {
+                _showDatePicker();
+              },
+              child: Icon(
+                Icons.calendar_today,
+                size: 16,
+                color: KStyle.c72GreyColor,
+              ),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -409,10 +413,12 @@ class _QuestionCardState extends State<QuestionCard> {
                   onChanged: (value) {
                     _updatePlaceholder(value);
                   },
+                  onEditingComplete: () {
+                    _formatDateInput();
+                  },
                   textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.text,
                   textCapitalization: TextCapitalization.none,
-                  textDirection: TextDirection.ltr,
                   style: KStyle.labelSmRegularTextStyle.copyWith(
                     color: KStyle.cBlackColor,
                   ),
@@ -481,7 +487,6 @@ class _QuestionCardState extends State<QuestionCard> {
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.text,
             textCapitalization: TextCapitalization.none,
-            textDirection: TextDirection.ltr,
             style: KStyle.labelSmRegularTextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
@@ -496,6 +501,82 @@ class _QuestionCardState extends State<QuestionCard> {
             ),
           ),
         );
+    }
+  }
+
+  void _showDatePicker() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: KStyle.cPrimaryColor,
+              onPrimary: KStyle.cWhiteColor,
+              surface: KStyle.cWhiteColor,
+              onSurface: KStyle.cBlackColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final formattedDate = DateFormat('dd/MM/yyyy').format(picked);
+      _placeholderController.text = formattedDate;
+      _updatePlaceholder(formattedDate);
+    }
+  }
+
+  void _formatDateInput() {
+    final text = _placeholderController.text.trim();
+    if (text.isNotEmpty) {
+      try {
+        // Try to parse various date formats
+        DateTime? parsedDate;
+
+        // Try DD/MM/YYYY format
+        if (text.contains('/')) {
+          final parts = text.split('/');
+          if (parts.length == 3) {
+            final day = int.tryParse(parts[0]);
+            final month = int.tryParse(parts[1]);
+            final year = int.tryParse(parts[2]);
+
+            if (day != null && month != null && year != null) {
+              parsedDate = DateTime(year, month, day);
+            }
+          }
+        }
+
+        // Try DD-MM-YYYY format
+        if (parsedDate == null && text.contains('-')) {
+          final parts = text.split('-');
+          if (parts.length == 3) {
+            final day = int.tryParse(parts[0]);
+            final month = int.tryParse(parts[1]);
+            final year = int.tryParse(parts[2]);
+
+            if (day != null && month != null && year != null) {
+              parsedDate = DateTime(year, month, day);
+            }
+          }
+        }
+
+        // If we successfully parsed a date, format it properly
+        if (parsedDate != null) {
+          final formattedDate = DateFormat('dd/MM/yyyy').format(parsedDate);
+          _placeholderController.text = formattedDate;
+          _updatePlaceholder(formattedDate);
+        }
+      } catch (e) {
+        // If parsing fails, keep the original text
+        print('Date parsing error: $e');
+      }
     }
   }
 
@@ -537,7 +618,6 @@ class _QuestionCardState extends State<QuestionCard> {
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.text,
               textCapitalization: TextCapitalization.none,
-              textDirection: TextDirection.ltr,
               style: KStyle.labelSmRegularTextStyle.copyWith(
                 color: KStyle.cBlackColor,
               ),
