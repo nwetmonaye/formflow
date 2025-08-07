@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
+import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/widgets/question_type_dialog.dart';
 import 'package:formflow/widgets/question_card.dart';
 import 'package:formflow/services/firebase_service.dart';
@@ -232,7 +233,11 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                          );
                         },
                         child: Text(
                           'My Forms',

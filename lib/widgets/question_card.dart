@@ -29,7 +29,7 @@ class QuestionCard extends StatefulWidget {
 class _QuestionCardState extends State<QuestionCard> {
   late TextEditingController _labelController;
   List<TextEditingController> _choiceControllers = [];
-  bool _isEditing = false;
+  late TextEditingController _placeholderController;
   Timer? _debounceTimer;
 
   // Local state to prevent rebuilding during typing
@@ -45,6 +45,7 @@ class _QuestionCardState extends State<QuestionCard> {
     _localPlaceholder = widget.field.placeholder ?? '';
 
     _labelController = TextEditingController(text: _localLabel);
+    _placeholderController = TextEditingController(text: _localPlaceholder);
     _initializeChoiceControllers();
   }
 
@@ -62,7 +63,7 @@ class _QuestionCardState extends State<QuestionCard> {
   @override
   void didUpdateWidget(QuestionCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.field.label != widget.field.label && !_isEditing) {
+    if (oldWidget.field.label != widget.field.label) {
       _localLabel = widget.field.label;
       _labelController.text = _localLabel;
     }
@@ -72,12 +73,14 @@ class _QuestionCardState extends State<QuestionCard> {
     }
     if (oldWidget.field.placeholder != widget.field.placeholder) {
       _localPlaceholder = widget.field.placeholder ?? '';
+      _placeholderController.text = _localPlaceholder;
     }
   }
 
   @override
   void dispose() {
     _labelController.dispose();
+    _placeholderController.dispose();
     for (var controller in _choiceControllers) {
       controller.dispose();
     }
@@ -96,7 +99,8 @@ class _QuestionCardState extends State<QuestionCard> {
 
   void _updateChoice(int index, String value) {
     _localChoices[index] = value;
-    // Don't update the widget immediately - let user finish typing
+    // Save immediately to ensure data persistence
+    _saveChoices();
   }
 
   void _saveChoices() {
@@ -106,7 +110,8 @@ class _QuestionCardState extends State<QuestionCard> {
 
   void _updatePlaceholder(String value) {
     _localPlaceholder = value;
-    // Don't update the widget immediately - let user finish typing
+    // Save immediately to ensure data persistence
+    _savePlaceholder();
   }
 
   void _savePlaceholder() {
@@ -185,26 +190,27 @@ class _QuestionCardState extends State<QuestionCard> {
                 child: Row(
                   children: [
                     Expanded(
-                        child: Row(
-                      children: [
-                        Text(
-                          'Required',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.cBlackColor,
+                      child: Row(
+                        children: [
+                          Text(
+                            'Required',
+                            style: KStyle.labelSmRegularTextStyle.copyWith(
+                              color: KStyle.cBlackColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Switch(
-                          value: widget.field.required,
-                          onChanged: (value) {
-                            final updatedField =
-                                widget.field.copyWith(required: value);
-                            widget.onUpdate(updatedField);
-                          },
-                          activeColor: KStyle.cPrimaryColor,
-                        ),
-                      ],
-                    )),
+                          const SizedBox(width: 8),
+                          Switch(
+                            value: widget.field.required,
+                            onChanged: (value) {
+                              final updatedField =
+                                  widget.field.copyWith(required: value);
+                              widget.onUpdate(updatedField);
+                            },
+                            activeColor: KStyle.cPrimaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
                     IconButton(
                       onPressed: widget.onDuplicate,
                       icon: SvgPicture.asset(
@@ -250,11 +256,9 @@ class _QuestionCardState extends State<QuestionCard> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
+            controller: _placeholderController,
             onChanged: (value) {
               _updatePlaceholder(value);
-            },
-            onEditingComplete: () {
-              _savePlaceholder();
             },
             textInputAction: TextInputAction.next,
             keyboardType: widget.field.type == 'number'
@@ -401,11 +405,9 @@ class _QuestionCardState extends State<QuestionCard> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextField(
+                  controller: _placeholderController,
                   onChanged: (value) {
                     _updatePlaceholder(value);
-                  },
-                  onEditingComplete: () {
-                    _savePlaceholder();
                   },
                   textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.text,
@@ -472,11 +474,9 @@ class _QuestionCardState extends State<QuestionCard> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
+            controller: _placeholderController,
             onChanged: (value) {
               _updatePlaceholder(value);
-            },
-            onEditingComplete: () {
-              _savePlaceholder();
             },
             textInputAction: TextInputAction.next,
             keyboardType: TextInputType.text,
@@ -500,9 +500,14 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void _addChoice() {
-    final currentOptions = List<String>.from(widget.field.options ?? []);
+    final currentOptions = List<String>.from(_localChoices);
     final newChoiceNumber = currentOptions.length + 1;
     currentOptions.add('Choice $newChoiceNumber');
+
+    setState(() {
+      _localChoices = currentOptions;
+      _initializeChoiceControllers();
+    });
 
     final updatedField = widget.field.copyWith(options: currentOptions);
     widget.onUpdate(updatedField);
@@ -528,9 +533,6 @@ class _QuestionCardState extends State<QuestionCard> {
               controller: controller,
               onChanged: (value) {
                 _updateChoice(index, value);
-              },
-              onEditingComplete: () {
-                _saveChoices();
               },
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.text,
