@@ -228,11 +228,32 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Breadcrumbs
-                  Text(
-                    'My Forms / ${_form.title}',
-                    style: KStyle.labelSmRegularTextStyle.copyWith(
-                      color: KStyle.c72GreyColor,
-                    ),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'My Forms',
+                          style: KStyle.labelSmRegularTextStyle.copyWith(
+                            color: KStyle.c13BlackColor,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        ' / ',
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      ),
+                      Text(
+                        _form.title,
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   // Main header row

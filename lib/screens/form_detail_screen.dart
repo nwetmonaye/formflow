@@ -62,21 +62,24 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 Container(
                   padding: const EdgeInsets.all(24),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: KStyle.cPrimaryColor,
-                          borderRadius: BorderRadius.circular(4),
+                      Text(
+                        'form',
+                        style: KStyle.heading2TextStyle.copyWith(
+                          color: KStyle.cBlackColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'form.',
-                        style: KStyle.heading2TextStyle.copyWith(
+                      Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
                           color: KStyle.cPrimaryColor,
-                          fontWeight: FontWeight.w600,
+                          borderRadius: BorderRadius.circular(50),
                         ),
                       ),
                     ],
@@ -95,12 +98,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                           setState(() {
                             selectedNavItem = 0;
                           });
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                            (route) => false,
-                          );
+                          Navigator.of(context).pop();
                         },
                       ),
                       _buildNavItem(
@@ -223,11 +221,41 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Breadcrumbs
-                        Text(
-                          'My Forms / ${widget.form.title}',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.c72GreyColor,
-                          ),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'My Forms',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: KStyle.c13BlackColor,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              ' / ',
+                              style: KStyle.labelSmRegularTextStyle.copyWith(
+                                color: KStyle.c72GreyColor,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                widget.form.title,
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: KStyle.c72GreyColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         // Title and Actions Row
@@ -248,7 +276,14 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               children: [
                                 IconButton(
                                   onPressed: () {
-                                    // TODO: Implement view form
+                                    // TODO: Implement view form - navigate to form submission screen
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'View form functionality coming soon'),
+                                        backgroundColor: Colors.blue,
+                                      ),
+                                    );
                                   },
                                   icon: Container(
                                     width: 24,
@@ -362,8 +397,12 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     int? notificationCount,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
+    return InkWell(
+      onTap: () {
+        print('Nav item tapped: $title'); // Debug print
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -475,29 +514,34 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               child: Row(
                 children: [
                   // Status filter dropdown
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: KStyle.cE3GreyColor),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Status: $selectedStatusFilter',
-                          style: KStyle.labelMdRegularTextStyle.copyWith(
-                            color: KStyle.cBlackColor,
+                  GestureDetector(
+                    onTap: () {
+                      _showStatusFilterDialog();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: KStyle.cE3GreyColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Status: $selectedStatusFilter',
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: KStyle.cBlackColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          size: 16,
-                          color: KStyle.c72GreyColor,
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16,
+                            color: KStyle.c72GreyColor,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -1139,6 +1183,42 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         content: Text('CSV download functionality coming soon'),
         backgroundColor: Colors.blue,
       ),
+    );
+  }
+
+  void _showStatusFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Filter Submissions'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: statusFilters.map((filter) {
+                return RadioListTile<String>(
+                  value: filter,
+                  groupValue: selectedStatusFilter,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStatusFilter = value!;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  title: Text(filter),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
