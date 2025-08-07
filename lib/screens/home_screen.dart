@@ -187,12 +187,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: KStyle.cWhiteColor,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: KStyle.cE3GreyColor,
-                          width: 1,
-                        ),
-                      ),
+                      // border: Border(
+                      //   bottom: BorderSide(
+                      //     color: KStyle.cE3GreyColor,
+                      //     width: 1,
+                      //   ),
+                      // ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -237,6 +237,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Filters
                   Container(
+                    decoration: BoxDecoration(
+                      color: KStyle.cWhiteColor,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: KStyle.cE3GreyColor,
+                          width: 1,
+                        ),
+                      ),
+                    ),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 16),
                     child: Row(
@@ -384,6 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           children: [
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 Icon(
                   icon,
@@ -393,21 +403,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 if (notificationCount != null)
                   Positioned(
-                    right: -4,
-                    top: -4,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: KStyle.cNotiColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    right: -6,
+                    top: -6,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: KStyle.cNotiColor,
                       child: Center(
                         child: Text(
                           notificationCount.toString(),
                           style: KStyle.labelXsRegularTextStyle.copyWith(
                             color: KStyle.cWhiteColor,
                             fontWeight: FontWeight.w600,
+                            fontSize: 10,
                           ),
                         ),
                       ),
