@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
 
@@ -26,33 +27,90 @@ class QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<QuestionCard> {
   late TextEditingController _labelController;
-  late TextEditingController _placeholderController;
+  List<TextEditingController> _choiceControllers = [];
   bool _isEditing = false;
+  Timer? _debounceTimer;
+
+  // Local state to prevent rebuilding during typing
+  String _localLabel = '';
+  List<String> _localChoices = [];
+  String _localPlaceholder = '';
 
   @override
   void initState() {
     super.initState();
-    _labelController = TextEditingController(text: widget.field.label);
-    _placeholderController =
-        TextEditingController(text: widget.field.placeholder ?? '');
+    _localLabel = widget.field.label;
+    _localChoices = List<String>.from(widget.field.options ?? ['Choice 1']);
+    _localPlaceholder = widget.field.placeholder ?? '';
+
+    _labelController = TextEditingController(text: _localLabel);
+    _initializeChoiceControllers();
+  }
+
+  void _initializeChoiceControllers() {
+    // Dispose existing controllers first
+    for (var controller in _choiceControllers) {
+      controller.dispose();
+    }
+
+    _choiceControllers = _localChoices
+        .map((option) => TextEditingController(text: option))
+        .toList();
   }
 
   @override
   void didUpdateWidget(QuestionCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.field.label != widget.field.label && !_isEditing) {
-      _labelController.text = widget.field.label;
+      _localLabel = widget.field.label;
+      _labelController.text = _localLabel;
+    }
+    if (oldWidget.field.options != widget.field.options) {
+      _localChoices = List<String>.from(widget.field.options ?? ['Choice 1']);
+      _initializeChoiceControllers();
     }
     if (oldWidget.field.placeholder != widget.field.placeholder) {
-      _placeholderController.text = widget.field.placeholder ?? '';
+      _localPlaceholder = widget.field.placeholder ?? '';
     }
   }
 
   @override
   void dispose() {
     _labelController.dispose();
-    _placeholderController.dispose();
+    for (var controller in _choiceControllers) {
+      controller.dispose();
+    }
+    _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _debouncedUpdate(String value) {
+    _localLabel = value;
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      final updatedField = widget.field.copyWith(label: _localLabel);
+      widget.onUpdate(updatedField);
+    });
+  }
+
+  void _updateChoice(int index, String value) {
+    _localChoices[index] = value;
+    // Don't update the widget immediately - let user finish typing
+  }
+
+  void _saveChoices() {
+    final updatedField = widget.field.copyWith(options: _localChoices);
+    widget.onUpdate(updatedField);
+  }
+
+  void _updatePlaceholder(String value) {
+    _localPlaceholder = value;
+    // Don't update the widget immediately - let user finish typing
+  }
+
+  void _savePlaceholder() {
+    final updatedField = widget.field.copyWith(placeholder: _localPlaceholder);
+    widget.onUpdate(updatedField);
   }
 
   @override
@@ -82,51 +140,29 @@ class _QuestionCardState extends State<QuestionCard> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _isEditing
-                          ? TextField(
-                              controller: _labelController,
-                              onChanged: (value) {
-                                final updatedField =
-                                    widget.field.copyWith(label: value);
-                                widget.onUpdate(updatedField);
-                              },
-                              onSubmitted: (value) {
-                                setState(() {
-                                  _isEditing = false;
-                                });
-                              },
-                              autofocus: true,
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: KStyle.cBlackColor,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'Type a question',
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            )
-                          : GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isEditing = true;
-                                });
-                              },
-                              child: Text(
-                                widget.field.label,
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                ),
-                              ),
-                            ),
-                    ),
-                    if (widget.field.required)
-                      Text(
-                        '*',
+                      child: TextField(
+                        controller: _labelController,
+                        onChanged: (value) {
+                          _debouncedUpdate(value);
+                        },
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.text,
+                        textCapitalization: TextCapitalization.none,
+                        textDirection: TextDirection.ltr,
                         style: KStyle.labelMdRegularTextStyle.copyWith(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
+                          color: KStyle.cBlackColor,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Type a question*',
+                          hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
+                            color: KStyle.c72GreyColor,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
                         ),
                       ),
+                    ),
                     const SizedBox(width: 8),
                     IconButton(
                       onPressed: widget.onDuplicate,
@@ -166,7 +202,7 @@ class _QuestionCardState extends State<QuestionCard> {
                     Text(
                       'Required',
                       style: KStyle.labelSmRegularTextStyle.copyWith(
-                        color: KStyle.c72GreyColor,
+                        color: KStyle.cBlackColor,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -187,24 +223,6 @@ class _QuestionCardState extends State<QuestionCard> {
         ),
 
         // Question Type Label (Yellow badge) - positioned at top right
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFD700),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              _getQuestionTypeName(widget.field.type),
-              style: KStyle.labelXsRegularTextStyle.copyWith(
-                color: KStyle.cBlackColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -220,10 +238,30 @@ class _QuestionCardState extends State<QuestionCard> {
             border: Border.all(color: KStyle.cE3GreyColor),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            'Your answer',
+          child: TextField(
+            onChanged: (value) {
+              _updatePlaceholder(value);
+            },
+            onEditingComplete: () {
+              _savePlaceholder();
+            },
+            textInputAction: TextInputAction.next,
+            keyboardType: widget.field.type == 'number'
+                ? TextInputType.number
+                : TextInputType.text,
+            textCapitalization: TextCapitalization.none,
+            textDirection: TextDirection.ltr,
             style: KStyle.labelSmRegularTextStyle.copyWith(
-              color: KStyle.c72GreyColor,
+              color: KStyle.cBlackColor,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Your answer',
+              hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
             ),
           ),
         );
@@ -232,59 +270,33 @@ class _QuestionCardState extends State<QuestionCard> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...(widget.field.options ?? ['Choice 1'])
-                .asMap()
-                .entries
-                .map((entry) {
+            ..._choiceControllers.asMap().entries.map((entry) {
               final index = entry.key;
-              final choice = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.radio_button_checked,
-                      size: 16,
-                      color: KStyle.cPrimaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      choice,
-                      style: KStyle.labelSmRegularTextStyle.copyWith(
-                        color: KStyle.cBlackColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: KStyle.cE3GreyColor),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.cBlackColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              final controller = entry.value;
+              return _buildChoiceField(
+                  index, controller, Icons.radio_button_checked);
             }).toList(),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 _addChoice();
               },
-              child: Text(
-                '+ Add Choice',
-                style: KStyle.labelSmRegularTextStyle.copyWith(
-                  color: KStyle.cPrimaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 16,
+                    color: KStyle.cPrimaryColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Add Choice',
+                    style: KStyle.labelSmRegularTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -294,59 +306,32 @@ class _QuestionCardState extends State<QuestionCard> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...(widget.field.options ?? ['Choice 1'])
-                .asMap()
-                .entries
-                .map((entry) {
+            ..._choiceControllers.asMap().entries.map((entry) {
               final index = entry.key;
-              final choice = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.check_box,
-                      size: 16,
-                      color: KStyle.cPrimaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      choice,
-                      style: KStyle.labelSmRegularTextStyle.copyWith(
-                        color: KStyle.cBlackColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: KStyle.cE3GreyColor),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.cBlackColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              final controller = entry.value;
+              return _buildChoiceField(index, controller, Icons.check_box);
             }).toList(),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 _addChoice();
               },
-              child: Text(
-                '+ Add Choice',
-                style: KStyle.labelSmRegularTextStyle.copyWith(
-                  color: KStyle.cPrimaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 16,
+                    color: KStyle.cPrimaryColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Add Choice',
+                    style: KStyle.labelSmRegularTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -356,53 +341,33 @@ class _QuestionCardState extends State<QuestionCard> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...(widget.field.options ?? ['Choice 1'])
-                .asMap()
-                .entries
-                .map((entry) {
+            ..._choiceControllers.asMap().entries.map((entry) {
               final index = entry.key;
-              final choice = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Text(
-                      choice,
-                      style: KStyle.labelSmRegularTextStyle.copyWith(
-                        color: KStyle.cBlackColor,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: KStyle.cE3GreyColor),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '',
-                          style: KStyle.labelSmRegularTextStyle.copyWith(
-                            color: KStyle.cBlackColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              final controller = entry.value;
+              return _buildChoiceField(
+                  index, controller, Icons.arrow_drop_down);
             }).toList(),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 _addChoice();
               },
-              child: Text(
-                '+ Add Choice',
-                style: KStyle.labelSmRegularTextStyle.copyWith(
-                  color: KStyle.cPrimaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 16,
+                    color: KStyle.cPrimaryColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Add Choice',
+                    style: KStyle.labelSmRegularTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -424,10 +389,28 @@ class _QuestionCardState extends State<QuestionCard> {
                   border: Border.all(color: KStyle.cE3GreyColor),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  'DD/MM/YYYY',
+                child: TextField(
+                  onChanged: (value) {
+                    _updatePlaceholder(value);
+                  },
+                  onEditingComplete: () {
+                    _savePlaceholder();
+                  },
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.none,
+                  textDirection: TextDirection.ltr,
                   style: KStyle.labelSmRegularTextStyle.copyWith(
-                    color: KStyle.c72GreyColor,
+                    color: KStyle.cBlackColor,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'DD/MM/YYYY',
+                    hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    isDense: true,
                   ),
                 ),
               ),
@@ -477,10 +460,28 @@ class _QuestionCardState extends State<QuestionCard> {
             border: Border.all(color: KStyle.cE3GreyColor),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
-            'Your answer',
+          child: TextField(
+            onChanged: (value) {
+              _updatePlaceholder(value);
+            },
+            onEditingComplete: () {
+              _savePlaceholder();
+            },
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.text,
+            textCapitalization: TextCapitalization.none,
+            textDirection: TextDirection.ltr,
             style: KStyle.labelSmRegularTextStyle.copyWith(
-              color: KStyle.c72GreyColor,
+              color: KStyle.cBlackColor,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Your answer',
+              hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
             ),
           ),
         );
@@ -494,6 +495,64 @@ class _QuestionCardState extends State<QuestionCard> {
 
     final updatedField = widget.field.copyWith(options: currentOptions);
     widget.onUpdate(updatedField);
+  }
+
+  Widget _buildChoiceField(
+      int index, TextEditingController controller, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          if (icon !=
+              Icons
+                  .arrow_drop_down) // Show icon for checkbox and radio, not for dropdown
+            Icon(
+              icon,
+              size: 16,
+              color: KStyle.cPrimaryColor,
+            ),
+          if (icon != Icons.arrow_drop_down) const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: (value) {
+                _updateChoice(index, value);
+              },
+              onEditingComplete: () {
+                _saveChoices();
+              },
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.text,
+              textCapitalization: TextCapitalization.none,
+              textDirection: TextDirection.ltr,
+              style: KStyle.labelSmRegularTextStyle.copyWith(
+                color: KStyle.cBlackColor,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Choice ${index + 1}',
+                hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: KStyle.cPrimaryColor, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(8),
+                isDense: true,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _getQuestionTypeName(String type) {
