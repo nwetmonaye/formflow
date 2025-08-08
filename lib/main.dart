@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
-import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/services/firebase_service.dart';
+import 'package:formflow/services/auth_service.dart';
+import 'package:formflow/widgets/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:formflow/screens/login_screen.dart';
+import 'package:formflow/screens/signup_screen.dart';
+import 'package:formflow/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,48 +16,8 @@ void main() async {
   // Initialize Firebase
   await FirebaseService.initializeFirebase();
 
-  // Sign in anonymously for demo
-  try {
-    final userCredential = await FirebaseService.signInAnonymously();
-    print('✅ Signed in anonymously as: ${userCredential.user?.uid}');
-  } catch (e) {
-    print('❌ Error signing in anonymously: $e');
-  }
-
-  // Test Firebase Firestore connection
-  try {
-    print('🔍 Testing Firebase Firestore connection...');
-
-    // Get the document from test collection
-    final doc = await FirebaseFirestore.instance
-        .collection('test')
-        .doc('mJ28ttuI290')
-        .get();
-
-    if (doc.exists) {
-      final data = doc.data();
-      final name = data?['name'];
-      print('✅ Firebase connection WORKING!');
-      print('📄 Document ID: ${doc.id}');
-      print('📝 Name field value: "$name"');
-      print('📊 Full document data: $data');
-    } else {
-      print('❌ Document does not exist');
-      print('🔍 Available documents in test collection:');
-
-      // List all documents in the test collection
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('test').get();
-
-      for (var doc in querySnapshot.docs) {
-        print('   - Document ID: ${doc.id}');
-        print('   - Data: ${doc.data()}');
-      }
-    }
-  } catch (e) {
-    print('❌ Firebase connection FAILED!');
-    print('🚨 Error: $e');
-  }
+  // Check Firebase Auth configuration
+  await AuthService.checkAuthConfiguration();
 
   runApp(const FormFlowApp());
 }
@@ -62,19 +27,31 @@ class FormFlowApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Form Flow',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: KStyle.cPrimaryColor,
-          primary: KStyle.cPrimaryColor,
-          background: KStyle.cBgColor,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(),
         ),
-        fontFamily: 'Plus Jakarta Sans',
-        useMaterial3: true,
+      ],
+      child: MaterialApp(
+        title: 'Form Flow',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: KStyle.cPrimaryColor,
+            primary: KStyle.cPrimaryColor,
+            background: KStyle.cBgColor,
+          ),
+          fontFamily: 'Plus Jakarta Sans',
+          useMaterial3: true,
+        ),
+        home: const AuthWrapper(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignUpScreen(),
+          '/home': (context) => const HomeScreen(),
+        },
       ),
-      home: const HomeScreen(),
     );
   }
 }
