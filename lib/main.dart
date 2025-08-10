@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:formflow/screens/login_screen.dart';
 import 'package:formflow/screens/signup_screen.dart';
 import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/screens/form_submission_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +51,17 @@ class FormFlowApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignUpScreen(),
           '/home': (context) => const HomeScreen(),
+        },
+        onGenerateRoute: (settings) {
+          // Handle dynamic form routes like /form/{formId}
+          if (settings.name?.startsWith('/form/') == true) {
+            final formId =
+                settings.name!.substring(6); // Remove '/form/' prefix
+            return MaterialPageRoute(
+              builder: (context) => FormSubmissionScreen(formId: formId),
+            );
+          }
+          return null;
         },
       ),
     );

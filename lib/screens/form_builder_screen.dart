@@ -57,10 +57,25 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     });
 
     try {
+      // Ensure createdBy is set to current user
+      final currentUser = FirebaseService.currentUser;
+      print('🔍 AutoSave: Current user: ${currentUser?.uid}');
+      print('🔍 AutoSave: Form createdBy before: ${_form.createdBy}');
+
+      if (currentUser != null) {
+        _form = _form.copyWith(createdBy: currentUser.uid);
+        print('🔍 AutoSave: Form createdBy after: ${_form.createdBy}');
+      } else {
+        print('🔍 AutoSave: No current user found!');
+      }
+
       if (_form.id != null) {
+        print('🔍 AutoSave: Updating existing form: ${_form.id}');
         await FirebaseService.updateForm(_form.id!, _form);
       } else {
+        print('🔍 AutoSave: Creating new form');
         final formId = await FirebaseService.createForm(_form);
+        print('🔍 AutoSave: New form created with ID: $formId');
         setState(() {
           _form = _form.copyWith(id: formId);
         });

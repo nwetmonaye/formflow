@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
@@ -35,107 +36,127 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       },
-      child: Scaffold(
-        backgroundColor: KStyle.cBgColor,
-        body: Row(
-          children: [
-            // Left Sidebar
-            Container(
-              width: 280,
-              decoration: BoxDecoration(
-                color: KStyle.cWhiteColor,
-                border: Border(
-                  right: BorderSide(
-                    color: KStyle.cE3GreyColor,
-                    width: 1,
-                  ),
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          // Check if user is authenticated
+          if (authState is! Authenticated) {
+            return Scaffold(
+              backgroundColor: KStyle.cBgColor,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 64,
+                      color: KStyle.c72GreyColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Please sign in to view your forms',
+                      style: KStyle.heading3TextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  // Logo
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          'form',
-                          style: KStyle.heading2TextStyle.copyWith(
-                            color: KStyle.cBlackColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          margin: const EdgeInsets.only(top: 10),
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: KStyle.cPrimaryColor,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
-                      ],
+            );
+          }
+
+          return Scaffold(
+            backgroundColor: KStyle.cBgColor,
+            body: Row(
+              children: [
+                // Left Sidebar
+                Container(
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: KStyle.cWhiteColor,
+                    border: Border(
+                      right: BorderSide(
+                        color: KStyle.cE3GreyColor,
+                        width: 1,
+                      ),
                     ),
                   ),
-
-                  // Navigation Menu
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildNavItem(
-                          icon: Icons.description_outlined,
-                          title: 'My Forms',
-                          isSelected: selectedNavItem == 0,
-                          onTap: () {
-                            setState(() {
-                              selectedNavItem = 0;
-                            });
-                          },
-                        ),
-                        _buildNavItem(
-                          icon: Icons.group_outlined,
-                          title: 'Cohorts',
-                          isSelected: selectedNavItem == 1,
-                          onTap: () {
-                            setState(() {
-                              selectedNavItem = 1;
-                            });
-                          },
-                        ),
-                        _buildNavItem(
-                          icon: Icons.notifications_outlined,
-                          title: 'Notifications',
-                          isSelected: selectedNavItem == 2,
-                          notificationCount: 5,
-                          onTap: () {
-                            setState(() {
-                              selectedNavItem = 2;
-                            });
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const NotificationScreen(),
+                  child: Column(
+                    children: [
+                      // Logo
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              'form',
+                              style: KStyle.heading2TextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                                fontWeight: FontWeight.w600,
                               ),
-                            );
-                          },
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              margin: const EdgeInsets.only(top: 10),
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: KStyle.cPrimaryColor,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  // User Profile
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      String userName = 'User';
-                      if (state is Authenticated) {
-                        userName = state.user.displayName ??
-                            state.user.email.split('@')[0];
-                      }
+                      // Navigation Menu
+                      Expanded(
+                        child: Column(
+                          children: [
+                            _buildNavItem(
+                              icon: Icons.description_outlined,
+                              title: 'My Forms',
+                              isSelected: selectedNavItem == 0,
+                              onTap: () {
+                                setState(() {
+                                  selectedNavItem = 0;
+                                });
+                              },
+                            ),
+                            _buildNavItem(
+                              icon: Icons.group_outlined,
+                              title: 'Cohorts',
+                              isSelected: selectedNavItem == 1,
+                              onTap: () {
+                                setState(() {
+                                  selectedNavItem = 1;
+                                });
+                              },
+                            ),
+                            _buildNavItem(
+                              icon: Icons.notifications_outlined,
+                              title: 'Notifications',
+                              isSelected: selectedNavItem == 2,
+                              notificationCount: 5,
+                              onTap: () {
+                                setState(() {
+                                  selectedNavItem = 2;
+                                });
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const NotificationScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
 
-                      return Container(
+                      // User Profile
+                      Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           border: Border(
@@ -170,7 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      userName,
+                                      authState.user.displayName ??
+                                          authState.user.email.split('@')[0],
                                       style: KStyle.labelMdRegularTextStyle
                                           .copyWith(
                                         color: KStyle.cBlackColor,
@@ -195,218 +217,519 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Main Content Area
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: KStyle.cWhiteColor,
-                  border: Border(
-                    right: BorderSide(
-                      color: KStyle.cE3GreyColor,
-                      width: 1,
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: KStyle.cWhiteColor,
-                        // border: Border(
-                        //   bottom: BorderSide(
-                        //     color: KStyle.cE3GreyColor,
-                        //     width: 1,
-                        //   ),
-                        // ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'My Forms',
-                            style: KStyle.headingTextStyle.copyWith(
-                              color: KStyle.cBlackColor,
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const FormBuilderScreen(),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: KStyle.cPrimaryColor,
-                              foregroundColor: KStyle.cWhiteColor,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            icon: const Icon(Icons.add, size: 20),
-                            label: Text(
-                              'New Form',
-                              style: KStyle.labelMdBoldTextStyle.copyWith(
-                                color: KStyle.cWhiteColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    // Filters
-                    Container(
-                      decoration: BoxDecoration(
-                        color: KStyle.cWhiteColor,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: KStyle.cE3GreyColor,
-                            width: 1,
-                          ),
+                // Main Content Area
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: KStyle.cWhiteColor,
+                      border: Border(
+                        right: BorderSide(
+                          color: KStyle.cE3GreyColor,
+                          width: 1,
                         ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      child: Row(
-                        children: filters.map((filter) {
-                          bool isSelected = selectedFilter == filter;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedFilter = filter;
-                              });
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 32),
-                              child: Column(
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: KStyle.cWhiteColor,
+                            // border: Border(
+                            //   bottom: BorderSide(
+                            //     color: KStyle.cE3GreyColor,
+                            //     width: 1,
+                            //   ),
+                            // ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    filter,
-                                    style:
-                                        KStyle.labelMdRegularTextStyle.copyWith(
-                                      color: isSelected
-                                          ? KStyle.cPrimaryColor
-                                          : KStyle.c72GreyColor,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
+                                    'My Forms',
+                                    style: KStyle.headingTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  if (isSelected)
-                                    Container(
-                                      width: 20,
-                                      height: 2,
-                                      decoration: BoxDecoration(
-                                        color: KStyle.cPrimaryColor,
-                                        borderRadius: BorderRadius.circular(1),
-                                      ),
-                                    ),
                                 ],
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-
-                    // Forms Grid
-                    Expanded(
-                      child: StreamBuilder<List<FormModel>>(
-                        stream: FirebaseService.getFormsStream(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                'Error loading forms: ${snapshot.error}',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: Colors.red,
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const FormBuilderScreen(),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: KStyle.cPrimaryColor,
+                                  foregroundColor: KStyle.cWhiteColor,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                icon: const Icon(Icons.add, size: 20),
+                                label: Text(
+                                  'New Form',
+                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                    color: KStyle.cWhiteColor,
+                                  ),
                                 ),
                               ),
-                            );
-                          }
+                            ],
+                          ),
+                        ),
 
-                          final forms = snapshot.data ?? [];
-                          final filteredForms =
-                              _filterForms(forms, selectedFilter);
-
-                          if (filteredForms.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.description_outlined,
-                                    size: 64,
-                                    color: KStyle.c72GreyColor,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No forms found',
-                                    style: KStyle.heading3TextStyle.copyWith(
-                                      color: KStyle.c72GreyColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Create your first form to get started',
-                                    style:
-                                        KStyle.labelMdRegularTextStyle.copyWith(
-                                      color: KStyle.c72GreyColor,
-                                    ),
-                                  ),
-                                ],
+                        // Filters
+                        Container(
+                          decoration: BoxDecoration(
+                            color: KStyle.cWhiteColor,
+                            border: Border(
+                              bottom: BorderSide(
+                                color: KStyle.cE3GreyColor,
+                                width: 1,
                               ),
-                            );
-                          }
-
-                          return GridView.builder(
-                            padding: const EdgeInsets.all(20),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 1.8,
                             ),
-                            itemCount: filteredForms.length,
-                            itemBuilder: (context, index) {
-                              final form = filteredForms[index];
-                              return _buildFormCard(form);
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          child: Row(
+                            children: filters.map((filter) {
+                              bool isSelected = selectedFilter == filter;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedFilter = filter;
+                                  });
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(right: 32),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        filter,
+                                        style: KStyle.labelMdRegularTextStyle
+                                            .copyWith(
+                                          color: isSelected
+                                              ? KStyle.cPrimaryColor
+                                              : KStyle.c72GreyColor,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      if (isSelected)
+                                        Container(
+                                          width: 20,
+                                          height: 2,
+                                          decoration: BoxDecoration(
+                                            color: KStyle.cPrimaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(1),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        // Forms Grid
+                        Expanded(
+                          child: FutureBuilder<bool>(
+                            future: FirebaseService.ensureInitialized(),
+                            builder: (context, initSnapshot) {
+                              if (initSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+
+                              if (initSnapshot.hasError ||
+                                  initSnapshot.data != true) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline,
+                                        size: 64,
+                                        color: Colors.red,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Failed to initialize Firebase',
+                                        style:
+                                            KStyle.heading3TextStyle.copyWith(
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Please check your internet connection and try again',
+                                        style: KStyle.labelMdRegularTextStyle
+                                            .copyWith(
+                                          color: KStyle.c72GreyColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              return StreamBuilder<List<FormModel>>(
+                                stream: FirebaseService.getFormsStream(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (snapshot.hasError) {
+                                    print('Stream error: ${snapshot.error}');
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.error_outline,
+                                            size: 64,
+                                            color: Colors.red,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'Error loading forms',
+                                            style: KStyle.heading3TextStyle
+                                                .copyWith(
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Error: ${snapshot.error}',
+                                            style: KStyle
+                                                .labelMdRegularTextStyle
+                                                .copyWith(
+                                              color: KStyle.c72GreyColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+
+                                  final forms = snapshot.data ?? [];
+                                  final filteredForms =
+                                      _filterForms(forms, selectedFilter);
+
+                                  print(
+                                      '🔍 HomeScreen: Total forms: ${forms.length}');
+                                  print(
+                                      '🔍 HomeScreen: Filtered forms: ${filteredForms.length}');
+                                  print(
+                                      '🔍 HomeScreen: Current filter: $selectedFilter');
+
+                                  if (filteredForms.isEmpty) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.description_outlined,
+                                            size: 64,
+                                            color: KStyle.c72GreyColor,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'No forms found',
+                                            style: KStyle.heading3TextStyle
+                                                .copyWith(
+                                              color: KStyle.c72GreyColor,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Create your first form to get started',
+                                            style: KStyle
+                                                .labelMdRegularTextStyle
+                                                .copyWith(
+                                              color: KStyle.c72GreyColor,
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 16),
+                                          // Debug button to test Firebase connection
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await FirebaseService
+                                                  .testFirebaseConnection();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Check console for Firebase connection test results'),
+                                                  backgroundColor: Colors.blue,
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.blue,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Text(
+                                                'Test Firebase Connection'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to create test form
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              try {
+                                                final testForm = FormModel(
+                                                  title:
+                                                      'Test Form ${DateTime.now().millisecondsSinceEpoch}',
+                                                  description:
+                                                      'This is a test form created for debugging',
+                                                  fields: [],
+                                                  status: 'draft',
+                                                  createdBy: authState.user.uid,
+                                                  createdAt: DateTime.now(),
+                                                  updatedAt: DateTime.now(),
+                                                );
+
+                                                final formId =
+                                                    await FirebaseService
+                                                        .createForm(testForm);
+                                                print(
+                                                    '🔍 Debug: Created test form with ID: $formId');
+
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Test form created successfully!'),
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                print(
+                                                    '🔍 Debug: Error creating test form: $e');
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Error creating test form: $e'),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Text(
+                                                'Create Test Form (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to get all forms
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              try {
+                                                final allForms =
+                                                    await FirebaseService
+                                                        .getAllFormsDebug();
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Found ${allForms.length} total forms. Check console for details.'),
+                                                    backgroundColor:
+                                                        Colors.orange,
+                                                    duration:
+                                                        Duration(seconds: 3),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Error getting all forms: $e'),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.orange,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child:
+                                                Text('Get All Forms (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to sign in anonymously
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              try {
+                                                await FirebaseService
+                                                    .signInAnonymously();
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Signed in anonymously. Check console for details.'),
+                                                    backgroundColor:
+                                                        Colors.purple,
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        'Error signing in anonymously: $e'),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.purple,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Text(
+                                                'Sign In Anonymously (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to test forms stream without user filter
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // This will show a dialog with the debug stream
+                                              _showDebugStreamDialog(context);
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.teal,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Text(
+                                                'Test Forms Stream (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to check auth state
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await FirebaseService
+                                                  .checkAuthState();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Check console for authentication state details'),
+                                                  backgroundColor:
+                                                      Colors.indigo,
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.indigo,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Text(
+                                                'Check Auth State (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to test ordered forms stream
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // This will test the query that requires an index
+                                              _showOrderedStreamDialog(context);
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.deepOrange,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Text(
+                                                'Test Ordered Stream (Debug)'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Debug button to open index creation URL
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              final url = FirebaseService
+                                                  .getIndexCreationUrl();
+                                              // Open URL in browser (you'll need to implement this)
+                                              print(
+                                                  '🔍 Index creation URL: $url');
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Index creation URL copied to console. Open it in your browser.'),
+                                                  backgroundColor: Colors.amber,
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.amber,
+                                              foregroundColor: Colors.black,
+                                            ),
+                                            child:
+                                                Text('Get Index Creation URL'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+
+                                  return GridView.builder(
+                                    padding: const EdgeInsets.all(20),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: 1.8,
+                                    ),
+                                    itemCount: filteredForms.length,
+                                    itemBuilder: (context, index) {
+                                      final form = filteredForms[index];
+                                      return _buildFormCard(form);
+                                    },
+                                  );
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -612,7 +935,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () {
-                          // TODO: Implement copy link
+                          _copyFormLink(form);
                         },
                         child: Container(
                           width: 22,
@@ -852,6 +1175,212 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.w500,
         ),
       ),
+    );
+  }
+
+  Future<void> _copyFormLink(FormModel form) async {
+    // Generate a shareable link for the form (using localhost for testing)
+    final String link = 'http://localhost:59568/form/${form.id}';
+
+    try {
+      await Clipboard.setData(ClipboardData(text: link));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Form link copied to clipboard!'),
+              Text(
+                'Link: $link',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          backgroundColor: KStyle.cPrimaryColor,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to copy form link: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showDebugStreamDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Debug: Forms Stream',
+            style: KStyle.heading3TextStyle.copyWith(
+              color: KStyle.cBlackColor,
+            ),
+          ),
+          content: Container(
+            width: 400,
+            height: 300,
+            child: StreamBuilder<List<FormModel>>(
+              stream: FirebaseService.getFormsStreamDebug(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                }
+
+                final forms = snapshot.data ?? [];
+
+                if (forms.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No forms found in database',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: forms.length,
+                  itemBuilder: (context, index) {
+                    final form = forms[index];
+                    return ListTile(
+                      title: Text(
+                        form.title,
+                        style: KStyle.labelMdRegularTextStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'ID: ${form.id} | Created by: ${form.createdBy} | Status: ${form.status}',
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Close',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showOrderedStreamDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Debug: Ordered Forms Stream',
+            style: KStyle.heading3TextStyle.copyWith(
+              color: KStyle.cBlackColor,
+            ),
+          ),
+          content: Container(
+            width: 400,
+            height: 300,
+            child: StreamBuilder<List<FormModel>>(
+              stream: FirebaseService.getFormsStreamWithOrderBy(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                }
+
+                final forms = snapshot.data ?? [];
+
+                if (forms.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No forms found in database',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: forms.length,
+                  itemBuilder: (context, index) {
+                    final form = forms[index];
+                    return ListTile(
+                      title: Text(
+                        form.title,
+                        style: KStyle.labelMdRegularTextStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'ID: ${form.id} | Created by: ${form.createdBy} | Status: ${form.status}',
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Close',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

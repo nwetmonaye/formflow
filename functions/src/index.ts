@@ -8,6 +8,10 @@
  */
 
 import { setGlobalOptions } from "firebase-functions";
+import * as admin from "firebase-admin";
+
+// Initialize Firebase Admin
+admin.initializeApp();
 
 // Import all functions
 export { sendEmailNotification } from "./email-notifications";

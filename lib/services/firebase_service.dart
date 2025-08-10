@@ -25,6 +25,12 @@ class FirebaseService {
   // Initialize Firebase
   static Future<void> initializeFirebase() async {
     try {
+      if (_isInitialized) {
+        print('Firebase already initialized');
+        return;
+      }
+
+      print('Initializing Firebase...');
       await Firebase.initializeApp(
         options: const FirebaseOptions(
           apiKey: "AIzaSyBlPlYZKa2jtYb2uNEKHNexpk07IFSRJuo",
@@ -43,10 +49,177 @@ class FirebaseService {
 
       _isInitialized = true;
       print('Firebase initialized successfully');
+      print('Firestore instance: ${_firestore != null}');
+      print('Auth instance: ${_auth != null}');
     } catch (e) {
       print('Error initializing Firebase: $e');
+      _isInitialized = false;
       // Don't rethrow for now, allow app to continue with mock services
     }
+  }
+
+  // Ensure Firebase is initialized
+  static Future<bool> ensureInitialized() async {
+    if (!_isInitialized) {
+      print('Firebase not initialized, attempting to initialize...');
+      await initializeFirebase();
+    }
+    return _isInitialized;
+  }
+
+  // Debug method to test basic Firebase connectivity
+  static Future<void> testFirebaseConnection() async {
+    try {
+      print('🧪 Testing Firebase connection...');
+
+      if (!_isInitialized) {
+        print('🧪 Firebase not initialized');
+        return;
+      }
+
+      // Test basic collection access
+      final testSnapshot = await _firestore!.collection('forms').limit(1).get();
+      print('🧪 Test query successful: ${testSnapshot.docs.length} docs found');
+
+      // Test current user
+      final user = FirebaseAuth.instance.currentUser;
+      print('🧪 Current user: ${user?.uid ?? 'null'}');
+    } catch (e) {
+      print('🧪 Firebase connection test failed: $e');
+    }
+  }
+
+  // Debug method to get all forms without user filtering
+  static Future<List<FormModel>> getAllFormsDebug() async {
+    try {
+      print('🧪 Getting all forms for debug...');
+
+      if (_firestore == null) {
+        print('🧪 Firestore not initialized');
+        return [];
+      }
+
+      final snapshot = await _firestore!.collection('forms').get();
+      print('🧪 Found ${snapshot.docs.length} total forms in database');
+
+      final forms = snapshot.docs
+          .map((doc) {
+            try {
+              final form = FormModel.fromMap(doc.data(), doc.id);
+              print(
+                  '🧪 Form: ${form.title} (${form.id}) - Created by: ${form.createdBy}');
+              return form;
+            } catch (e) {
+              print('🧪 Error parsing form ${doc.id}: $e');
+              return null;
+            }
+          })
+          .where((form) => form != null)
+          .cast<FormModel>()
+          .toList();
+
+      print('🧪 Successfully parsed ${forms.length} forms');
+      return forms;
+    } catch (e) {
+      print('🧪 Error getting all forms: $e');
+      return [];
+    }
+  }
+
+  // Debug method to check authentication state
+  static Future<void> checkAuthState() async {
+    try {
+      print('🔐 Checking Firebase Auth state...');
+
+      if (_auth == null) {
+        print('🔐 Firebase Auth not initialized');
+        return;
+      }
+
+      final user = _auth!.currentUser;
+      if (user != null) {
+        print('🔐 User is authenticated:');
+        print('🔐   UID: ${user.uid}');
+        print('🔐   Email: ${user.email}');
+        print('🔐   Display Name: ${user.displayName}');
+        print('🔐   Is Anonymous: ${user.isAnonymous}');
+        print('🔐   Email Verified: ${user.emailVerified}');
+        print('🔐   Creation Time: ${user.metadata.creationTime}');
+        print('🔐   Last Sign In: ${user.metadata.lastSignInTime}');
+      } else {
+        print('🔐 No user is currently authenticated');
+      }
+
+      // Check auth state changes
+      _auth!.authStateChanges().listen((User? user) {
+        print('🔐 Auth state changed: ${user?.uid ?? 'null'}');
+      });
+    } catch (e) {
+      print('🔐 Error checking auth state: $e');
+    }
+  }
+
+  // Method to get forms with orderBy (requires composite index)
+  static Stream<List<FormModel>> getFormsStreamWithOrderBy() {
+    print('🔍 getFormsStreamWithOrderBy: Starting...');
+
+    if (_firestore == null) {
+      print('🔍 getFormsStreamWithOrderBy: Firestore not initialized');
+      return Stream.value([]);
+    }
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('🔍 getFormsStreamWithOrderBy: No current user found');
+        return Stream.value([]);
+      }
+
+      print(
+          '🔍 getFormsStreamWithOrderBy: Querying forms for user: ${user.uid}');
+
+      // This query requires a composite index on (createdBy, updatedAt)
+      return _firestore!
+          .collection('forms')
+          .where('createdBy', isEqualTo: user.uid)
+          .orderBy('updatedAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        print(
+            '🔍 getFormsStreamWithOrderBy: Snapshot received with ${snapshot.docs.length} docs');
+
+        final forms = snapshot.docs
+            .map((doc) {
+              try {
+                return FormModel.fromMap(doc.data(), doc.id);
+              } catch (e) {
+                print(
+                    '🔍 getFormsStreamWithOrderBy: Error parsing form ${doc.id}: $e');
+                return null;
+              }
+            })
+            .where((form) => form != null)
+            .cast<FormModel>()
+            .toList();
+
+        print(
+            '🔍 getFormsStreamWithOrderBy: Successfully parsed ${forms.length} forms');
+        return forms;
+      }).handleError((error) {
+        print('🔍 getFormsStreamWithOrderBy: Error - Index required: $error');
+        print(
+            '🔍 getFormsStreamWithOrderBy: Create index at: https://console.firebase.google.com/v1/r/project/formflow-b0484/firestore/indexes');
+        return <FormModel>[];
+      });
+    } catch (e) {
+      print('🔍 getFormsStreamWithOrderBy: Exception: $e');
+      return Stream.value([]);
+    }
+  }
+
+  // Helper method to get the index creation URL
+  static String getIndexCreationUrl() {
+    return 'https://console.firebase.google.com/v1/r/project/formflow-b0484/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mb3JtZmxvdy1iMDQ4NC9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZm9ybXMvaW5kZXhlcy9fEAEaDQoJY3JlYXRlZEJ5EAEaDQoJdXBkYXRlZEF0EAIaDAoIX19uYW1lX18QAg';
   }
 
   // Firestore instance
@@ -120,16 +293,125 @@ class FirebaseService {
     }
   }
 
+  // Get forms stream for the current user
   static Stream<List<FormModel>> getFormsStream() {
-    if (_firestore == null) throw Exception('Firestore not initialized');
+    print('🔍 getFormsStream: Starting...');
+    print('🔍 getFormsStream: Firebase initialized: $_isInitialized');
+    print('🔍 getFormsStream: Firestore instance: ${_firestore != null}');
 
-    return _firestore!
-        .collection('forms')
-        .orderBy('updatedAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => FormModel.fromMap(doc.data(), doc.id))
-            .toList());
+    if (_firestore == null) {
+      print(
+          '🔍 getFormsStream: Firestore not initialized, returning empty stream');
+      return Stream.value([]);
+    }
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('🔍 getFormsStream: No current user found');
+        return Stream.value([]);
+      }
+
+      print('🔍 getFormsStream: Querying forms for user: ${user.uid}');
+
+      // Use a simpler query that doesn't require complex indexing
+      // First try to get forms with basic filtering
+      return _firestore!
+          .collection('forms')
+          .where('createdBy', isEqualTo: user.uid)
+          .snapshots()
+          .map((snapshot) {
+        print(
+            '🔍 getFormsStream: Snapshot received with ${snapshot.docs.length} docs');
+
+        final forms = snapshot.docs
+            .map((doc) {
+              try {
+                return FormModel.fromMap(doc.data(), doc.id);
+              } catch (e) {
+                print('🔍 getFormsStream: Error parsing form ${doc.id}: $e');
+                print('🔍 getFormsStream: Form data: ${doc.data()}');
+                return null;
+              }
+            })
+            .where((form) => form != null)
+            .cast<FormModel>()
+            .toList();
+
+        // Sort forms locally instead of using orderBy in the query
+        forms.sort((a, b) {
+          final aTime = a.updatedAt ?? DateTime(1900);
+          final bTime = b.updatedAt ?? DateTime(1900);
+          return bTime.compareTo(aTime); // Most recent first
+        });
+
+        print('🔍 getFormsStream: Successfully parsed ${forms.length} forms');
+        print(
+            '🔍 getFormsStream: Form titles: ${forms.map((f) => '${f.title}(${f.id})').join(', ')}');
+        return forms;
+      }).handleError((error) {
+        print('🔍 getFormsStream: Error in stream: $error');
+        // Return empty list on error instead of trying complex fallback
+        return <FormModel>[];
+      });
+    } catch (e) {
+      print('🔍 getFormsStream: Exception in stream creation: $e');
+      return Stream.value([]);
+    }
+  }
+
+  // Debug method to get forms stream without user filtering
+  static Stream<List<FormModel>> getFormsStreamDebug() {
+    print('🔍 getFormsStreamDebug: Starting...');
+    print('🔍 getFormsStreamDebug: Firebase initialized: $_isInitialized');
+    print('🔍 getFormsStreamDebug: Firestore instance: ${_firestore != null}');
+
+    if (_firestore == null) {
+      print(
+          '🔍 getFormsStreamDebug: Firestore not initialized, returning empty stream');
+      return Stream.value([]);
+    }
+
+    try {
+      print('🔍 getFormsStreamDebug: Querying all forms without user filter');
+
+      return _firestore!
+          .collection('forms')
+          .orderBy('updatedAt', descending: true)
+          .snapshots()
+          .handleError((error) {
+        print('🔍 getFormsStreamDebug: Error in stream: $error');
+        return <FormModel>[];
+      }).map((snapshot) {
+        print(
+            '🔍 getFormsStreamDebug: Snapshot received with ${snapshot.docs.length} docs');
+
+        final forms = snapshot.docs
+            .map((doc) {
+              try {
+                final form = FormModel.fromMap(doc.data(), doc.id);
+                print(
+                    '🔍 getFormsStreamDebug: Form: ${form.title} (${form.id}) - Created by: ${form.createdBy}');
+                return form;
+              } catch (e) {
+                print(
+                    '🔍 getFormsStreamDebug: Error parsing form ${doc.id}: $e');
+                print('🔍 getFormsStreamDebug: Form data: ${doc.data()}');
+                return null;
+              }
+            })
+            .where((form) => form != null)
+            .cast<FormModel>()
+            .toList();
+
+        print(
+            '🔍 getFormsStreamDebug: Successfully parsed ${forms.length} forms');
+        return forms;
+      });
+    } catch (e) {
+      print('🔍 getFormsStreamDebug: Exception in stream creation: $e');
+      return Stream.value([]);
+    }
   }
 
   static Future<List<FormModel>> getForms() async {
@@ -145,14 +427,20 @@ class FirebaseService {
         .toList();
   }
 
+  // Get a specific form by ID
   static Future<FormModel?> getForm(String formId) async {
-    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (_firestore == null) return null;
 
-    final doc = await _firestore!.collection('forms').doc(formId).get();
-    if (doc.exists) {
-      return FormModel.fromMap(doc.data()!, doc.id);
+    try {
+      final doc = await _firestore!.collection('forms').doc(formId).get();
+      if (doc.exists) {
+        return FormModel.fromMap(doc.data()!, doc.id);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting form: $e');
+      return null;
     }
-    return null;
   }
 
   static Future<void> deleteForm(String formId) async {
