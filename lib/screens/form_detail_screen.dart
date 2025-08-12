@@ -648,6 +648,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ),
                 ),
               ),
+              const SizedBox(width: 50),
 
               // Download CSV Button
               ElevatedButton.icon(
@@ -677,65 +678,65 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               ),
               const SizedBox(width: 16),
               // Test Submission Button
-              ElevatedButton.icon(
-                onPressed: _createTestSubmission,
-                icon: const Icon(Icons.add, size: 20),
-                label: Text(
-                  'Add Test Submission',
-                  style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.cWhiteColor,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: KStyle.c00GreenColor,
-                  foregroundColor: KStyle.cWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
+              // ElevatedButton.icon(
+              //   onPressed: _createTestSubmission,
+              //   icon: const Icon(Icons.add, size: 20),
+              //   label: Text(
+              //     'Add Test Submission',
+              //     style: KStyle.labelMdRegularTextStyle.copyWith(
+              //       color: KStyle.cWhiteColor,
+              //     ),
+              //   ),
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: KStyle.c00GreenColor,
+              //     foregroundColor: KStyle.cWhiteColor,
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(width: 16),
               // Debug Button
-              ElevatedButton.icon(
-                onPressed: _debugSubmissions,
-                icon: const Icon(Icons.bug_report, size: 20),
-                label: Text(
-                  'Debug Submissions',
-                  style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.cWhiteColor,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: KStyle.c72GreyColor,
-                  foregroundColor: KStyle.cWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
+              // ElevatedButton.icon(
+              //   onPressed: _debugSubmissions,
+              //   icon: const Icon(Icons.bug_report, size: 20),
+              //   label: Text(
+              //     'Debug Submissions',
+              //     style: KStyle.labelMdRegularTextStyle.copyWith(
+              //       color: KStyle.cWhiteColor,
+              //     ),
+              //   ),
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: KStyle.c72GreyColor,
+              //     foregroundColor: KStyle.cWhiteColor,
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(width: 16),
               // Refresh Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    // This will trigger a rebuild and reload submissions
-                  });
-                },
-                icon: const Icon(Icons.refresh, size: 20),
-                label: Text(
-                  'Refresh',
-                  style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.cWhiteColor,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: KStyle.c72GreyColor,
-                  foregroundColor: KStyle.cWhiteColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
+              // ElevatedButton.icon(
+              //   onPressed: () {
+              //     setState(() {
+              //       // This will trigger a rebuild and reload submissions
+              //     });
+              //   },
+              //   icon: const Icon(Icons.refresh, size: 20),
+              //   label: Text(
+              //     'Refresh',
+              //     style: KStyle.labelMdRegularTextStyle.copyWith(
+              //       color: KStyle.cWhiteColor,
+              //     ),
+              //   ),
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: KStyle.c72GreyColor,
+              //     foregroundColor: KStyle.cWhiteColor,
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
 

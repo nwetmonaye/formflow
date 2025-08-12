@@ -477,15 +477,35 @@ class FirebaseService {
       String formId) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
-    final snapshot = await _firestore!
-        .collection('submissions')
-        .where('formId', isEqualTo: formId)
-        .orderBy('createdAt', descending: true)
-        .get();
+    try {
+      // Try the optimized query first (requires index)
+      final snapshot = await _firestore!
+          .collection('submissions')
+          .where('formId', isEqualTo: formId)
+          .orderBy('createdAt', descending: true)
+          .get();
 
-    return snapshot.docs
-        .map((doc) => SubmissionModel.fromMap(doc.data(), doc.id))
-        .toList();
+      return snapshot.docs
+          .map((doc) => SubmissionModel.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      print('🔍 Index query failed, falling back to basic query: $e');
+
+      // Fallback: Get all submissions for the form and sort locally
+      final snapshot = await _firestore!
+          .collection('submissions')
+          .where('formId', isEqualTo: formId)
+          .get();
+
+      final submissions = snapshot.docs
+          .map((doc) => SubmissionModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      // Sort locally by createdAt (most recent first)
+      submissions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      return submissions;
+    }
   }
 
   static Future<void> updateSubmissionStatus(
@@ -510,20 +530,46 @@ class FirebaseService {
 
     print('🔍 Getting submissions stream for form: $formId');
 
-    return _firestore!
-        .collection('submissions')
-        .where('formId', isEqualTo: formId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      print('🔍 Submissions snapshot received: ${snapshot.docs.length} docs');
-      final submissions = snapshot.docs.map((doc) {
+    try {
+      // Try the optimized query first (requires index)
+      return _firestore!
+          .collection('submissions')
+          .where('formId', isEqualTo: formId)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        print('🔍 Submissions snapshot received: ${snapshot.docs.length} docs');
+        final submissions = snapshot.docs.map((doc) {
+          print(
+              '🔍 Processing submission doc: ${doc.id} with data: ${doc.data()}');
+          return SubmissionModel.fromMap(doc.data(), doc.id);
+        }).toList();
+        print('🔍 Processed ${submissions.length} submissions');
+        return submissions;
+      });
+    } catch (e) {
+      print('🔍 Index stream query failed, falling back to basic query: $e');
+
+      // Fallback: Get all submissions for the form and sort locally
+      return _firestore!
+          .collection('submissions')
+          .where('formId', isEqualTo: formId)
+          .snapshots()
+          .map((snapshot) {
+        print('🔍 Submissions snapshot received: ${snapshot.docs.length} docs');
+        final submissions = snapshot.docs.map((doc) {
+          print(
+              '🔍 Processing submission doc: ${doc.id} with data: ${doc.data()}');
+          return SubmissionModel.fromMap(doc.data(), doc.id);
+        }).toList();
+
+        // Sort locally by createdAt (most recent first)
+        submissions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
         print(
-            '🔍 Processing submission doc: ${doc.id} with data: ${doc.data()}');
-        return SubmissionModel.fromMap(doc.data(), doc.id);
-      }).toList();
-      print('🔍 Processed ${submissions.length} submissions');
-      return submissions;
-    });
+            '🔍 Processed ${submissions.length} submissions (sorted locally)');
+        return submissions;
+      });
+    }
   }
 }
