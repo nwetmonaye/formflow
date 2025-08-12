@@ -1447,13 +1447,26 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close,
-                      color: KStyle.c72GreyColor,
-                      size: 24,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.close,
+                          color: KStyle.c72GreyColor,
+                          size: 24,
+                        ),
+                      ),
+                      Text(
+                        _formatDate(submission.createdAt),
+                        style: KStyle.labelMdRegularTextStyle.copyWith(
+                          color: KStyle.cBlackColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildStatusChip(submission.status),
+                    ],
                   ),
                 ],
               ),
@@ -1483,8 +1496,9 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 ),
               ),
 
-              // Comment field for reviewers
               const SizedBox(height: 16),
+
+              // Comment field for reviewers
               Text(
                 'Comment:',
                 style: KStyle.labelMdRegularTextStyle.copyWith(
@@ -1495,7 +1509,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               const SizedBox(height: 8),
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Add a comment...',
+                  hintText: 'Comment',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: KStyle.cE3GreyColor),
@@ -1590,16 +1604,16 @@ class _FormDetailScreenState extends State<FormDetailScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              '$label:',
-              style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: KStyle.c72GreyColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          // SizedBox(
+          //   width: 120,
+          //   child: Text(
+          //     '$label:',
+          //     style: KStyle.labelMdRegularTextStyle.copyWith(
+          //       color: KStyle.c72GreyColor,
+          //       fontWeight: FontWeight.w600,
+          //     ),
+          //   ),
+          // ),
           Expanded(
             child: Text(
               value,
