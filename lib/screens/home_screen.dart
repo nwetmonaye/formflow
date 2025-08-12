@@ -9,6 +9,9 @@ import 'package:formflow/screens/form_builder_screen.dart';
 import 'package:formflow/screens/form_detail_screen.dart';
 import 'package:formflow/screens/notification_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:formflow/screens/form_preview_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -920,7 +923,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // TODO: Implement view form
+                          // Navigate to form preview screen when view icon is clicked
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FormPreviewScreen(form: form),
+                            ),
+                          );
                         },
                         child: Container(
                           width: 24,
@@ -1179,32 +1188,145 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _copyFormLink(FormModel form) async {
-    // Generate a shareable link for the form (using localhost for testing)
-    final String link = 'http://localhost:59568/form/${form.id}';
+    // Generate a shareable link for the form with dynamic base URL
+    String baseUrl;
 
+    // Try to get the current running address
+    try {
+      // For web, we can try to get the current URL
+      if (kIsWeb) {
+        // Use window.location for web
+        baseUrl =
+            '${Uri.base.scheme}://${Uri.base.host}${Uri.base.hasPort ? ':${Uri.base.port}' : ''}';
+      } else {
+        // For mobile/desktop, use a default URL or get from configuration
+        baseUrl =
+            'https://formflow-b0484.web.app'; // Default to Firebase hosting URL
+      }
+    } catch (e) {
+      // Fallback to Firebase hosting URL
+      baseUrl = 'https://formflow-b0484.web.app';
+    }
+
+    // Add view parameter to show form detail screen instead of submission screen
+    final String link = '$baseUrl/form/${form.id}?view=true';
+
+    // Show dialog with copy and open options
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Form Link',
+            style: KStyle.heading3TextStyle.copyWith(
+              color: KStyle.cBlackColor,
+            ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Share this link to view your form:',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: KStyle.cF4GreyColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  link,
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _copyToClipboard(link);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KStyle.cPrimaryColor,
+                foregroundColor: KStyle.cWhiteColor,
+              ),
+              child: Text('Copy Link'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _openLink(link);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KStyle.cWhiteColor,
+                foregroundColor: KStyle.cPrimaryColor,
+                side: BorderSide(color: KStyle.cPrimaryColor),
+              ),
+              child: Text('Open Link'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _copyToClipboard(String link) async {
     try {
       await Clipboard.setData(ClipboardData(text: link));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Form link copied to clipboard!'),
-              Text(
-                'Link: $link',
-                style: TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
+          content: Text('Form link copied to clipboard!'),
           backgroundColor: KStyle.cPrimaryColor,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to copy form link: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openLink(String link) async {
+    try {
+      final uri = Uri.parse(link);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open link: $link'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening link: $e'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 2),
         ),

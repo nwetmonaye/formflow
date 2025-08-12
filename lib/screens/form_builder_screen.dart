@@ -483,129 +483,145 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    // Custom Title Field
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: KStyle.cWhiteColor,
-                        border: Border(
-                          left: BorderSide(
-                            color: KStyle.cPrimaryColor,
-                            width: 4,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 200),
+                  child: Column(
+                    children: [
+                      // Custom Title Field
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: KStyle.cWhiteColor,
+                          border: Border(
+                            left: BorderSide(
+                              color: KStyle.cPrimaryColor,
+                              width: 4,
+                            ),
+                            top: BorderSide(
+                              color: KStyle.cPrimaryColor,
+                              width: 0.5,
+                            ),
+                            right: BorderSide(
+                              color: KStyle.cPrimaryColor,
+                              width: 0.5,
+                            ),
+                            bottom: BorderSide(
+                              color: KStyle.cPrimaryColor,
+                              width: 0.5,
+                            ),
                           ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _isEditingTitle
-                                ? TextField(
-                                    controller: _titleController,
-                                    onChanged: (value) {
-                                      final updatedForm =
-                                          _form.copyWith(title: value);
-                                      _updateForm(updatedForm);
-                                    },
-                                    onSubmitted: (value) {
-                                      setState(() {
-                                        _isEditingTitle = false;
-                                      });
-                                    },
-                                    autofocus: true,
-                                    style: KStyle.heading3TextStyle.copyWith(
-                                      color: KStyle.cBlackColor,
-                                    ),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter form title',
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                  )
-                                : GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isEditingTitle = true;
-                                      });
-                                    },
-                                    child: Text(
-                                      _form.title,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _isEditingTitle
+                                  ? TextField(
+                                      controller: _titleController,
+                                      onChanged: (value) {
+                                        final updatedForm =
+                                            _form.copyWith(title: value);
+                                        _updateForm(updatedForm);
+                                      },
+                                      onSubmitted: (value) {
+                                        setState(() {
+                                          _isEditingTitle = false;
+                                        });
+                                      },
+                                      autofocus: true,
                                       style: KStyle.heading3TextStyle.copyWith(
                                         color: KStyle.cBlackColor,
                                       ),
+                                      decoration: const InputDecoration(
+                                        hintText: 'Enter form title',
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    )
+                                  : GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _isEditingTitle = true;
+                                        });
+                                      },
+                                      child: Text(
+                                        _form.title,
+                                        style:
+                                            KStyle.heading3TextStyle.copyWith(
+                                          color: KStyle.cBlackColor,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                          ),
-                          const SizedBox(width: 8),
-                          SvgPicture.asset(
-                            'assets/icons/edit.svg',
-                            width: 17,
-                            height: 17,
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 8),
+                            SvgPicture.asset(
+                              'assets/icons/edit.svg',
+                              width: 17,
+                              height: 17,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // Questions
-                    ..._form.fields.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final field = entry.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: QuestionCard(
-                          field: field,
-                          isSelected: false, // TODO: Implement selection
-                          themeColor: _getThemeColor(),
-                          onUpdate: (updatedField) => _updateField(
-                              index, updatedField as form_model.FormField),
-                          onDelete: () => _deleteField(index),
-                          onDuplicate: () => _duplicateField(index),
-                        ),
-                      );
-                    }).toList(),
-
-                    const SizedBox(height: 24),
-
-                    // Add Question Button
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: _addQuestion,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: KStyle.cSelectedColor,
-                          foregroundColor: KStyle.cPrimaryColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                      // Questions
+                      ..._form.fields.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final field = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: QuestionCard(
+                            field: field,
+                            isSelected: false, // TODO: Implement selection
+                            themeColor: _getThemeColor(),
+                            onUpdate: (updatedField) => _updateField(
+                                index, updatedField as form_model.FormField),
+                            onDelete: () => _deleteField(index),
+                            onDuplicate: () => _duplicateField(index),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        );
+                      }).toList(),
+
+                      const SizedBox(height: 24),
+
+                      // Add Question Button
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _addQuestion,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: KStyle.cSelectedColor,
+                            foregroundColor: KStyle.cPrimaryColor,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                        ),
-                        icon: Container(
-                          width: 20,
-                          height: 20,
-                          child: SvgPicture.asset(
-                            'assets/icons/plus_blank.svg',
+                          icon: Container(
                             width: 20,
                             height: 20,
+                            child: SvgPicture.asset(
+                              'assets/icons/plus_blank.svg',
+                              width: 20,
+                              height: 20,
+                            ),
                           ),
-                        ),
-                        label: Text(
-                          'Add Question',
-                          style: KStyle.labelMdRegularTextStyle.copyWith(
-                            color: KStyle.cPrimaryColor,
+                          label: Text(
+                            'Add Question',
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: KStyle.cPrimaryColor,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

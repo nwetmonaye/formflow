@@ -4,6 +4,7 @@ import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});

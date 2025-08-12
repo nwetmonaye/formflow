@@ -8,11 +8,17 @@ import 'package:formflow/screens/form_builder_screen.dart';
 import 'package:formflow/screens/notification_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formflow/screens/home_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:formflow/screens/form_preview_screen.dart';
 
 class FormDetailScreen extends StatefulWidget {
-  final FormModel form;
+  final FormModel? form;
+  final String? formId;
 
-  const FormDetailScreen({super.key, required this.form});
+  const FormDetailScreen({super.key, this.form, this.formId})
+      : assert(form != null || formId != null,
+            'Either form or formId must be provided');
 
   @override
   State<FormDetailScreen> createState() => _FormDetailScreenState();
@@ -25,11 +31,61 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   final List<String> statusFilters = ['All', 'Pending', 'Approved', 'Rejected'];
   List<SubmissionModel> selectedSubmissions = [];
   int selectedNavItem = 0; // 0 = My Forms, 1 = Cohorts, 2 = Notifications
+  FormModel? _form;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _initializeForm();
+  }
+
+  Future<void> _initializeForm() async {
+    if (widget.form != null) {
+      _form = widget.form;
+    } else if (widget.formId != null) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final loadedForm = await FirebaseService.getForm(widget.formId!);
+        if (loadedForm != null) {
+          setState(() {
+            _form = loadedForm;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+          // Show error or navigate back
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Form not found'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            Navigator.of(context).pop();
+          }
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error loading form: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          Navigator.of(context).pop();
+        }
+      }
+    }
   }
 
   @override
@@ -40,6 +96,16 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Show loading state while form is being loaded
+    if (_isLoading || _form == null) {
+      return Scaffold(
+        backgroundColor: KStyle.cBgColor,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: KStyle.cBgColor,
       body: Row(
@@ -142,48 +208,53 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: KStyle.cPrimaryColor,
-                          borderRadius: BorderRadius.circular(20),
+                  child: GestureDetector(
+                    onTap: () {
+                      _showUserMenu(context);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: KStyle.cPrimaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'User Profile',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.cBlackColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'View Profile',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: KStyle.c72GreyColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: KStyle.c72GreyColor,
                           size: 20,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Thomas Willy',
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: KStyle.cBlackColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'View Profile',
-                              style: KStyle.labelSmRegularTextStyle.copyWith(
-                                color: KStyle.c72GreyColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_down,
-                        color: KStyle.c72GreyColor,
-                        size: 20,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -203,7 +274,6 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 ),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
                   Container(
@@ -249,7 +319,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                 Navigator.of(context).pop();
                               },
                               child: Text(
-                                widget.form.title,
+                                _form!.title,
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
                                   color: KStyle.c72GreyColor,
                                 ),
@@ -264,7 +334,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                           children: [
                             Expanded(
                               child: Text(
-                                widget.form.title,
+                                _form!.title,
                                 style: KStyle.heading2TextStyle.copyWith(
                                   color: KStyle.cBlackColor,
                                   fontSize: 24,
@@ -276,12 +346,10 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               children: [
                                 IconButton(
                                   onPressed: () {
-                                    // TODO: Implement view form - navigate to form submission screen
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'View form functionality coming soon'),
-                                        backgroundColor: Colors.blue,
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            FormPreviewScreen(form: _form!),
                                       ),
                                     );
                                   },
@@ -313,8 +381,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                   onPressed: () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => FormBuilderScreen(
-                                            form: widget.form),
+                                        builder: (context) =>
+                                            FormBuilderScreen(form: _form!),
                                       ),
                                     );
                                   },
@@ -633,7 +701,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           // Submissions List
           Expanded(
             child: StreamBuilder<List<SubmissionModel>>(
-              stream: FirebaseService.getSubmissionsStream(widget.form.id!),
+              stream: FirebaseService.getSubmissionsStream(_form!.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -734,7 +802,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   children: [
                     Expanded(
                       child: Text(
-                        widget.form.shareLink ?? 'No share link available',
+                        _form!.shareLink ?? 'No share link available',
                         style: KStyle.labelMdRegularTextStyle.copyWith(
                           color: KStyle.cPrimaryColor,
                         ),
@@ -743,7 +811,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     const SizedBox(width: 16),
                     ElevatedButton.icon(
                       onPressed:
-                          widget.form.shareLink != null ? _copyShareLink : null,
+                          _form!.shareLink != null ? _copyShareLink : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: KStyle.cPrimaryColor,
                         foregroundColor: KStyle.cWhiteColor,
@@ -775,12 +843,17 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Form status: ${widget.form.status}',
+                      'Form status: ${_form!.status}',
                       style: KStyle.labelSmRegularTextStyle.copyWith(
                         color: KStyle.c72GreyColor,
                       ),
                     ),
                   ],
+                ),
+                Switch(
+                  value: _form!.requiresApproval,
+                  onChanged: _toggleApproval,
+                  activeColor: KStyle.cPrimaryColor,
                 ),
               ],
             ),
@@ -835,7 +908,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ],
                 ),
                 Switch(
-                  value: widget.form.requiresApproval,
+                  value: _form!.requiresApproval,
                   onChanged: _toggleApproval,
                   activeColor: KStyle.cPrimaryColor,
                 ),
@@ -1262,12 +1335,147 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   }
 
   void _copyShareLink() {
-    if (widget.form.shareLink != null) {
-      Clipboard.setData(ClipboardData(text: widget.form.shareLink!));
+    // Generate a shareable link for the form with dynamic base URL
+    String baseUrl;
+
+    // Try to get the current running address
+    try {
+      // For web, we can try to get the current URL
+      if (kIsWeb) {
+        // Use window.location for web
+        baseUrl =
+            '${Uri.base.scheme}://${Uri.base.host}${Uri.base.hasPort ? ':${Uri.base.port}' : ''}';
+      } else {
+        // For mobile/desktop, use a default URL or get from configuration
+        baseUrl =
+            'https://formflow-b0484.web.app'; // Default to Firebase hosting URL
+      }
+    } catch (e) {
+      // Fallback to Firebase hosting URL
+      baseUrl = 'https://formflow-b0484.web.app';
+    }
+
+    // Add view parameter to show form detail screen instead of submission screen
+    final String link = '$baseUrl/form/${_form!.id}?view=true';
+
+    // Show dialog with copy and open options
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Form Link',
+            style: KStyle.heading3TextStyle.copyWith(
+              color: KStyle.cBlackColor,
+            ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Share this link to view your form:',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: KStyle.cF4GreyColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  link,
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _copyToClipboard(link);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KStyle.cPrimaryColor,
+                foregroundColor: KStyle.cWhiteColor,
+              ),
+              child: Text('Copy Link'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _openLink(link);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KStyle.cWhiteColor,
+                foregroundColor: KStyle.cPrimaryColor,
+                side: BorderSide(color: KStyle.cPrimaryColor),
+              ),
+              child: Text('Open Link'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _copyToClipboard(String link) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: link));
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link copied to clipboard'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text('Form link copied to clipboard!'),
+          backgroundColor: KStyle.cPrimaryColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to copy form link: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openLink(String link) async {
+    try {
+      final uri = Uri.parse(link);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open link: $link'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening link: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -1275,8 +1483,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
   void _toggleApproval(bool value) async {
     try {
-      final updatedForm = widget.form.copyWith(requiresApproval: value);
-      await FirebaseService.updateForm(widget.form.id!, updatedForm);
+      final updatedForm = _form!.copyWith(requiresApproval: value);
+      await FirebaseService.updateForm(_form!.id!, updatedForm);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1289,11 +1497,70 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error updating settings: $e'),
+          content: Text('Error updating form: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
+  }
+
+  void _showUserMenu(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: 200,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildMenuItem('View Profile', Icons.person_outline, () {
+                  Navigator.of(context).pop();
+                  // TODO: Navigate to profile screen
+                }),
+                _buildMenuItem('Settings', Icons.settings_outlined, () {
+                  Navigator.of(context).pop();
+                  // TODO: Navigate to settings screen
+                }),
+                Container(
+                  height: 1,
+                  color: KStyle.cE3GreyColor,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                _buildMenuItem('Sign Out', Icons.logout, () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Go back to home screen
+                }, isDestructive: true),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuItem(String title, IconData icon, VoidCallback onTap,
+      {bool isDestructive = false}) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        size: 20,
+        color: isDestructive ? KStyle.cDBRedColor : KStyle.c72GreyColor,
+      ),
+      title: Text(
+        title,
+        style: KStyle.labelMdRegularTextStyle.copyWith(
+          color: isDestructive ? KStyle.cDBRedColor : KStyle.cBlackColor,
+        ),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      minLeadingWidth: 24,
+    );
   }
 
   void _handleSubmissionAction(
