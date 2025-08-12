@@ -11,6 +11,8 @@ import 'package:formflow/screens/home_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:formflow/screens/form_preview_screen.dart';
+import 'package:formflow/screens/form_submission_screen.dart';
+import 'package:formflow/models/form_model.dart' as form_model;
 
 class FormDetailScreen extends StatefulWidget {
   final FormModel? form;
@@ -378,11 +380,48 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                 ),
                                 const SizedBox(width: 16),
                                 ElevatedButton.icon(
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    // Create a sample form if none exists
+                                    if (_form!.fields.isEmpty) {
+                                      await _createSampleForm();
+                                    }
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             FormBuilderScreen(form: _form!),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: KStyle.cWhiteColor,
+                                    foregroundColor: KStyle.cPrimaryColor,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                    side:
+                                        BorderSide(color: KStyle.cPrimaryColor),
+                                  ),
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  label: Text(
+                                    'Edit Form',
+                                    style: KStyle.labelMdBoldTextStyle.copyWith(
+                                      color: KStyle.cPrimaryColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            FormSubmissionScreen(
+                                                formId: _form!.id!),
                                       ),
                                     );
                                   },
@@ -398,9 +437,9 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                     ),
                                     elevation: 0,
                                   ),
-                                  icon: const Icon(Icons.edit, size: 20),
+                                  icon: const Icon(Icons.add, size: 20),
                                   label: Text(
-                                    'Edit Form',
+                                    'Fill Form',
                                     style: KStyle.labelMdBoldTextStyle.copyWith(
                                       color: KStyle.cWhiteColor,
                                     ),
@@ -594,7 +633,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Status: All',
+                        'Status: $selectedStatusFilter',
                         style: KStyle.labelMdRegularTextStyle.copyWith(
                           color: KStyle.cBlackColor,
                         ),
@@ -636,72 +675,184 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ),
                 ),
               ),
+              const SizedBox(width: 16),
+              // Test Submission Button
+              ElevatedButton.icon(
+                onPressed: _createTestSubmission,
+                icon: const Icon(Icons.add, size: 20),
+                label: Text(
+                  'Add Test Submission',
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    color: KStyle.cWhiteColor,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: KStyle.c00GreenColor,
+                  foregroundColor: KStyle.cWhiteColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Debug Button
+              ElevatedButton.icon(
+                onPressed: _debugSubmissions,
+                icon: const Icon(Icons.bug_report, size: 20),
+                label: Text(
+                  'Debug Submissions',
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    color: KStyle.cWhiteColor,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: KStyle.c72GreyColor,
+                  foregroundColor: KStyle.cWhiteColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Refresh Button
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    // This will trigger a rebuild and reload submissions
+                  });
+                },
+                icon: const Icon(Icons.refresh, size: 20),
+                label: Text(
+                  'Refresh',
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    color: KStyle.cWhiteColor,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: KStyle.c72GreyColor,
+                  foregroundColor: KStyle.cWhiteColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ],
           ),
 
           const SizedBox(height: 24),
 
-          // Table Header
-          Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: Checkbox(
-                  value: false, // TODO: Implement select all
-                  onChanged: (value) {
-                    // TODO: Implement select all
-                  },
-                  activeColor: KStyle.cPrimaryColor,
-                ),
+          // Bulk Actions Bar
+          if (selectedSubmissions.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: KStyle.cSelectedColor,
+                borderRadius: BorderRadius.circular(8),
+                border:
+                    Border.all(color: KStyle.cPrimaryColor.withOpacity(0.3)),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  'Submission Time',
-                  style: KStyle.labelTextStyle.copyWith(
-                    color: KStyle.c89GreyColor,
-                    fontWeight: FontWeight.w600,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: KStyle.cPrimaryColor,
+                    size: 20,
                   ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  'Status',
-                  style: KStyle.labelTextStyle.copyWith(
-                    color: KStyle.c89GreyColor,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Text(
+                    '${selectedSubmissions.length} submission${selectedSubmissions.length == 1 ? '' : 's'} selected',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(
-                width: 60,
-                child: Text(
-                  'Actions',
-                  style: KStyle.labelTextStyle.copyWith(
-                    color: KStyle.c89GreyColor,
-                    fontWeight: FontWeight.w600,
+                  const Spacer(),
+                  if (selectedSubmissions
+                      .any((s) => s.status == 'pending')) ...[
+                    ElevatedButton.icon(
+                      onPressed: () => _bulkApproveSubmissions(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: KStyle.cPrimaryColor,
+                        foregroundColor: KStyle.cWhiteColor,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: Text(
+                        'Approve All',
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.cWhiteColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () => _bulkRejectSubmissions(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: KStyle.cDBRedColor,
+                        foregroundColor: KStyle.cWhiteColor,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: Text(
+                        'Reject All',
+                        style: KStyle.labelSmRegularTextStyle.copyWith(
+                          color: KStyle.cWhiteColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  ElevatedButton.icon(
+                    onPressed: () => _bulkDeleteSubmissions(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KStyle.cDBRedColor,
+                      foregroundColor: KStyle.cWhiteColor,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    icon: const Icon(Icons.delete, size: 16),
+                    label: Text(
+                      'Delete All',
+                      style: KStyle.labelSmRegularTextStyle.copyWith(
+                        color: KStyle.cWhiteColor,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedSubmissions.clear();
+                      });
+                    },
+                    child: Text(
+                      'Clear Selection',
+                      style: KStyle.labelSmRegularTextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Divider
-          Container(
-            height: 1,
-            color: KStyle.cE3GreyColor,
-          ),
-
-          const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Submissions List
           Expanded(
-            child: StreamBuilder<List<SubmissionModel>>(
-              stream: FirebaseService.getSubmissionsStream(_form!.id!),
+            child: FutureBuilder<List<SubmissionModel>>(
+              future: FirebaseService.getSubmissionsForForm(_form!.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -718,7 +869,15 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   );
                 }
 
-                final submissions = snapshot.data ?? [];
+                final allSubmissions = snapshot.data ?? [];
+                final submissions = _filterSubmissions(allSubmissions);
+
+                print(
+                    '🔍 Submissions loaded: ${allSubmissions.length} total, ${submissions.length} filtered');
+                for (final submission in allSubmissions) {
+                  print(
+                      '🔍 Submission: ${submission.submitterName} - ${submission.status} - ${submission.id}');
+                }
 
                 if (submissions.isEmpty) {
                   return Center(
@@ -732,14 +891,18 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No submissions yet',
+                          selectedStatusFilter == 'All'
+                              ? 'No submissions yet'
+                              : 'No $selectedStatusFilter submissions',
                           style: KStyle.heading3TextStyle.copyWith(
                             color: KStyle.c72GreyColor,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'When users submit this form, their responses will appear here',
+                          selectedStatusFilter == 'All'
+                              ? 'When users submit this form, their responses will appear here'
+                              : 'No submissions match the selected status filter',
                           style: KStyle.labelMdRegularTextStyle.copyWith(
                             color: KStyle.c72GreyColor,
                           ),
@@ -750,12 +913,85 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   );
                 }
 
-                return ListView.builder(
-                  itemCount: submissions.length,
-                  itemBuilder: (context, index) {
-                    final submission = submissions[index];
-                    return _buildSubmissionRow(submission);
-                  },
+                return Column(
+                  children: [
+                    // Table Header
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Checkbox(
+                            value: selectedSubmissions.isNotEmpty &&
+                                selectedSubmissions.length ==
+                                    submissions.length,
+                            onChanged: (value) {
+                              setState(() {
+                                if (value == true) {
+                                  selectedSubmissions.clear();
+                                  selectedSubmissions.addAll(submissions);
+                                } else {
+                                  selectedSubmissions.clear();
+                                }
+                              });
+                            },
+                            activeColor: KStyle.cPrimaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Submitter & Time',
+                            style: KStyle.labelTextStyle.copyWith(
+                              color: KStyle.c89GreyColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'Status',
+                            style: KStyle.labelTextStyle.copyWith(
+                              color: KStyle.c89GreyColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 60,
+                          child: Text(
+                            'Actions',
+                            style: KStyle.labelTextStyle.copyWith(
+                              color: KStyle.c89GreyColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Divider
+                    Container(
+                      height: 1,
+                      color: KStyle.cE3GreyColor,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Submissions List
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: submissions.length,
+                        itemBuilder: (context, index) {
+                          final submission = submissions[index];
+                          return _buildSubmissionRow(submission);
+                        },
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -928,9 +1164,15 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           SizedBox(
             width: 24,
             child: Checkbox(
-              value: false, // TODO: Implement individual selection
+              value: selectedSubmissions.contains(submission),
               onChanged: (value) {
-                // TODO: Implement individual selection
+                setState(() {
+                  if (value == true) {
+                    selectedSubmissions.add(submission);
+                  } else {
+                    selectedSubmissions.remove(submission);
+                  }
+                });
               },
               activeColor: KStyle.cPrimaryColor,
             ),
@@ -938,11 +1180,28 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           const SizedBox(width: 16),
           Expanded(
             flex: 2,
-            child: Text(
-              _formatDate(submission.createdAt),
-              style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: KStyle.cBlackColor,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  submission.submitterName,
+                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                    color: KStyle.cBlackColor,
+                  ),
+                ),
+                Text(
+                  submission.submitterEmail,
+                  style: KStyle.labelSmRegularTextStyle.copyWith(
+                    color: KStyle.c72GreyColor,
+                  ),
+                ),
+                Text(
+                  _formatDate(submission.createdAt),
+                  style: KStyle.labelXsRegularTextStyle.copyWith(
+                    color: KStyle.c72GreyColor,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -1143,55 +1402,161 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   void _showSubmissionDetails(SubmissionModel submission) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Submission Details',
-          style: KStyle.heading3TextStyle.copyWith(
-            color: KStyle.cBlackColor,
-          ),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDetailRow(
-                'Submission Time', _formatDate(submission.createdAt)),
-            _buildDetailRow('Status', submission.status),
-            ...submission.data.entries.map(
-                (entry) => _buildDetailRow(entry.key, entry.value.toString())),
-          ],
-        ),
-        actions: [
-          if (submission.status == 'pending') ...[
-            TextButton(
-              onPressed: () => _approveSubmission(submission),
-              child: Text(
-                'Approve',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: Colors.green,
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Submission Details',
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(
+                      Icons.close,
+                      color: KStyle.c72GreyColor,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Submission Info
+              _buildDetailRow(
+                  'Submission Time', _formatDate(submission.createdAt)),
+              _buildDetailRow('Status', submission.status),
+
+              const SizedBox(height: 16),
+
+              // Form Data
+              Text(
+                'Form Responses:',
+                style: KStyle.labelMdBoldTextStyle.copyWith(
+                  color: KStyle.cBlackColor,
                 ),
               ),
-            ),
-            TextButton(
-              onPressed: () => _rejectSubmission(submission),
-              child: Text(
-                'Reject',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: Colors.red,
+              const SizedBox(height: 12),
+
+              ...submission.data.entries.map(
+                (entry) => _buildDetailRow(
+                  entry.key,
+                  entry.value.toString(),
                 ),
               ),
-            ),
-          ],
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Close',
-              style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: KStyle.c72GreyColor,
+
+              // Comment field for reviewers
+              const SizedBox(height: 16),
+              Text(
+                'Comment:',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.cBlackColor,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Add a comment...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: KStyle.cPrimaryColor),
+                  ),
+                ),
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Action Buttons
+              if (submission.status == 'pending') ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _approveSubmission(submission),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: KStyle.cPrimaryColor,
+                          foregroundColor: KStyle.cWhiteColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Approve',
+                          style: KStyle.labelMdBoldTextStyle.copyWith(
+                            color: KStyle.cWhiteColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _rejectSubmission(submission),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: KStyle.cDBRedColor,
+                          foregroundColor: KStyle.cWhiteColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Reject',
+                          style: KStyle.labelMdBoldTextStyle.copyWith(
+                            color: KStyle.cWhiteColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KStyle.cPrimaryColor,
+                      foregroundColor: KStyle.cWhiteColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'Close',
+                      style: KStyle.labelMdBoldTextStyle.copyWith(
+                        color: KStyle.cWhiteColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1228,7 +1593,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   Future<void> _approveSubmission(SubmissionModel submission) async {
     try {
       await FirebaseService.updateSubmissionStatus(
-        submission.submissionId,
+        submission.id!,
         'approved',
       );
       Navigator.of(context).pop();
@@ -1251,7 +1616,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   Future<void> _rejectSubmission(SubmissionModel submission) async {
     try {
       await FirebaseService.updateSubmissionStatus(
-        submission.submissionId,
+        submission.id!,
         'rejected',
       );
       Navigator.of(context).pop();
@@ -1316,7 +1681,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
     if (confirmed == true) {
       try {
-        await FirebaseService.deleteSubmission(submission.submissionId);
+        await FirebaseService.deleteSubmission(submission.id!);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Submission deleted successfully'),
@@ -1637,6 +2002,274 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     );
   }
 
+  Future<void> _createSampleForm() async {
+    try {
+      // Create sample form fields like in the first image
+      final sampleFields = [
+        form_model.FormField(
+          id: 'name',
+          label: 'Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Your answer',
+        ),
+        form_model.FormField(
+          id: 'batch',
+          label: 'Batch',
+          type: 'multiple_choice',
+          required: true,
+          options: ['Batch 1', 'Batch 2'],
+        ),
+        form_model.FormField(
+          id: 'dob',
+          label: 'DOB',
+          type: 'date',
+          required: true,
+          placeholder: 'mm/dd/yyyy',
+        ),
+      ];
+
+      final updatedForm = _form!.copyWith(fields: sampleFields);
+      await FirebaseService.updateForm(_form!.id!, updatedForm);
+
+      setState(() {
+        _form = updatedForm;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sample form created successfully!'),
+          backgroundColor: KStyle.cPrimaryColor,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating sample form: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _createTestSubmission() async {
+    try {
+      // Create a test submission for demonstration
+      final testSubmission = SubmissionModel(
+        formId: _form!.id!,
+        data: {
+          'name': 'Jasmine Aung',
+          'batch': 'Batch 1',
+          'dob': DateTime(1995, 6, 15),
+        },
+        status: 'pending',
+        createdAt: DateTime.now(),
+        submitterName: 'Jasmine Aung',
+        submitterEmail: 'jasmine.aung@example.com',
+      );
+
+      await FirebaseService.createSubmission(testSubmission);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Test submission created successfully!'),
+          backgroundColor: KStyle.c00GreenColor,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error creating test submission: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _bulkApproveSubmissions() async {
+    try {
+      final pendingSubmissions =
+          selectedSubmissions.where((s) => s.status == 'pending').toList();
+
+      for (final submission in pendingSubmissions) {
+        await FirebaseService.updateSubmissionStatus(
+          submission.id!,
+          'approved',
+        );
+      }
+
+      setState(() {
+        selectedSubmissions.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${pendingSubmissions.length} submissions approved successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error approving submissions: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _bulkRejectSubmissions() async {
+    try {
+      final pendingSubmissions =
+          selectedSubmissions.where((s) => s.status == 'pending').toList();
+
+      for (final submission in pendingSubmissions) {
+        await FirebaseService.updateSubmissionStatus(
+          submission.id!,
+          'rejected',
+        );
+      }
+
+      setState(() {
+        selectedSubmissions.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${pendingSubmissions.length} submissions rejected successfully'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error rejecting submissions: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _bulkDeleteSubmissions() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Delete Submissions',
+          style: KStyle.heading3TextStyle.copyWith(
+            color: KStyle.cBlackColor,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete ${selectedSubmissions.length} submission${selectedSubmissions.length == 1 ? '' : 's'}? This action cannot be undone.',
+          style: KStyle.labelMdRegularTextStyle.copyWith(
+            color: KStyle.c72GreyColor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: KStyle.cDBRedColor,
+              foregroundColor: KStyle.cWhiteColor,
+            ),
+            child: Text(
+              'Delete',
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.cWhiteColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        for (final submission in selectedSubmissions) {
+          await FirebaseService.deleteSubmission(submission.id!);
+        }
+
+        setState(() {
+          selectedSubmissions.clear();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '${selectedSubmissions.length} submissions deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting submissions: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _debugSubmissions() async {
+    try {
+      print('🔍 Debug: Form ID: ${_form!.id}');
+      print('🔍 Debug: Form Title: ${_form!.title}');
+      print('🔍 Debug: Form Status: ${_form!.status}');
+
+      // Check if Firebase is initialized
+      if (await FirebaseService.ensureInitialized()) {
+        print('🔍 Debug: Firebase is initialized');
+
+        // Try to get submissions directly
+        final submissions =
+            await FirebaseService.getSubmissionsForForm(_form!.id!);
+        print(
+            '🔍 Debug: Direct submissions query returned: ${submissions.length} submissions');
+
+        for (final submission in submissions) {
+          print(
+              '🔍 Debug: Submission: ${submission.submitterName} - ${submission.status} - ${submission.id}');
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Debug: Found ${submissions.length} submissions'),
+            backgroundColor: KStyle.cPrimaryColor,
+          ),
+        );
+      } else {
+        print('🔍 Debug: Firebase not initialized');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Debug: Firebase not initialized'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('🔍 Debug Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Debug Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _showStatusFilterDialog() {
     showDialog(
       context: context,
@@ -1659,7 +2292,9 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     title: Text(status),
                     onTap: () {
                       Navigator.of(context).pop();
-                      // TODO: Implement status filtering
+                      setState(() {
+                        selectedStatusFilter = status;
+                      });
                     },
                   ))
               .toList(),

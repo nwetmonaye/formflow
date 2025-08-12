@@ -462,11 +462,14 @@ class FirebaseService {
   static Future<String> createSubmission(SubmissionModel submission) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
+    print('🔍 Creating submission in Firebase: ${submission.toMap()}');
+
     final docRef = await _firestore!.collection('submissions').add({
       ...submission.toMap(),
       'createdAt': FieldValue.serverTimestamp(),
     });
 
+    print('🔍 Submission created with ID: ${docRef.id}');
     return docRef.id;
   }
 
@@ -505,13 +508,22 @@ class FirebaseService {
   static Stream<List<SubmissionModel>> getSubmissionsStream(String formId) {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
+    print('🔍 Getting submissions stream for form: $formId');
+
     return _firestore!
         .collection('submissions')
         .where('formId', isEqualTo: formId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => SubmissionModel.fromMap(doc.data(), doc.id))
-            .toList());
+        .map((snapshot) {
+      print('🔍 Submissions snapshot received: ${snapshot.docs.length} docs');
+      final submissions = snapshot.docs.map((doc) {
+        print(
+            '🔍 Processing submission doc: ${doc.id} with data: ${doc.data()}');
+        return SubmissionModel.fromMap(doc.data(), doc.id);
+      }).toList();
+      print('🔍 Processed ${submissions.length} submissions');
+      return submissions;
+    });
   }
 }

@@ -84,17 +84,63 @@
       });
     });
 
-    // Handle client-side routing for Flutter web
-    if (window.location.pathname.startsWith('/form/')) {
-      // Ensure the route is properly handled by Flutter
-      console.log('🔍 Web: Detected form route:', window.location.pathname);
-      console.log('🔍 Web: Full URL:', window.location.href);
+    // Enhanced client-side routing for Flutter web
+    function handleFormRoutes() {
+      const currentPath = window.location.pathname;
+      const currentSearch = window.location.search;
+      const fullUrl = window.location.href;
+
+      console.log('🔍 Web: Current path:', currentPath);
+      console.log('🔍 Web: Current search:', currentSearch);
+      console.log('🔍 Web: Full URL:', fullUrl);
+
+      if (currentPath.startsWith('/form/')) {
+        console.log('🔍 Web: Detected form route:', currentPath);
+
+        // Extract form ID from path
+        const pathSegments = currentPath.split('/');
+        if (pathSegments.length >= 3) {
+          const formId = pathSegments[2];
+          console.log('🔍 Web: Extracted form ID:', formId);
+
+          // Check if this is a view request
+          const isViewRequest = currentSearch.includes('view=true');
+          console.log('🔍 Web: Is view request:', isViewRequest);
+
+          if (isViewRequest) {
+            console.log('🔍 Web: This is a form preview/view route');
+          } else {
+            console.log('🔍 Web: This is a form submission route');
+          }
+        }
+      }
     }
+
+    // Handle initial page load
+    handleFormRoutes();
 
     // Handle browser back/forward navigation
     window.addEventListener('popstate', function (event) {
       console.log('🔍 Web: Popstate event:', event);
-      console.log('🔍 Web: Current path:', window.location.pathname);
+      handleFormRoutes();
+    });
+
+    // Handle route changes (for SPA navigation)
+    let currentPath = window.location.pathname;
+    const observer = new MutationObserver(function (mutations) {
+      if (window.location.pathname !== currentPath) {
+        currentPath = window.location.pathname;
+        console.log('🔍 Web: Route changed to:', currentPath);
+        handleFormRoutes();
+      }
+    });
+
+    // Start observing when DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
     });
   </script>
 </body>

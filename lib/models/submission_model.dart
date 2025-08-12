@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SubmissionModel {
-  final String? id;
+  final String? id; // Firestore document ID
   final String formId;
-  final String submissionId;
   final Map<String, dynamic> data;
   final String status; // 'pending', 'approved', 'rejected'
   final DateTime createdAt;
@@ -15,7 +14,6 @@ class SubmissionModel {
   SubmissionModel({
     this.id,
     required this.formId,
-    required this.submissionId,
     required this.data,
     required this.status,
     required this.createdAt,
@@ -28,7 +26,6 @@ class SubmissionModel {
   Map<String, dynamic> toMap() {
     return {
       'formId': formId,
-      'submissionId': submissionId,
       'data': data,
       'status': status,
       'createdAt': createdAt,
@@ -43,7 +40,6 @@ class SubmissionModel {
     return SubmissionModel(
       id: id,
       formId: map['formId'] ?? '',
-      submissionId: map['submissionId'] ?? '',
       data: Map<String, dynamic>.from(map['data'] ?? {}),
       status: map['status'] ?? 'pending',
       createdAt: (map['createdAt'] as Timestamp).toDate(),
@@ -57,7 +53,6 @@ class SubmissionModel {
   SubmissionModel copyWith({
     String? id,
     String? formId,
-    String? submissionId,
     Map<String, dynamic>? data,
     String? status,
     DateTime? createdAt,
@@ -69,7 +64,6 @@ class SubmissionModel {
     return SubmissionModel(
       id: id ?? this.id,
       formId: formId ?? this.formId,
-      submissionId: submissionId ?? this.submissionId,
       data: data ?? this.data,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
