@@ -12,6 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:formflow/screens/form_preview_screen.dart';
+import 'package:formflow/models/submission_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -919,13 +920,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Center(
-                          child: Text(
-                            '4', // TODO: Get actual submission count
-                            style: KStyle.labelXsRegularTextStyle.copyWith(
-                              color: KStyle.cWhiteColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 10,
-                            ),
+                          child: StreamBuilder<List<SubmissionModel>>(
+                            stream:
+                                FirebaseService.getSubmissionsStream(form.id!),
+                            builder: (context, snapshot) {
+                              int count = 0;
+                              if (snapshot.hasData) {
+                                count = snapshot.data!.length;
+                              }
+                              return Text(
+                                count.toString(),
+                                style: KStyle.labelXsRegularTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
