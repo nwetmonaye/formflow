@@ -813,6 +813,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFormCard(FormModel form) {
+    Color borderColor;
+    switch (form.status) {
+      case 'active':
+        borderColor = KStyle.cPrimaryColor;
+        break;
+      case 'draft':
+        borderColor = Colors.orange;
+        break;
+      case 'closed':
+        borderColor = Colors.green;
+        break;
+      default:
+        borderColor = KStyle.cPrimaryColor;
+    }
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -832,6 +846,9 @@ class _HomeScreenState extends State<HomeScreen> {
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border(
+            top: BorderSide(color: borderColor, width: 4),
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -872,14 +889,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 6),
-
               // Status Badge
               _buildStatusChip(form.status),
-
               const Spacer(),
-
               // Bottom Row - Inbox and Action Icons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -917,7 +930,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-
                   // Action Icons
                   Row(
                     children: [
