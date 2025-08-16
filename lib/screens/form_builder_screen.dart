@@ -25,6 +25,9 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   bool _canShare = false;
   late TextEditingController _titleController;
   bool _isEditingTitle = false;
+  // Settings state
+  bool _approvalRequired = false;
+  bool _closeForm = false;
 
   @override
   void initState() {
@@ -37,11 +40,15 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           createdBy: FirebaseService.currentUser?.uid ?? 'anonymous',
         );
     _titleController = TextEditingController(text: _form.title);
+    // Always sync _closeForm with form status
+    _approvalRequired = _form.requiresApproval;
+    _closeForm = _form.status == 'closed';
   }
 
   void _updateForm(form_model.FormModel updatedForm) {
     setState(() {
       _form = updatedForm;
+      _closeForm = _form.status == 'closed';
     });
     if (!_isEditingTitle) {
       _titleController.text = _form.title;
@@ -89,6 +96,37 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     }
   }
 
+  Future<void> _setClosedStatus(bool closed) async {
+    if (closed) {
+      setState(() {
+        _form = _form.copyWith(status: 'closed');
+        _closeForm = true;
+      });
+    } else {
+      setState(() {
+        _form = _form.copyWith(status: 'draft');
+        _closeForm = false;
+      });
+    }
+    // Save to Firebase
+    if (_form.id == null) {
+      final formId = await FirebaseService.createForm(_form);
+      setState(() {
+        _form = _form.copyWith(id: formId);
+      });
+    } else {
+      await FirebaseService.updateForm(_form.id!, _form);
+    }
+    // Optionally refresh form from Firebase
+    final refreshedForm = await FirebaseService.getForm(_form.id!);
+    if (refreshedForm != null) {
+      setState(() {
+        _form = refreshedForm;
+        _closeForm = _form.status == 'closed';
+      });
+    }
+  }
+
   Future<void> _publishForm() async {
     if (_form.fields.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,7 +137,6 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
       return;
     }
 
-    // Debug: Check authentication status
     final currentUser = FirebaseService.currentUser;
     print('🔍 Current user: ${currentUser?.uid}');
     print('🔍 Form createdBy: ${_form.createdBy}');
@@ -110,20 +147,23 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     });
 
     try {
-      // First save the form if it hasn't been saved yet
       if (_form.id == null) {
         final formId = await FirebaseService.createForm(_form);
         _form = _form.copyWith(id: formId);
       }
 
-      // Publish form (updates status and generates share link)
-      await FirebaseService.publishForm(_form.id!);
+      // If close form is ON, always set status to closed before publishing
+      if (_closeForm) {
+        _form = _form.copyWith(status: 'closed');
+        await FirebaseService.updateForm(_form.id!, _form);
+      }
 
-      // Refresh form data to get the updated share link
+      await FirebaseService.publishForm(_form.id!);
       final refreshedForm = await FirebaseService.getForm(_form.id!);
       if (refreshedForm != null) {
         setState(() {
           _form = refreshedForm;
+          _closeForm = _form.status == 'closed';
           _canShare = true;
         });
       }
@@ -212,6 +252,82 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   void _updateColorTheme(String color) {
     final updatedForm = _form.copyWith(colorTheme: color);
     _updateForm(updatedForm);
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              contentPadding: const EdgeInsets.all(24),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Settings',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Approval Required',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      Switch(
+                        value: _approvalRequired,
+                        onChanged: (val) {
+                          setStateDialog(() => _approvalRequired = val);
+                          setState(() {
+                            _approvalRequired = val;
+                            _form = _form.copyWith(requiresApproval: val);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Submissions require manual approval by the form owner.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Close Form',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      Switch(
+                        value: _closeForm,
+                        onChanged: (val) async {
+                          setStateDialog(() => _closeForm = val);
+                          await _setClosedStatus(val);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Stops new submissions. Link will show 'Form Closed' message.",
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -346,9 +462,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () {
-                              // TODO: Implement approval settings
-                            },
+                            onPressed: _showSettingsDialog,
                             icon: Container(
                               width: 24,
                               height: 24,

@@ -706,12 +706,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
 
                                   return GridView.builder(
-                                    padding: const EdgeInsets.all(20),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 80, vertical: 20),
                                     gridDelegate:
                                         const SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 3,
-                                      crossAxisSpacing: 12,
-                                      mainAxisSpacing: 16,
+                                      crossAxisSpacing: 30,
+                                      mainAxisSpacing: 30,
                                       childAspectRatio: 1.8,
                                     ),
                                     itemCount: filteredForms.length,
@@ -816,13 +817,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Color borderColor;
     switch (form.status) {
       case 'active':
-        borderColor = KStyle.cPrimaryColor;
+        borderColor = Colors.green;
         break;
       case 'draft':
-        borderColor = Colors.orange;
+        borderColor = Colors.blue;
         break;
       case 'closed':
-        borderColor = Colors.green;
+        borderColor = Colors.red;
         break;
       default:
         borderColor = KStyle.cPrimaryColor;
