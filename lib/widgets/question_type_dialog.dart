@@ -62,6 +62,13 @@ class QuestionTypeDialog extends StatelessWidget {
 
             // Question type options
             Container(
+              decoration: BoxDecoration(
+                color: KStyle.cWhiteColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 children: [

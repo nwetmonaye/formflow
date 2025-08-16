@@ -492,26 +492,23 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: KStyle.cWhiteColor,
+                          color: Colors.white,
+                          borderRadius:
+                              BorderRadius.circular(12), // apply radius here
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              spreadRadius: 0,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                           border: Border(
                             left: BorderSide(
                               color: KStyle.cPrimaryColor,
-                              width: 4,
-                            ),
-                            top: BorderSide(
-                              color: KStyle.cPrimaryColor,
-                              width: 0.5,
-                            ),
-                            right: BorderSide(
-                              color: KStyle.cPrimaryColor,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(
-                              color: KStyle.cPrimaryColor,
-                              width: 0.5,
+                              width: 6,
                             ),
                           ),
-                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,26 +538,47 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                         contentPadding: EdgeInsets.zero,
                                       ),
                                     )
-                                  : GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _isEditingTitle = true;
-                                        });
-                                      },
-                                      child: Text(
-                                        _form.title,
-                                        style:
-                                            KStyle.heading3TextStyle.copyWith(
-                                          color: KStyle.cBlackColor,
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _isEditingTitle = true;
+                                            });
+                                          },
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                _form.title.isNotEmpty
+                                                    ? _form.title
+                                                    : 'Untitled',
+                                                style: KStyle.headingTextStyle
+                                                    .copyWith(
+                                                  color: KStyle.c3BGreyColor,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              SvgPicture.asset(
+                                                'assets/icons/edit.svg',
+                                                width: 17,
+                                                height: 17,
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                        Text(
+                                          _form.description.isNotEmpty
+                                              ? _form.description
+                                              : 'Form Description',
+                                          style:
+                                              KStyle.labelSmTextStyle.copyWith(
+                                            color: KStyle.c89GreyColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                            ),
-                            const SizedBox(width: 8),
-                            SvgPicture.asset(
-                              'assets/icons/edit.svg',
-                              width: 17,
-                              height: 17,
                             ),
                           ],
                         ),

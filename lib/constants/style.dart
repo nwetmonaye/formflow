@@ -6,6 +6,7 @@ class KStyle {
   static Color cNotiColor = const Color(0xFFDB340B);
   static Color cWhiteColor = const Color(0xFFFFFFFF);
   static Color c3BGreyColor = const Color(0xFF3B3B47);
+  static Color c89GreyColor = const Color(0xFF898D8F);
   static Color cBlackColor = const Color(0xFF000000);
   static Color cRedColor = const Color(0xFFD12800);
   static Color cGrey = const Color(0xFF959595);
@@ -18,7 +19,6 @@ class KStyle {
   static Color cC9GreyColor = const Color(0xFFC9C9C9);
   static Color cC3GreyColor = const Color(0xFFC3C3C3);
   static Color c97GreyColor = const Color(0xFF979C9E);
-  static Color c89GreyColor = const Color(0xFF898D8F);
   static Color c99GreyColor = const Color(0xFF898D8F);
   static Color cBAGreyColor = const Color(0xFFBABABA);
   static Color cE3GreyColor = const Color(0xFFE3E5E5);
@@ -61,6 +61,12 @@ class KStyle {
     fontSize: 16,
     fontFamily: 'Inter',
     fontWeight: FontWeight.w500,
+  );
+
+  static TextStyle labelSmTextStyle = const TextStyle(
+    fontSize: 14,
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
   );
 
   //*************************************** */
