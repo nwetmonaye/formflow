@@ -414,37 +414,37 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            FormSubmissionScreen(
-                                                formId: _form!.id!),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: KStyle.cPrimaryColor,
-                                    foregroundColor: KStyle.cWhiteColor,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  icon: const Icon(Icons.add, size: 20),
-                                  label: Text(
-                                    'Fill Form',
-                                    style: KStyle.labelMdBoldTextStyle.copyWith(
-                                      color: KStyle.cWhiteColor,
-                                    ),
-                                  ),
-                                ),
+                                // const SizedBox(width: 12),
+                                // ElevatedButton.icon(
+                                //   onPressed: () {
+                                //     Navigator.of(context).push(
+                                //       MaterialPageRoute(
+                                //         builder: (context) =>
+                                //             FormSubmissionScreen(
+                                //                 formId: _form!.id!),
+                                //       ),
+                                //     );
+                                //   },
+                                //   style: ElevatedButton.styleFrom(
+                                //     backgroundColor: KStyle.cPrimaryColor,
+                                //     foregroundColor: KStyle.cWhiteColor,
+                                //     padding: const EdgeInsets.symmetric(
+                                //       horizontal: 20,
+                                //       vertical: 12,
+                                //     ),
+                                //     shape: RoundedRectangleBorder(
+                                //       borderRadius: BorderRadius.circular(8),
+                                //     ),
+                                //     elevation: 0,
+                                //   ),
+                                //   icon: const Icon(Icons.add, size: 20),
+                                //   label: Text(
+                                //     'Fill Form',
+                                //     style: KStyle.labelMdBoldTextStyle.copyWith(
+                                //       color: KStyle.cWhiteColor,
+                                //     ),
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],

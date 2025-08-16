@@ -88,148 +88,75 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
 
     return Scaffold(
       backgroundColor: KStyle.cBgColor,
-      appBar: AppBar(
-        backgroundColor: KStyle.cWhiteColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: KStyle.cBlackColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Preview Mode',
-          style: KStyle.heading3TextStyle.copyWith(
-            color: KStyle.cBlackColor,
-          ),
-        ),
-        actions: [
-          // Published status indicator
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            width: 700,
+            margin: const EdgeInsets.only(top: 48, bottom: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Published',
-                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                // Form Header Card
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                    border: Border(
+                      left: BorderSide(
+                        color: KStyle.cPrimaryColor,
+                        width: 6,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _form!.title.isNotEmpty ? _form!.title : 'Untitled',
+                          style: KStyle.heading2TextStyle.copyWith(
+                            color: KStyle.cBlackColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 32,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _form!.description.isNotEmpty
+                              ? _form!.description
+                              : 'Form Description',
+                          style: KStyle.labelMdRegularTextStyle.copyWith(
+                            color: KStyle.c72GreyColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '* Indicates required question',
+                          style: KStyle.labelMdRegularTextStyle.copyWith(
+                            color: Colors.red[200],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+                // Form Questions
+                ...(_form!.fields.map((field) => _buildQuestionCard(field)) ??
+                    []),
+                const SizedBox(height: 100),
               ],
             ),
           ),
-          // Copy responder link button
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                _copyResponderLink();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              icon: const Icon(Icons.link, size: 16),
-              label: Text(
-                'Copy responder link',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 200),
-          child: Column(
-            children: [
-              // Form Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Form Title
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: KStyle.cPrimaryColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _form!.title,
-                            style: KStyle.heading2TextStyle.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (_form!.description.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              _form!.description,
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 8),
-                          Text(
-                            '* Indicates required question',
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: Colors.red[100],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Form Questions
-              ...(_form!.fields.map((field) => _buildQuestionCard(field)) ??
-                  []),
-
-              // Bottom spacing
-              const SizedBox(height: 100),
-            ],
-          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => FormBuilderScreen(form: _form!),
-            ),
-          );
-        },
-        backgroundColor: KStyle.cPrimaryColor,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.edit),
       ),
     );
   }
@@ -241,8 +168,8 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
     final options = field.options;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      padding: const EdgeInsets.all(24),
+      width: 700,
+      margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -254,36 +181,38 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Question text
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  questionText,
-                  style: KStyle.heading3TextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                    fontWeight: FontWeight.w500,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Question text
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    questionText,
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
-              if (isRequired)
-                Text(
-                  ' *',
-                  style: KStyle.heading3TextStyle.copyWith(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
+                if (isRequired)
+                  Text(
+                    ' *',
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Question input based on type
-          _buildQuestionInput(questionType, options, field),
-        ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Question input based on type
+            _buildQuestionInput(questionType, options, field),
+          ],
+        ),
       ),
     );
   }
