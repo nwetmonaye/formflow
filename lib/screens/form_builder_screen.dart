@@ -446,13 +446,25 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: KStyle.cF4GreyColor,
+                                color: _form.status == 'closed'
+                                    ? KStyle.cFF3Color
+                                    : _form.status == 'active'
+                                        ? KStyle.cE8GreenColor
+                                        : KStyle.cF4GreyColor,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                'Draft',
+                                _form.status == 'closed'
+                                    ? 'Closed'
+                                    : _form.status == 'active'
+                                        ? 'Live'
+                                        : 'Draft',
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
+                                  color: _form.status == 'closed'
+                                      ? KStyle.cDBRedColor
+                                      : _form.status == 'active'
+                                          ? KStyle.c25GreenColor
+                                          : KStyle.c72GreyColor,
                                 ),
                               ),
                             ),
