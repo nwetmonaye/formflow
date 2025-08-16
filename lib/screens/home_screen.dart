@@ -1208,8 +1208,8 @@ class _HomeScreenState extends State<HomeScreen> {
       baseUrl = 'https://formflow-b0484.web.app';
     }
 
-    // Add view parameter to show form detail screen instead of submission screen
-    final String link = '$baseUrl/form/${form.id}?view=true';
+    // Add responder link (without view parameter for actual submissions)
+    final String link = '$baseUrl/form/${form.id}';
 
     // Show dialog with copy and open options
     showDialog(
@@ -1217,16 +1217,17 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Form Link',
+            'Form Submission Link',
             style: KStyle.heading3TextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
           ),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Share this link to view your form:',
+                'Share this link to let others fill out your form:',
                 style: KStyle.labelMdRegularTextStyle.copyWith(
                   color: KStyle.c72GreyColor,
                 ),

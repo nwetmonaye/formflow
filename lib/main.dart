@@ -48,6 +48,7 @@ class FormFlowApp extends StatelessWidget {
           fontFamily: 'Plus Jakarta Sans',
           useMaterial3: true,
         ),
+        initialRoute: Uri.base.path + Uri.base.query,
         onGenerateInitialRoutes: (initialRoute) {
           print('🔍 onGenerateInitialRoutes called with: $initialRoute');
           print('🔍 Route type: ${initialRoute.runtimeType}');
