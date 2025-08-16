@@ -1017,9 +1017,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.of(context).pop();
                   // TODO: Implement share with cohorts
                 }),
-                _buildMenuItem('Close form', Icons.close, () {
+                _buildMenuItem('Close form', Icons.close, () async {
                   Navigator.of(context).pop();
-                  // TODO: Implement close form
+                  if (form.status == 'closed') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Form is already closed.'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
+                  try {
+                    await FirebaseService.updateForm(
+                      form.id!,
+                      form.copyWith(status: 'closed'),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Form "${form.title}" closed.'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to close form: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }),
                 _buildMenuItem('Duplicate', Icons.copy_outlined, () {
                   Navigator.of(context).pop();
