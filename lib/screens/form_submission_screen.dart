@@ -23,6 +23,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   String errorMessage = '';
   final Map<String, dynamic> _responses = {};
   final _formKey = GlobalKey<FormState>();
+  bool _showSuccessCard = false;
 
   @override
   void initState() {
@@ -100,30 +101,10 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       if (await FirebaseService.ensureInitialized()) {
         final submissionId = await FirebaseService.createSubmission(submission);
         print('🔍 Submission created with ID: $submissionId');
-
-        // Show success dialog instead of just SnackBar
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Thank You!'),
-            content:
-                const Text('Your response has been submitted successfully.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back or close form
-                },
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        );
-
-        // Clear form (already done)
-        _clearForm();
-        // Optionally: Navigator.of(context).pop(); // Already handled in dialog
+        setState(() {
+          _showSuccessCard = true;
+        });
+        return;
       } else {
         throw Exception('Firebase not available');
       }
@@ -233,140 +214,226 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       backgroundColor: KStyle.cBgColor,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 32),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Form Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Form Title
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: KStyle.cPrimaryColor,
-                        borderRadius: BorderRadius.circular(12),
+              if (_showSuccessCard)
+                Center(
+                  child: Container(
+                    width: 700,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Top border
+                        Container(
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: KStyle.cPrimaryColor,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                form!.title.isNotEmpty
+                                    ? form!.title
+                                    : 'Untitled form',
+                                style: KStyle.heading2TextStyle.copyWith(
+                                  color: KStyle.cBlackColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 32,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Your response has been recorded.',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.c72GreyColor,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _showSuccessCard = false;
+                                    _clearForm();
+                                  });
+                                },
+                                child: Text(
+                                  'Submit another response',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.cPrimaryColor,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                Center(
+                  child: Container(
+                    width: 700,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                      border: Border(
+                        left: BorderSide(
+                          color: KStyle.cPrimaryColor,
+                          width: 6,
+                        ),
                       ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            form!.title,
+                            form!.title.isNotEmpty ? form!.title : 'Untitled',
                             style: KStyle.heading2TextStyle.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                              color: KStyle.cBlackColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 32,
                             ),
                           ),
-                          if (form!.description.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              form!.description,
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                            ),
-                          ],
                           const SizedBox(height: 8),
+                          Text(
+                            form!.description.isNotEmpty
+                                ? form!.description
+                                : 'Form Description',
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: KStyle.c72GreyColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             '* Indicates required question',
                             style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: Colors.red[100],
+                              color: Colors.red[200],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-              // Form Fields
-              if (form!.fields.isNotEmpty) ...[
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: form!.fields
-                        .map((field) => _buildFormField(field))
-                        .toList(),
                   ),
                 ),
-              ] else ...[
                 Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.description_outlined,
-                        size: 64,
-                        color: KStyle.c72GreyColor,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No questions added yet',
-                        style: KStyle.heading3TextStyle.copyWith(
-                          color: KStyle.c72GreyColor,
+                  child: Container(
+                    width: 700,
+                    child: Column(
+                      children: [
+                        if (form!.fields.isNotEmpty) ...[
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              children: form!.fields
+                                  .map((field) => _buildFormField(field))
+                                  .toList(),
+                            ),
+                          ),
+                        ] else ...[
+                          Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.description_outlined,
+                                  size: 64,
+                                  color: KStyle.c72GreyColor,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No questions added yet',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'This form is still being set up',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 32),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 160,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: _submitForm,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: KStyle.cPrimaryColor,
+                                  foregroundColor: KStyle.cWhiteColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Submit',
+                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                    color: KStyle.cWhiteColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: _clearForm,
+                              child: Text(
+                                'Clear form',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.cPrimaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'This form is still being set up',
-                        style: KStyle.labelMdRegularTextStyle.copyWith(
-                          color: KStyle.c72GreyColor,
-                        ),
-                      ),
-                    ],
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-
-              const SizedBox(height: 32),
-
-              // Submit and Clear Buttons
-              // Temporarily allow submission regardless of status for testing
-              Row(
-                children: [
-                  // Submit Button
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: KStyle.cPrimaryColor,
-                          foregroundColor: KStyle.cWhiteColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Submit',
-                          style: KStyle.labelMdBoldTextStyle.copyWith(
-                            color: KStyle.cWhiteColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Clear Form Button
-                  TextButton(
-                    onPressed: _clearForm,
-                    child: Text(
-                      'Clear form',
-                      style: KStyle.labelMdRegularTextStyle.copyWith(
-                        color: KStyle.c72GreyColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 100),
+              ]
             ],
           ),
         ),
@@ -375,50 +442,54 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   }
 
   Widget _buildFormField(form_model.FormField field) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Question text
-          Row(
+    return Center(
+      child: Container(
+        width: 700,
+        margin: const EdgeInsets.only(bottom: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  field.label,
-                  style: KStyle.heading3TextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                    fontWeight: FontWeight.w500,
+              // Question text
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      field.label,
+                      style: KStyle.heading3TextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
+                  if (field.required)
+                    Text(
+                      ' *',
+                      style: KStyle.heading3TextStyle.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
               ),
-              if (field.required)
-                Text(
-                  ' *',
-                  style: KStyle.heading3TextStyle.copyWith(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+              const SizedBox(height: 16),
+              // Question input based on type
+              _buildFieldInput(field),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Question input based on type
-          _buildFieldInput(field),
-        ],
+        ),
       ),
     );
   }
