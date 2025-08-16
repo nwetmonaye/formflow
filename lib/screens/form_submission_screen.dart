@@ -101,16 +101,29 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         final submissionId = await FirebaseService.createSubmission(submission);
         print('🔍 Submission created with ID: $submissionId');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Form submitted successfully!'),
-            backgroundColor: KStyle.cPrimaryColor,
+        // Show success dialog instead of just SnackBar
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Thank You!'),
+            content:
+                const Text('Your response has been submitted successfully.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Go back or close form
+                },
+                child: const Text('Close'),
+              ),
+            ],
           ),
         );
 
-        // Clear form and go back
+        // Clear form (already done)
         _clearForm();
-        Navigator.of(context).pop();
+        // Optionally: Navigator.of(context).pop(); // Already handled in dialog
       } else {
         throw Exception('Firebase not available');
       }
