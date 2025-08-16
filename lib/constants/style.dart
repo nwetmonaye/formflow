@@ -5,6 +5,7 @@ class KStyle {
   static Color cSelectedColor = const Color(0xFFEBF0FE);
   static Color cNotiColor = const Color(0xFFDB340B);
   static Color cWhiteColor = const Color(0xFFFFFFFF);
+  static Color c3BGreyColor = const Color(0xFF3B3B47);
   static Color cBlackColor = const Color(0xFF000000);
   static Color cRedColor = const Color(0xFFD12800);
   static Color cGrey = const Color(0xFF959595);

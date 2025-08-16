@@ -312,7 +312,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                       border: Border(
                         left: BorderSide(
                           color: KStyle.cPrimaryColor,
-                          width: 6,
+                          width: 5,
                         ),
                       ),
                     ),

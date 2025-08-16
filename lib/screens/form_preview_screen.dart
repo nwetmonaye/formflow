@@ -87,76 +87,155 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
     }
 
     return Scaffold(
-      backgroundColor: KStyle.cBgColor,
-      body: SingleChildScrollView(
-        child: Center(
-          child: Container(
-            width: 700,
-            margin: const EdgeInsets.only(top: 48, bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Form Header Card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+      backgroundColor: KStyle.cWhiteColor,
+      body: Column(
+        children: [
+          // Full-width white header bar with preview button
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 0, left: 0, right: 0),
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                height: 64,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: KStyle.cSelectedColor,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                    border: Border(
-                      left: BorderSide(
-                        color: KStyle.cPrimaryColor,
-                        width: 6,
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: SvgPicture.asset(
+                              'assets/icons/eye.svg',
+                              color: KStyle.c3BGreyColor,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Preview',
+                            style: KStyle.labelTextStyle.copyWith(
+                              color: KStyle.c3BGreyColor,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Icon(Icons.close,
+                                size: 18, color: KStyle.c3BGreyColor),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _form!.title.isNotEmpty ? _form!.title : 'Untitled',
-                          style: KStyle.heading2TextStyle.copyWith(
-                            color: KStyle.cBlackColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 32,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _form!.description.isNotEmpty
-                              ? _form!.description
-                              : 'Form Description',
-                          style: KStyle.labelMdRegularTextStyle.copyWith(
-                            color: KStyle.c72GreyColor,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '* Indicates required question',
-                          style: KStyle.labelMdRegularTextStyle.copyWith(
-                            color: Colors.red[200],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
-                // Form Questions
-                ...(_form!.fields.map((field) => _buildQuestionCard(field)) ??
-                    []),
-                const SizedBox(height: 100),
-              ],
+              ),
             ),
           ),
-        ),
+          // Full-width divider
+          Container(
+            width: double.infinity,
+            height: 1,
+            color: KStyle.cE3GreyColor,
+          ),
+          // Main content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Center(
+                child: Container(
+                  color: Colors.white,
+                  width: 700,
+                  margin: const EdgeInsets.only(top: 32, bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Form Header Card
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.15), // darker main shadow
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.08), // soft spread shadow
+                                blurRadius: 30,
+                                offset: const Offset(0, 20),
+                              ),
+                            ],
+                            border: Border(
+                              left: BorderSide(
+                                color: KStyle.cPrimaryColor,
+                                width: 6,
+                              ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _form!.title.isNotEmpty
+                                      ? _form!.title
+                                      : 'Untitled',
+                                  style: KStyle.heading2TextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 32,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _form!.description.isNotEmpty
+                                      ? _form!.description
+                                      : 'Form Description',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '* Indicates required question',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: Colors.red[200],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Form Questions
+                      ...(_form!.fields
+                              .map((field) => _buildQuestionCard(field)) ??
+                          []),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
