@@ -292,6 +292,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             _approvalRequired = val;
                             _form = _form.copyWith(requiresApproval: val);
                           });
+                          _autoSave(); // Persist the change
                         },
                       ),
                     ],
