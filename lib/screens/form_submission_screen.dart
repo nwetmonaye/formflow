@@ -123,10 +123,13 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         print('🔍 Submission created with ID: $submissionId');
 
         // Send notification email to form owner
-        if (form!.emailField != null && form!.emailField!.isNotEmpty) {
+        if (form!.formOwnerEmail != null && form!.formOwnerEmail!.isNotEmpty) {
           try {
+            print(
+                '🔍 Sending new submission email to form owner: ${form!.formOwnerEmail}');
             await FirebaseService.sendEmail(
-              to: form!.emailField!,
+              to: form!
+                  .formOwnerEmail!, // Send to form owner's email stored in form
               subject: 'New Form Submission: ${form!.title}',
               html: '<p>You have received a new form submission!</p>',
               type: 'new_submission',
@@ -134,10 +137,14 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               submitterName: submission.submitterName,
               submitterEmail: submission.submitterEmail,
             );
+            print('🔍 New submission email sent successfully to form owner');
           } catch (emailError) {
             print('Error sending notification email: $emailError');
             // Don't fail the submission if email fails
           }
+        } else {
+          print('🔍 Form owner email not found, skipping email notification');
+          print('🔍 Form owner email: ${form!.formOwnerEmail}');
         }
 
         setState(() {

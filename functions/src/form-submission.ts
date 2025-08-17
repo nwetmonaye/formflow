@@ -26,7 +26,7 @@ export const onFormSubmission = onDocumentCreated(
     try {
       // Update submission with metadata
       await event.data?.ref.update({
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: new Date(),
         status: "pending",
         submissionId: submissionId,
       });
@@ -49,7 +49,7 @@ export const onFormSubmission = onDocumentCreated(
         submissionId: submissionId,
         formId: submission.formId,
         read: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: new Date(),
       });
 
       // Log submission for email processing (will be handled by separate email function)

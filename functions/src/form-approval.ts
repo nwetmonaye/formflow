@@ -41,10 +41,10 @@ export const onFormApproval = onDocumentUpdated(
 
       // Update submission with approval metadata
       await event.data?.after.ref.update({
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: new Date(),
         approvedBy: after.approvedBy,
         approvedAt: after.status === "approved" || after.status === "rejected" ?
-          admin.firestore.FieldValue.serverTimestamp() :
+          new Date() :
           null,
         comments: after.comments || "",
       });
@@ -60,7 +60,7 @@ export const onFormApproval = onDocumentUpdated(
           formId: after.formId,
           status: after.status,
           read: false,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: new Date(),
         });
       }
 

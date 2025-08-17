@@ -39,6 +39,8 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           fields: [],
           createdBy: FirebaseService.currentUser?.uid ?? 'anonymous',
           emailField: '', // Initialize email field
+          formOwnerEmail: FirebaseService.currentUser?.email ??
+              '', // Initialize form owner email
         );
     _titleController = TextEditingController(text: _form.title);
     // Always sync _closeForm with form status
@@ -71,8 +73,12 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
       print('🔍 AutoSave: Form createdBy before: ${_form.createdBy}');
 
       if (currentUser != null) {
-        _form = _form.copyWith(createdBy: currentUser.uid);
+        _form = _form.copyWith(
+          createdBy: currentUser.uid,
+          formOwnerEmail: currentUser.email, // Store the form owner's email
+        );
         print('🔍 AutoSave: Form createdBy after: ${_form.createdBy}');
+        print('🔍 AutoSave: Form owner email: ${_form.formOwnerEmail}');
       } else {
         print('🔍 AutoSave: No current user found!');
       }

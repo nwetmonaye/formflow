@@ -183,6 +183,9 @@ export const sendEmailFromApp = onCall(
 
             console.log('🔍 sendEmailFromApp: Mail options:', mailOptions);
             console.log('🔍 sendEmailFromApp: Attempting to send email...');
+            console.log('🔍 sendEmailFromApp: Email type:', type);
+            console.log('🔍 sendEmailFromApp: Recipient (to):', to);
+            console.log('🔍 sendEmailFromApp: From email:', emailConfig.fromEmail);
 
             const activeTransporter = getTransporter();
             const result = await activeTransporter.sendMail(mailOptions);
@@ -195,7 +198,7 @@ export const sendEmailFromApp = onCall(
                     type: type,
                     to: to,
                     subject: emailContent.subject,
-                    sentAt: admin.firestore.FieldValue.serverTimestamp() || new Date(),
+                    sentAt: new Date(),
                     success: true,
                     messageId: result.messageId,
                 });
@@ -219,7 +222,7 @@ export const sendEmailFromApp = onCall(
                     type: request.data?.type || 'unknown',
                     to: request.data?.to || 'unknown',
                     subject: request.data?.subject || 'unknown',
-                    sentAt: admin.firestore.FieldValue.serverTimestamp() || new Date(),
+                    sentAt: new Date(),
                     success: false,
                     error: error instanceof Error ? error.message : "Unknown error",
                 });
