@@ -1414,12 +1414,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...submission.data.entries.map(
-                  (entry) => _buildDetailRow(
-                    entry.key,
-                    entry.value.toString(),
-                  ),
-                ),
+                // Use structured data with null safety
+                ...submission.getStructuredData().map(
+                      (item) => _buildDetailRow(
+                        item['label'] ?? 'Unknown Question',
+                        item['answer'] ?? '',
+                      ),
+                    ),
               ],
 
               const SizedBox(height: 16),
@@ -1559,6 +1560,26 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         submission.id!,
         'approved',
       );
+
+      // Send approval email to submitter
+      if (submission.submitterEmail.isNotEmpty && _form != null) {
+        try {
+          await FirebaseService.sendEmail(
+            to: submission.submitterEmail,
+            subject: 'Submission Approved: ${_form!.title}',
+            html: '<p>Your submission has been approved!</p>',
+            type: 'submission_decision',
+            formTitle: _form!.title,
+            submitterName: submission.submitterName,
+            status: 'approved',
+            comments: '', // You can add a comment field if needed
+          );
+        } catch (emailError) {
+          print('Error sending approval email: $emailError');
+          // Don't fail the approval if email fails
+        }
+      }
+
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1582,6 +1603,26 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         submission.id!,
         'rejected',
       );
+
+      // Send rejection email to submitter
+      if (submission.submitterEmail.isNotEmpty && _form != null) {
+        try {
+          await FirebaseService.sendEmail(
+            to: submission.submitterEmail,
+            subject: 'Submission Rejected: ${_form!.title}',
+            html: '<p>Your submission has been rejected.</p>',
+            type: 'submission_decision',
+            formTitle: _form!.title,
+            submitterName: submission.submitterName,
+            status: 'rejected',
+            comments: '', // You can add a comment field if needed
+          );
+        } catch (emailError) {
+          print('Error sending rejection email: $emailError');
+          // Don't fail the rejection if email fails
+        }
+      }
+
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

@@ -211,6 +211,58 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
+                                // Email Field Display - Always show in form header
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Email*',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cBlackColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '(Required)',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: Colors.red[200],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: KStyle.cE3GreyColor,
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _form!.emailField != null &&
+                                            _form!.emailField!.isNotEmpty
+                                        ? _form!.emailField!
+                                        : 'Email field for form owner notifications',
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: _form!.emailField != null &&
+                                              _form!.emailField!.isNotEmpty
+                                          ? KStyle.cBlackColor
+                                          : KStyle.c72GreyColor,
+                                      fontStyle: _form!.emailField != null &&
+                                              _form!.emailField!.isNotEmpty
+                                          ? FontStyle.normal
+                                          : FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
                                 Text(
                                   '* Indicates required question',
                                   style:

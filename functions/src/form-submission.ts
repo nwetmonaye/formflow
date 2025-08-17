@@ -6,6 +6,8 @@ const db = admin.firestore();
 interface FormSubmission {
   formId: string;
   data: Record<string, unknown>;
+  questionLabels?: Record<string, string>;
+  questionAnswers?: Record<string, string>;
   submitterName?: string;
   submitterEmail?: string;
   submitterId?: string;
@@ -50,9 +52,14 @@ export const onFormSubmission = onDocumentCreated(
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Send email notification if configured
-      if (formData?.emailNotifications) {
-        await sendSubmissionEmail(formData, submission);
+      // Log submission for email processing (will be handled by separate email function)
+      if (formData?.emailNotifications && formData?.emailField) {
+        console.log("Email notification needed for submission:", {
+          formId: submission.formId,
+          formOwnerEmail: formData.emailField,
+          submitterName: submission.submitterName,
+          submitterEmail: submission.submitterEmail
+        });
       }
 
       console.log("Form submission processed successfully:", submissionId);
@@ -61,16 +68,3 @@ export const onFormSubmission = onDocumentCreated(
     }
   }
 );
-
-async function sendSubmissionEmail(
-  formData: Record<string, unknown>,
-  submission: FormSubmission
-) {
-  // This would integrate with your email service
-  // For now, we'll just log the intent
-  console.log("Email notification would be sent for submission:", {
-    formTitle: formData.title,
-    formOwner: formData.createdBy,
-    submissionData: submission.data,
-  });
-}

@@ -13,14 +13,17 @@ import * as admin from "firebase-admin";
 // Initialize Firebase Admin
 admin.initializeApp();
 
-// Import all functions
-export { sendEmailNotification } from "./email-notifications";
+// Import all functions - adding back one by one
 export { onFormApproval } from "./form-approval";
 export { generateFormLink, validateFormAccess } from "./form-links";
 export { onFormSubmission } from "./form-submission";
+export { testFunction } from "./test-function";
+
+// Enable email functionality
+export { sendEmailFromApp } from "./send-email";
 
 // Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// https://firebase.google.com/docs/functions/get-started
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected

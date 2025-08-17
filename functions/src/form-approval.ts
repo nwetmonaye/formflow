@@ -7,6 +7,7 @@ interface FormSubmission {
   formId: string;
   status: string;
   submitterEmail?: string;
+  submitterName?: string;
   submitterId?: string;
   approvedBy?: string;
   comments?: string;
@@ -53,10 +54,8 @@ export const onFormApproval = onDocumentUpdated(
         await db.collection("notifications").add({
           userId: after.submitterId,
           type: "submission_decision",
-          title: `Submission ${after.status === "approved" ? "Approved" : "Rejected"
-            }`,
-          message: `Your submission for "${formData?.title}" has been ${after.status
-            }.`,
+          title: `Submission ${after.status === "approved" ? "Approved" : "Rejected"}`,
+          message: `Your submission for "${formData?.title}" has been ${after.status}.`,
           submissionId: submissionId,
           formId: after.formId,
           status: after.status,
@@ -65,9 +64,15 @@ export const onFormApproval = onDocumentUpdated(
         });
       }
 
-      // Send email notification
+      // Log approval for email processing (will be handled by separate email function)
       if (formData?.emailNotifications && after.submitterEmail) {
-        await sendApprovalEmail(formData, after);
+        console.log("Approval email needed:", {
+          to: after.submitterEmail,
+          formTitle: formData.title,
+          status: after.status,
+          submitterName: after.submitterName,
+          comments: after.comments
+        });
       }
 
       console.log("Form approval processed successfully:", submissionId);
@@ -76,15 +81,3 @@ export const onFormApproval = onDocumentUpdated(
     }
   }
 );
-
-async function sendApprovalEmail(
-  formData: Record<string, unknown>,
-  submission: FormSubmission
-) {
-  console.log("Approval email would be sent:", {
-    formTitle: formData.title,
-    submitterEmail: submission.submitterEmail,
-    status: submission.status,
-    comments: submission.comments,
-  });
-}

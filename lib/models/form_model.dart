@@ -12,6 +12,7 @@ class FormModel {
   final String status; // 'draft', 'active', 'closed'
   final String colorTheme; // 'blue', 'green', 'orange', 'red'
   final bool requiresApproval; // New field for approval toggle
+  final String? emailField; // Email field for external users
 
   FormModel({
     this.id,
@@ -27,6 +28,7 @@ class FormModel {
     this.status = 'draft',
     this.colorTheme = 'blue',
     this.requiresApproval = false,
+    this.emailField,
   });
 
   Map<String, dynamic> toMap() {
@@ -43,6 +45,7 @@ class FormModel {
       'status': status,
       'colorTheme': colorTheme,
       'requiresApproval': requiresApproval,
+      'emailField': emailField,
     };
   }
 
@@ -63,6 +66,7 @@ class FormModel {
       status: map['status'] ?? 'draft',
       colorTheme: map['colorTheme'] ?? 'blue',
       requiresApproval: map['requiresApproval'] ?? false,
+      emailField: map['emailField'],
     );
   }
 
@@ -80,6 +84,7 @@ class FormModel {
     String? status,
     String? colorTheme,
     bool? requiresApproval,
+    String? emailField,
   }) {
     return FormModel(
       id: id ?? this.id,
@@ -95,6 +100,7 @@ class FormModel {
       status: status ?? this.status,
       colorTheme: colorTheme ?? this.colorTheme,
       requiresApproval: requiresApproval ?? this.requiresApproval,
+      emailField: emailField ?? this.emailField,
     );
   }
 }

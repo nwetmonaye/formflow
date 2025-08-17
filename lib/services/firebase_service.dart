@@ -47,10 +47,30 @@ class FirebaseService {
       _auth = FirebaseAuth.instance;
       _functions = FirebaseFunctions.instance;
 
+      // Configure emulators for local development
+      if (const bool.fromEnvironment('dart.vm.product') == false) {
+        print('🔧 Configuring Firebase emulators for local development...');
+
+        // Connect to local Firestore emulator
+        _firestore!.useFirestoreEmulator('127.0.0.1', 8080);
+        print('🔧 Firestore emulator configured: 127.0.0.1:8080');
+
+        // Connect to local Functions emulator
+        _functions!.useFunctionsEmulator('127.0.0.1', 5001);
+        print('🔧 Functions emulator configured: 127.0.0.1:5001');
+
+        // Connect to local Auth emulator (optional)
+        // _auth!.useAuthEmulator('127.0.0.1', 9099);
+        // print('🔧 Auth emulator configured: 127.0.0.1:9099');
+      } else {
+        print('🔧 Using production Firebase services');
+      }
+
       _isInitialized = true;
       print('Firebase initialized successfully');
       print('Firestore instance: ${_firestore != null}');
       print('Auth instance: ${_auth != null}');
+      print('Functions instance: ${_functions != null}');
     } catch (e) {
       print('Error initializing Firebase: $e');
       _isInitialized = false;
@@ -256,22 +276,33 @@ class FirebaseService {
   static Future<String> createForm(FormModel form) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
+    print('🔍 createForm: Creating new form');
+    print('🔍 createForm: Form email field: ${form.emailField}');
+    print('🔍 createForm: Form data to save: ${form.toMap()}');
+
     final docRef = await _firestore!.collection('forms').add({
       ...form.toMap(),
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
+    print('🔍 createForm: Form created with ID: ${docRef.id}');
     return docRef.id;
   }
 
   static Future<void> updateForm(String formId, FormModel form) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
+    print('🔍 updateForm: Updating form $formId');
+    print('🔍 updateForm: Form email field: ${form.emailField}');
+    print('🔍 updateForm: Form data to save: ${form.toMap()}');
+
     await _firestore!.collection('forms').doc(formId).update({
       ...form.toMap(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+
+    print('🔍 updateForm: Form updated successfully');
   }
 
   static Future<void> publishForm(String formId) async {
@@ -432,13 +463,19 @@ class FirebaseService {
     if (_firestore == null) return null;
 
     try {
+      print('🔍 getForm: Loading form $formId');
       final doc = await _firestore!.collection('forms').doc(formId).get();
       if (doc.exists) {
-        return FormModel.fromMap(doc.data()!, doc.id);
+        print('🔍 getForm: Form document exists');
+        print('🔍 getForm: Form data from Firebase: ${doc.data()}');
+        final form = FormModel.fromMap(doc.data()!, doc.id);
+        print('🔍 getForm: Parsed form email field: ${form.emailField}');
+        return form;
       }
+      print('🔍 getForm: Form document does not exist');
       return null;
     } catch (e) {
-      print('Error getting form: $e');
+      print('🔍 getForm: Error getting form: $e');
       return null;
     }
   }
@@ -456,6 +493,43 @@ class FirebaseService {
   static Future<UserCredential> signInAnonymously() async {
     if (_auth == null) throw Exception('Auth not initialized');
     return await _auth!.signInAnonymously();
+  }
+
+  // Email operations
+  static Future<bool> sendEmail({
+    required String to,
+    required String subject,
+    required String html,
+    required String type,
+    String? formTitle,
+    String? submitterName,
+    String? submitterEmail,
+    String? status,
+    String? comments,
+  }) async {
+    if (_functions == null)
+      throw Exception('Firebase Functions not initialized');
+
+    try {
+      final callable = _functions!.httpsCallable('sendEmailFromApp');
+      final result = await callable.call({
+        'to': to,
+        'subject': subject,
+        'html': html,
+        'type': type,
+        'formTitle': formTitle,
+        'submitterName': submitterName,
+        'submitterEmail': submitterEmail,
+        'status': status,
+        'comments': comments,
+      });
+
+      final data = result.data as Map<String, dynamic>;
+      return data['success'] == true;
+    } catch (e) {
+      print('Error sending email: $e');
+      return false;
+    }
   }
 
   // Submission operations

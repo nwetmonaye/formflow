@@ -59,6 +59,10 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         print(
             '🔍 Form loaded: ${loadedForm.title} with ${loadedForm.fields.length} fields');
         print('🔍 Form status: ${loadedForm.status}');
+        print('🔍 Form email field: ${loadedForm.emailField}');
+        print('🔍 Form email field is null: ${loadedForm.emailField == null}');
+        print(
+            '🔍 Form email field is empty: ${loadedForm.emailField?.isEmpty}');
       } else {
         setState(() {
           isError = true;
@@ -84,10 +88,26 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     try {
       print('🔍 Submitting form with responses: $_responses');
 
+      // Create maps for question labels and answers
+      final Map<String, String> questionLabels = {};
+      final Map<String, String> questionAnswers = {};
+
+      // Process each field to extract labels and answers
+      for (final field in form!.fields) {
+        final fieldId = field.id;
+        final label = field.label;
+        final answer = _responses[fieldId]?.toString() ?? '';
+
+        questionLabels[fieldId] = label;
+        questionAnswers[fieldId] = answer;
+      }
+
       // Create submission with proper data structure
       final submission = SubmissionModel(
         formId: widget.formId,
         data: _responses,
+        questionLabels: questionLabels,
+        questionAnswers: questionAnswers,
         status: 'pending',
         createdAt: DateTime.now(),
         submitterName: _responses['name'] ?? 'Anonymous',
@@ -101,6 +121,25 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       if (await FirebaseService.ensureInitialized()) {
         final submissionId = await FirebaseService.createSubmission(submission);
         print('🔍 Submission created with ID: $submissionId');
+
+        // Send notification email to form owner
+        if (form!.emailField != null && form!.emailField!.isNotEmpty) {
+          try {
+            await FirebaseService.sendEmail(
+              to: form!.emailField!,
+              subject: 'New Form Submission: ${form!.title}',
+              html: '<p>You have received a new form submission!</p>',
+              type: 'new_submission',
+              formTitle: form!.title,
+              submitterName: submission.submitterName,
+              submitterEmail: submission.submitterEmail,
+            );
+          } catch (emailError) {
+            print('Error sending notification email: $emailError');
+            // Don't fail the submission if email fails
+          }
+        }
+
         setState(() {
           _showSuccessCard = true;
         });
@@ -336,6 +375,62 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                                 : 'Form Description',
                             style: KStyle.labelMdRegularTextStyle.copyWith(
                               color: KStyle.c72GreyColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Email Field Display - Always show for external users
+                          Row(
+                            children: [
+                              Text(
+                                'Email*',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.cBlackColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '(Required)',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: Colors.red[200],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: KStyle.cE3GreyColor,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: TextFormField(
+                              decoration: InputDecoration(
+                                hintText: 'Valid Email',
+                                border: InputBorder.none,
+                                hintStyle:
+                                    KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.c72GreyColor,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                _responses['email'] = value;
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Email is required';
+                                }
+                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                    .hasMatch(value)) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(height: 16),

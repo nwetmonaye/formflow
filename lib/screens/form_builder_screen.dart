@@ -38,6 +38,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           description: 'Form Description',
           fields: [],
           createdBy: FirebaseService.currentUser?.uid ?? 'anonymous',
+          emailField: '', // Initialize email field
         );
     _titleController = TextEditingController(text: _form.title);
     // Always sync _closeForm with form status
@@ -702,6 +703,76 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                           style:
                                               KStyle.labelSmTextStyle.copyWith(
                                             color: KStyle.c89GreyColor,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        // Email Field
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Email*',
+                                              style: KStyle
+                                                  .labelMdRegularTextStyle
+                                                  .copyWith(
+                                                color: KStyle.cBlackColor,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              '(Required for external users)',
+                                              style: KStyle
+                                                  .labelSmRegularTextStyle
+                                                  .copyWith(
+                                                color: KStyle.c72GreyColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: KStyle.cE3GreyColor,
+                                                width: 1,
+                                              ),
+                                            ),
+                                          ),
+                                          child: TextFormField(
+                                            initialValue: _form.emailField,
+                                            decoration: InputDecoration(
+                                              hintText: 'Valid Email',
+                                              border: InputBorder.none,
+                                              hintStyle: KStyle
+                                                  .labelMdRegularTextStyle
+                                                  .copyWith(
+                                                color: KStyle.c72GreyColor,
+                                              ),
+                                            ),
+                                            onChanged: (value) {
+                                              print(
+                                                  '🔍 Email field changed to: $value');
+                                              final updatedForm = _form
+                                                  .copyWith(emailField: value);
+                                              print(
+                                                  '🔍 Updated form email field: ${updatedForm.emailField}');
+                                              _updateForm(updatedForm);
+                                            },
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Email is required';
+                                              }
+                                              if (!RegExp(
+                                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                                  .hasMatch(value)) {
+                                                return 'Please enter a valid email';
+                                              }
+                                              return null;
+                                            },
                                           ),
                                         ),
                                       ],
