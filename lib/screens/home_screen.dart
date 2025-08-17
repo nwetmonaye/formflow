@@ -849,7 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           border: Border(
-            top: BorderSide(color: borderColor, width: 4),
+            top: BorderSide(color: borderColor, width: 2),
           ),
         ),
         child: Padding(
