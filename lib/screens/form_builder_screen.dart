@@ -28,6 +28,8 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   // Settings state
   bool _approvalRequired = false;
   bool _closeForm = false;
+  // Track if this is a new form session (created in this screen)
+  late bool _isNewFormSession;
 
   @override
   void initState() {
@@ -46,6 +48,8 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     // Always sync _closeForm with form status
     _approvalRequired = _form.requiresApproval;
     _closeForm = _form.status == 'closed';
+    // Set session flag: true if creating a new form
+    _isNewFormSession = widget.form == null;
   }
 
   void _updateForm(form_model.FormModel updatedForm) {
@@ -56,7 +60,11 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     if (!_isEditingTitle) {
       _titleController.text = _form.title;
     }
-    _autoSave();
+    // Use session flag for auto-save
+    if (_isNewFormSession) {
+      _autoSave();
+    }
+    // For existing forms, do not auto-save; save only on publish
   }
 
   Future<void> _autoSave() async {
@@ -154,9 +162,12 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     });
 
     try {
+      // Always update the form in Firebase before publishing (for both new and existing)
       if (_form.id == null) {
         final formId = await FirebaseService.createForm(_form);
         _form = _form.copyWith(id: formId);
+      } else {
+        await FirebaseService.updateForm(_form.id!, _form);
       }
 
       // If close form is ON, always set status to closed before publishing
@@ -174,6 +185,8 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           _canShare = true;
         });
       }
+      // After publishing, treat as existing form (disable auto-save)
+      _isNewFormSession = false;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Form published successfully!')),
@@ -599,7 +612,11 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                   )
                                 : const Icon(Icons.arrow_upward, size: 16),
                             label: Text(
-                              _isPublishing ? 'Publishing...' : 'Publish',
+                              _isPublishing
+                                  ? 'Publishing...'
+                                  : (_form.id == null
+                                      ? 'Publish'
+                                      : 'Publish Changes'),
                               style: KStyle.labelSmRegularTextStyle.copyWith(
                                 color: KStyle.cWhiteColor,
                               ),
