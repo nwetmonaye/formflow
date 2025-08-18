@@ -453,11 +453,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          // Icon(
-                                          //   Icons.description_outlined,
-                                          //   size: 64,
-                                          //   color: KStyle.c72GreyColor,
-                                          // ),
                                           Image.asset(
                                             'assets/images/no_form.png',
                                             fit: BoxFit.contain,

@@ -265,7 +265,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: KStyle.cWhiteColor,
+                color: KStyle.cBackgroundColor,
                 border: Border(
                   right: BorderSide(
                     color: KStyle.cE3GreyColor,
@@ -353,27 +353,19 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                       ),
                                     );
                                   },
-                                  icon: Container(
-                                    width: 24,
-                                    height: 24,
-                                    child: SvgPicture.asset(
-                                      'assets/icons/eye.svg',
-                                      width: 24,
-                                      height: 24,
-                                    ),
+                                  icon: SvgPicture.asset(
+                                    'assets/icons/eye.svg',
+                                    width: 20,
+                                    height: 20,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 IconButton(
                                   onPressed: _copyShareLink,
-                                  icon: Container(
-                                    width: 22,
-                                    height: 22,
-                                    child: SvgPicture.asset(
-                                      'assets/icons/copy.svg',
-                                      width: 22,
-                                      height: 22,
-                                    ),
+                                  icon: SvgPicture.asset(
+                                    'assets/icons/copy.svg',
+                                    width: 20,
+                                    height: 20,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -389,11 +381,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: KStyle.cWhiteColor,
+                                    backgroundColor: KStyle.cPrimaryColor,
                                     foregroundColor: KStyle.cPrimaryColor,
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 12,
+                                      horizontal: 8,
+                                      vertical: 8,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -402,45 +394,26 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                     side:
                                         BorderSide(color: KStyle.cPrimaryColor),
                                   ),
-                                  icon: const Icon(Icons.edit, size: 20),
+                                  // icon: const Icon(Icons.edit, size: 20,),
+                                  icon: IconButton(
+                                    onPressed: () {
+                                      // TODO: Implement preview
+                                    },
+                                    icon: SvgPicture.asset(
+                                      'assets/icons/edit.svg',
+                                      width: 12,
+                                      height: 12,
+                                      colorFilter: ColorFilter.mode(
+                                          KStyle.cWhiteColor, BlendMode.srcIn),
+                                    ),
+                                  ),
                                   label: Text(
                                     'Edit Form',
-                                    style: KStyle.labelMdBoldTextStyle.copyWith(
-                                      color: KStyle.cPrimaryColor,
+                                    style: KStyle.labelTextStyle.copyWith(
+                                      color: KStyle.cWhiteColor,
                                     ),
                                   ),
                                 ),
-                                // const SizedBox(width: 12),
-                                // ElevatedButton.icon(
-                                //   onPressed: () {
-                                //     Navigator.of(context).push(
-                                //       MaterialPageRoute(
-                                //         builder: (context) =>
-                                //             FormSubmissionScreen(
-                                //                 formId: _form!.id!),
-                                //       ),
-                                //     );
-                                //   },
-                                //   style: ElevatedButton.styleFrom(
-                                //     backgroundColor: KStyle.cPrimaryColor,
-                                //     foregroundColor: KStyle.cWhiteColor,
-                                //     padding: const EdgeInsets.symmetric(
-                                //       horizontal: 20,
-                                //       vertical: 12,
-                                //     ),
-                                //     shape: RoundedRectangleBorder(
-                                //       borderRadius: BorderRadius.circular(8),
-                                //     ),
-                                //     elevation: 0,
-                                //   ),
-                                //   icon: const Icon(Icons.add, size: 20),
-                                //   label: Text(
-                                //     'Fill Form',
-                                //     style: KStyle.labelMdBoldTextStyle.copyWith(
-                                //       color: KStyle.cWhiteColor,
-                                //     ),
-                                //   ),
-                                // ),
                               ],
                             ),
                           ],
@@ -598,15 +571,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: KStyle.cWhiteColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: KStyle.cBackgroundColor,
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -643,7 +608,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       children: [
                         Text(
                           'Status: $selectedStatusFilter',
-                          style: KStyle.labelMdRegularTextStyle.copyWith(
+                          style: KStyle.labelTextStyle.copyWith(
                             color: KStyle.cBlackColor,
                           ),
                         ),
@@ -660,92 +625,60 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 const SizedBox(width: 50),
 
                 // Download CSV Button
+                // ElevatedButton.icon(
+                //   onPressed: () {
+                //     // TODO: Implement CSV download
+                //     ScaffoldMessenger.of(context).showSnackBar(
+                //       const SnackBar(
+                //         content: Text('CSV download coming soon!'),
+                //         backgroundColor: Colors.blue,
+                //       ),
+                //     );
+                //   },
+                //   icon: const Icon(Icons.download, size: 20),
+                //   label: Text(
+                //     'Download CSV',
+                //     style: KStyle.labelMdRegularTextStyle.copyWith(
+                //       color: KStyle.cWhiteColor,
+                //     ),
+                //   ),
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: KStyle.cPrimaryColor,
+                //     foregroundColor: KStyle.cWhiteColor,
+
+                //   ),
+                // ),
+
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement CSV download
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('CSV download coming soon!'),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.download, size: 20),
-                  label: Text(
-                    'Download CSV',
-                    style: KStyle.labelMdRegularTextStyle.copyWith(
-                      color: KStyle.cWhiteColor,
-                    ),
-                  ),
+                  onPressed: () async {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: KStyle.cPrimaryColor,
-                    foregroundColor: KStyle.cWhiteColor,
+                    backgroundColor: KStyle.cSelectedColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    elevation: 0,
+                  ),
+                  icon: IconButton(
+                    onPressed: () {
+                      // TODO: Implement preview
+                    },
+                    icon: SvgPicture.asset(
+                      'assets/icons/download.svg',
+                      width: 12,
+                      height: 12,
+                    ),
+                  ),
+                  label: Text(
+                    'Download CSV',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                    ),
                   ),
                 ),
-                // const SizedBox(width: 16),
-                // Test Submission Button
-                // ElevatedButton.icon(
-                //   onPressed: _createTestSubmission,
-                //   icon: const Icon(Icons.add, size: 20),
-                //   label: Text(
-                //     'Add Test Submission',
-                //     style: KStyle.labelMdRegularTextStyle.copyWith(
-                //       color: KStyle.cWhiteColor,
-                //     ),
-                //   ),
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: KStyle.c00GreenColor,
-                //     foregroundColor: KStyle.cWhiteColor,
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //   ),
-                // ),
-                // const SizedBox(width: 16),
-                // Debug Button
-                // ElevatedButton.icon(
-                //   onPressed: _debugSubmissions,
-                //   icon: const Icon(Icons.bug_report, size: 20),
-                //   label: Text(
-                //     'Debug Submissions',
-                //     style: KStyle.labelMdRegularTextStyle.copyWith(
-                //       color: KStyle.cWhiteColor,
-                //     ),
-                //   ),
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: KStyle.c72GreyColor,
-                //     foregroundColor: KStyle.cWhiteColor,
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //   ),
-                // ),
-                // const SizedBox(width: 16),
-                // Refresh Button
-                // ElevatedButton.icon(
-                //   onPressed: () {
-                //     setState(() {
-                //       // This will trigger a rebuild and reload submissions
-                //     });
-                //   },
-                //   icon: const Icon(Icons.refresh, size: 20),
-                //   label: Text(
-                //     'Refresh',
-                //     style: KStyle.labelMdRegularTextStyle.copyWith(
-                //       color: KStyle.cWhiteColor,
-                //     ),
-                //   ),
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: KStyle.c72GreyColor,
-                //     foregroundColor: KStyle.cWhiteColor,
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
 
@@ -894,10 +827,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.inbox_outlined,
-                            size: 64,
-                            color: KStyle.c72GreyColor,
+                          Image.asset(
+                            'assets/images/no_form.png',
+                            fit: BoxFit.contain,
+                            width: 150,
+                            height: 150,
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -924,9 +858,12 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   }
 
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       // Table Header
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
                             width: 24,
@@ -954,55 +891,54 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               'Submitter & Time',
                               style: KStyle.labelTextStyle.copyWith(
                                 color: KStyle.c89GreyColor,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                           Expanded(
-                            flex: 2,
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Status',
-                                  style: KStyle.labelTextStyle.copyWith(
-                                    color: KStyle.c89GreyColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text(
-                                  '',
-                                  style: KStyle.labelTextStyle.copyWith(
-                                    color: KStyle.c89GreyColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                            flex: 5,
+                            child: Text(
+                              'Status',
+                              style: KStyle.labelTextStyle.copyWith(
+                                color: KStyle.c89GreyColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                '',
+                                style: KStyle.labelTextStyle.copyWith(
+                                  color: KStyle.c89GreyColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           )
                         ],
                       ),
-
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 4),
 
                       // Divider
                       Container(
                         height: 1,
                         color: KStyle.cE3GreyColor,
                       ),
-
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 4),
 
                       // Submissions List
                       Expanded(
-                        child: ListView.builder(
+                        child: ListView.separated(
                           itemCount: submissions.length,
                           itemBuilder: (context, index) {
                             final submission = submissions[index];
                             return _buildSubmissionRow(submission);
                           },
+                          separatorBuilder: (context, index) => Divider(
+                            thickness: 1,
+                            color: KStyle.cE3GreyColor,
+                          ),
                         ),
                       ),
                     ],
@@ -1172,84 +1108,90 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   }
 
   Widget _buildSubmissionRow(SubmissionModel submission) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 24,
-            child: Checkbox(
-              value: selectedSubmissions.contains(submission),
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    selectedSubmissions.add(submission);
-                  } else {
-                    selectedSubmissions.remove(submission);
-                  }
-                });
-              },
-              activeColor: KStyle.cPrimaryColor,
+    return InkWell(
+      onTap: () => _showSubmissionDetails(submission),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: 24,
+              child: Checkbox(
+                value: selectedSubmissions.contains(submission),
+                onChanged: (value) {
+                  setState(() {
+                    if (value == true) {
+                      selectedSubmissions.add(submission);
+                    } else {
+                      selectedSubmissions.remove(submission);
+                    }
+                  });
+                },
+                activeColor: KStyle.cPrimaryColor,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Text(
+                  //   submission.submitterName,
+                  //   style: KStyle.labelMdBoldTextStyle.copyWith(
+                  //     color: KStyle.cBlackColor,
+                  //   ),
+                  // ),
+                  // Text(
+                  //   submission.submitterEmail,
+                  //   style: KStyle.labelSmRegularTextStyle.copyWith(
+                  //     color: KStyle.c72GreyColor,
+                  //   ),
+                  // ),
+                  Text(
+                    _formatDate(submission.createdAt),
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.c3BGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStatusChip(
+                      _form!.requiresApproval ? submission.status : '-'),
+                ],
+              ),
+            ),
+            Row(
               children: [
-                Text(
-                  submission.submitterName,
-                  style: KStyle.labelMdBoldTextStyle.copyWith(
-                    color: KStyle.cBlackColor,
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: KStyle.cFFColor,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                Text(
-                  submission.submitterEmail,
-                  style: KStyle.labelSmRegularTextStyle.copyWith(
-                    color: KStyle.c72GreyColor,
-                  ),
-                ),
-                Text(
-                  _formatDate(submission.createdAt),
-                  style: KStyle.labelXsRegularTextStyle.copyWith(
-                    color: KStyle.c72GreyColor,
+                  child: IconButton(
+                    onPressed: () => _deleteSubmission(submission),
+                    icon: SvgPicture.asset(
+                      'assets/icons/delete.svg',
+                      width: 17,
+                      height: 17,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Row(
-              children: [
-                _buildStatusChip(
-                    _form!.requiresApproval ? submission.status : '-'),
-                SizedBox(width: 10),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => _showSubmissionDetails(submission),
-                      icon: Icon(
-                        Icons.visibility_outlined,
-                        color: KStyle.c72GreyColor,
-                        size: 20,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => _deleteSubmission(submission),
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: KStyle.cDBRedColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
