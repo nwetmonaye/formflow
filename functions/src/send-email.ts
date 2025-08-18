@@ -79,6 +79,7 @@ interface EmailRequest {
     submitterEmail?: string;
     status?: string;
     comments?: string;
+    formOwnerEmail?: string; // <-- add this
 }
 
 export const sendEmailFromApp = onCall(
@@ -89,7 +90,16 @@ export const sendEmailFromApp = onCall(
         console.log('🔍 sendEmailFromApp: Function type: onCall (callable)');
 
         try {
-            const { to, subject, html, type, formTitle, submitterName, submitterEmail, status, comments } = request.data as EmailRequest;
+            const { to, subject, html, type, formTitle, submitterName, submitterEmail, status, comments, formOwnerEmail } = request.data as EmailRequest;
+
+            // SAFETY: Prevent sending approve/reject to form owner
+            if (type === 'submission_decision' && formOwnerEmail && to && to.toLowerCase() === formOwnerEmail.toLowerCase()) {
+                console.log('🔍 sendEmailFromApp: Skipping approve/reject email to form owner:', to);
+                return {
+                    success: true,
+                    message: 'Skipped sending approve/reject email to form owner',
+                };
+            }
 
             console.log('🔍 sendEmailFromApp: Processing email request');
             console.log('🔍 sendEmailFromApp: To:', to);
