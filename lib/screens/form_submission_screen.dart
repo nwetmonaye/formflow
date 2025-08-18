@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
 import 'package:formflow/services/firebase_service.dart';
@@ -24,6 +25,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   final Map<String, dynamic> _responses = {};
   final _formKey = GlobalKey<FormState>();
   bool _showSuccessCard = false;
+  bool _isSubmitting = false; // Track submit button state
 
   @override
   void initState() {
@@ -84,7 +86,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-
+    setState(() {
+      _isSubmitting = true;
+    });
     try {
       print('🔍 Submitting form with responses: $_responses');
 
@@ -149,12 +153,16 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
 
         setState(() {
           _showSuccessCard = true;
+          _isSubmitting = false;
         });
         return;
       } else {
         throw Exception('Firebase not available');
       }
     } catch (e) {
+      setState(() {
+        _isSubmitting = false;
+      });
       print('🔍 Error submitting form: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -168,6 +176,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   void _clearForm() {
     setState(() {
       _responses.clear();
+      _isSubmitting = false;
     });
     _formKey.currentState?.reset();
   }
@@ -257,9 +266,12 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     }
 
     return Scaffold(
-      backgroundColor: KStyle.cBgColor,
+      backgroundColor: KStyle.cWhiteColor,
       body: SingleChildScrollView(
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            color: KStyle.cWhiteColor,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -267,8 +279,8 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               if (_showSuccessCard)
                 Center(
                   child: Container(
-                    width: 700,
-                    margin: const EdgeInsets.only(bottom: 24),
+                    width: 500,
+                    margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -281,11 +293,11 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top border
+                        // Top border/accent
                         Container(
-                          height: 10,
+                          height: 6,
                           decoration: BoxDecoration(
                             color: KStyle.cPrimaryColor,
                             borderRadius: const BorderRadius.only(
@@ -294,48 +306,85 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                form!.title.isNotEmpty
-                                    ? form!.title
-                                    : 'Untitled form',
-                                style: KStyle.heading2TextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 32,
+                        const SizedBox(height: 12),
+                        // Checkmark in colored circle
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: KStyle.cSelectedColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: Container(
+                                width: 24,
+                                height: 24,
+                                child: SvgPicture.asset(
+                                  'assets/icons/check.svg',
+                                  width: 17,
+                                  height: 17,
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Your response has been recorded.',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _showSuccessCard = false;
-                                    _clearForm();
-                                  });
-                                },
-                                child: Text(
-                                  'Submit another response',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: KStyle.cPrimaryColor,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Your submission is successful!',
+                          style: KStyle.heading2TextStyle.copyWith(
+                            color: KStyle.c3BGreyColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          form!.title.isNotEmpty
+                              ? form!.title
+                              : 'Untitled Form',
+                          style: KStyle.labelTextStyle.copyWith(
+                            color: KStyle.c3BGreyColor,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          form!.description.isNotEmpty
+                              ? form!.description
+                              : 'Form Description is the description of the form to describe more about the form.',
+                          style: KStyle.labelTextStyle.copyWith(
+                            color: KStyle.c3BGreyColor,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        // Optionally, add a button to submit another response
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'form',
+                              style: KStyle.labelTextStyle.copyWith(
+                                  color: KStyle.cBlackColor, fontSize: 20),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              margin: const EdgeInsets.only(top: 10),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: KStyle.cPrimaryColor,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 32),
                       ],
                     ),
                   ),
@@ -501,9 +550,11 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                               width: 160,
                               height: 48,
                               child: ElevatedButton(
-                                onPressed: _submitForm,
+                                onPressed: _isSubmitting ? null : _submitForm,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: KStyle.cPrimaryColor,
+                                  backgroundColor: _isSubmitting
+                                      ? KStyle.cE3GreyColor
+                                      : KStyle.cPrimaryColor,
                                   foregroundColor: KStyle.cWhiteColor,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
