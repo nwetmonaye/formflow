@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class KStyle {
   static Color cPrimaryColor = const Color(0xFF356BF8);
   static Color cSelectedColor = const Color(0xFFEBF0FE);
+  static Color cBackgroundColor = const Color(0xFFFAFBFF);
   static Color cNotiColor = const Color(0xFFDB340B);
   static Color cWhiteColor = const Color(0xFFFFFFFF);
   static Color c3BGreyColor = const Color(0xFF3B3B47);

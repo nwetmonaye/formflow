@@ -30,6 +30,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   bool _closeForm = false;
   // Track if this is a new form session (created in this screen)
   late bool _isNewFormSession;
+  bool _isDirty = false; // Track unsaved changes for existing forms
 
   @override
   void initState() {
@@ -56,6 +57,10 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     setState(() {
       _form = updatedForm;
       _closeForm = _form.status == 'closed';
+      // Mark as dirty if editing existing form and not draft
+      if (!_isNewFormSession && _form.status != 'draft') {
+        _isDirty = true;
+      }
     });
     if (!_isEditingTitle) {
       _titleController.text = _form.title;
@@ -63,13 +68,18 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     // Use session flag for auto-save
     if (_isNewFormSession) {
       _autoSave();
+    } else if (_form.status == 'draft') {
+      _autoSave();
     }
-    // For existing forms, do not auto-save; save only on publish
+    // For existing forms with non-draft status, do not auto-save to Firebase
   }
 
   Future<void> _autoSave() async {
     if (_isSaving) return;
-
+    // For existing forms with non-draft status, do not save to Firebase
+    if (!_isNewFormSession && _form.status != 'draft') {
+      return;
+    }
     setState(() {
       _isSaving = true;
     });
@@ -183,6 +193,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           _form = refreshedForm;
           _closeForm = _form.status == 'closed';
           _canShare = true;
+          _isDirty = false; // Reset dirty state after publish
         });
       }
       // After publishing, treat as existing form (disable auto-save)
@@ -588,9 +599,19 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton.icon(
-                            onPressed: _isPublishing ? null : _publishForm,
+                            onPressed: (_isPublishing ||
+                                    (_form.id != null &&
+                                        _form.status != 'draft' &&
+                                        !_isDirty))
+                                ? null
+                                : _publishForm,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: KStyle.cPrimaryColor,
+                              backgroundColor: (_isPublishing ||
+                                      (_form.id != null &&
+                                          _form.status != 'draft' &&
+                                          !_isDirty))
+                                  ? KStyle.cE3GreyColor
+                                  : KStyle.cPrimaryColor,
                               foregroundColor: KStyle.cWhiteColor,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -614,9 +635,9 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             label: Text(
                               _isPublishing
                                   ? 'Publishing...'
-                                  : (_form.id == null
+                                  : (_form.id == null || _form.status == 'draft'
                                       ? 'Publish'
-                                      : 'Publish Changes'),
+                                      : 'Publish changes'),
                               style: KStyle.labelSmRegularTextStyle.copyWith(
                                 color: KStyle.cWhiteColor,
                               ),
