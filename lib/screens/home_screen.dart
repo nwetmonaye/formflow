@@ -230,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: KStyle.cWhiteColor,
+                      color: KStyle.cBackgroundColor,
                       border: Border(
                         right: BorderSide(
                           color: KStyle.cE3GreyColor,
@@ -447,23 +447,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   final filteredForms =
                                       _filterForms(forms, selectedFilter);
 
-                                  print(
-                                      '🔍 HomeScreen: Total forms: ${forms.length}');
-                                  print(
-                                      '🔍 HomeScreen: Filtered forms: ${filteredForms.length}');
-                                  print(
-                                      '🔍 HomeScreen: Current filter: $selectedFilter');
-
                                   if (filteredForms.isEmpty) {
                                     return Center(
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Icon(
-                                            Icons.description_outlined,
-                                            size: 64,
-                                            color: KStyle.c72GreyColor,
+                                          // Icon(
+                                          //   Icons.description_outlined,
+                                          //   size: 64,
+                                          //   color: KStyle.c72GreyColor,
+                                          // ),
+                                          Image.asset(
+                                            'assets/images/no_form.png',
+                                            fit: BoxFit.contain,
+                                            width: 150,
+                                            height: 150,
                                           ),
                                           const SizedBox(height: 16),
                                           Text(
@@ -481,225 +480,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .copyWith(
                                               color: KStyle.c72GreyColor,
                                             ),
-                                          ),
-
-                                          const SizedBox(height: 16),
-                                          // Debug button to test Firebase connection
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              await FirebaseService
-                                                  .testFirebaseConnection();
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      'Check console for Firebase connection test results'),
-                                                  backgroundColor: Colors.blue,
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.blue,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text(
-                                                'Test Firebase Connection'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to create test form
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              try {
-                                                final testForm = FormModel(
-                                                  title:
-                                                      'Test Form ${DateTime.now().millisecondsSinceEpoch}',
-                                                  description:
-                                                      'This is a test form created for debugging',
-                                                  fields: [],
-                                                  status: 'draft',
-                                                  createdBy: authState.user.uid,
-                                                  createdAt: DateTime.now(),
-                                                  updatedAt: DateTime.now(),
-                                                );
-
-                                                final formId =
-                                                    await FirebaseService
-                                                        .createForm(testForm);
-                                                print(
-                                                    '🔍 Debug: Created test form with ID: $formId');
-
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Test form created successfully!'),
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                  ),
-                                                );
-                                              } catch (e) {
-                                                print(
-                                                    '🔍 Debug: Error creating test form: $e');
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Error creating test form: $e'),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            child: Text(
-                                                'Create Test Form (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to get all forms
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              try {
-                                                final allForms =
-                                                    await FirebaseService
-                                                        .getAllFormsDebug();
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Found ${allForms.length} total forms. Check console for details.'),
-                                                    backgroundColor:
-                                                        Colors.orange,
-                                                    duration:
-                                                        Duration(seconds: 3),
-                                                  ),
-                                                );
-                                              } catch (e) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Error getting all forms: $e'),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.orange,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child:
-                                                Text('Get All Forms (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to sign in anonymously
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              try {
-                                                await FirebaseService
-                                                    .signInAnonymously();
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Signed in anonymously. Check console for details.'),
-                                                    backgroundColor:
-                                                        Colors.purple,
-                                                  ),
-                                                );
-                                              } catch (e) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                        'Error signing in anonymously: $e'),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.purple,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text(
-                                                'Sign In Anonymously (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to test forms stream without user filter
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // This will show a dialog with the debug stream
-                                              _showDebugStreamDialog(context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.teal,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text(
-                                                'Test Forms Stream (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to check auth state
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              await FirebaseService
-                                                  .checkAuthState();
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      'Check console for authentication state details'),
-                                                  backgroundColor:
-                                                      Colors.indigo,
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.indigo,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text(
-                                                'Check Auth State (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to test ordered forms stream
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // This will test the query that requires an index
-                                              _showOrderedStreamDialog(context);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.deepOrange,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Text(
-                                                'Test Ordered Stream (Debug)'),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Debug button to open index creation URL
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              final url = FirebaseService
-                                                  .getIndexCreationUrl();
-                                              // Open URL in browser (you'll need to implement this)
-                                              print(
-                                                  '🔍 Index creation URL: $url');
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      'Index creation URL copied to console. Open it in your browser.'),
-                                                  backgroundColor: Colors.amber,
-                                                ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.amber,
-                                              foregroundColor: Colors.black,
-                                            ),
-                                            child:
-                                                Text('Get Index Creation URL'),
                                           ),
                                         ],
                                       ),
