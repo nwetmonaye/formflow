@@ -46,6 +46,9 @@ class KStyle {
   static Color cB9BlueColor = const Color(0xFFB9B0FF);
   static Color c3CGreenColor = const Color(0xFF3CC3DF);
   static Color c6EGreenColor = const Color(0xFF6ED10C);
+  static Color cPendingColor = const Color(0xFFED9B16);
+  static Color cApproveColor = const Color(0xFF23A15D);
+  static Color cRejectColor = const Color(0xFFFF5226);
 
   static TextStyle headingTextStyle = const TextStyle(
     fontSize: 32,

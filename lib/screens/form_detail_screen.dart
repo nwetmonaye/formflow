@@ -1204,17 +1204,17 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     switch (status) {
       case 'pending':
         backgroundColor = const Color(0xFFFFF3CD);
-        textColor = const Color(0xFF856404);
+        textColor = KStyle.cPendingColor;
         statusText = 'Pending';
         break;
       case 'approved':
         backgroundColor = KStyle.cE8GreenColor;
-        textColor = KStyle.c25GreenColor;
+        textColor = KStyle.cApproveColor;
         statusText = 'Approved';
         break;
       case 'rejected':
         backgroundColor = KStyle.cFF3Color;
-        textColor = KStyle.cDBRedColor;
+        textColor = KStyle.cRejectColor;
         statusText = 'Rejected';
         break;
       default:

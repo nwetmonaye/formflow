@@ -291,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 icon: const Icon(Icons.add, size: 20),
                                 label: Text(
                                   'New Form',
-                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                  style: KStyle.labelTextStyle.copyWith(
                                     color: KStyle.cWhiteColor,
                                   ),
                                 ),
@@ -675,47 +675,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Inbox with count
-                  Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        child: SvgPicture.asset(
-                          'assets/icons/inbox.svg',
-                          width: 24,
-                          height: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: KStyle.cNotiColor,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Center(
-                          child: StreamBuilder<List<SubmissionModel>>(
-                            stream:
-                                FirebaseService.getSubmissionsStream(form.id!),
-                            builder: (context, snapshot) {
-                              int count = 0;
-                              if (snapshot.hasData) {
-                                count = snapshot.data!.length;
-                              }
-                              return Text(
-                                count.toString(),
-                                style: KStyle.labelXsRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 10,
-                                ),
-                              );
-                            },
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: KStyle.cSelectedColor,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 18,
+                          height: 18,
+                          child: SvgPicture.asset(
+                            'assets/icons/inbox.svg',
+                            width: 18,
+                            height: 18,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: KStyle.cNotiColor,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Center(
+                            child: StreamBuilder<List<SubmissionModel>>(
+                              stream: FirebaseService.getSubmissionsStream(
+                                  form.id!),
+                              builder: (context, snapshot) {
+                                int count = 0;
+                                if (snapshot.hasData) {
+                                  count = snapshot.data!.length;
+                                }
+                                return Text(
+                                  count.toString(),
+                                  style:
+                                      KStyle.labelXsRegularTextStyle.copyWith(
+                                    color: KStyle.cWhiteColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   // Action Icons
                   Row(
@@ -731,12 +740,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         child: Container(
-                          width: 24,
-                          height: 24,
+                          width: 18,
+                          height: 18,
                           child: SvgPicture.asset(
                             'assets/icons/eye.svg',
-                            width: 24,
-                            height: 24,
+                            width: 18,
+                            height: 18,
                           ),
                         ),
                       ),
@@ -746,12 +755,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           _copyFormLink(form);
                         },
                         child: Container(
-                          width: 22,
-                          height: 22,
+                          width: 18,
+                          height: 18,
                           child: SvgPicture.asset(
                             'assets/icons/copy.svg',
-                            width: 22,
-                            height: 22,
+                            width: 18,
+                            height: 18,
                           ),
                         ),
                       ),
@@ -978,7 +987,7 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (status) {
       case 'active':
         backgroundColor = KStyle.cE8GreenColor;
-        textColor = KStyle.c25GreenColor;
+        textColor = KStyle.cApproveColor;
         statusText = 'Live';
         break;
       case 'draft':
@@ -1001,13 +1010,12 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
         statusText,
-        style: KStyle.labelXsRegularTextStyle.copyWith(
+        style: KStyle.labelTextStyle.copyWith(
           color: textColor,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
