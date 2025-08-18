@@ -1399,29 +1399,23 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
               const SizedBox(height: 16),
 
-              // Form Data
-              if (!_form!.requiresApproval) ...[
-                for (final field in _form!.fields)
-                  _buildDetailRow(
-                    field.label,
-                    submission.data[field.id]?.toString() ?? '',
-                  ),
-              ] else ...[
-                Text(
-                  'Form Responses:',
-                  style: KStyle.labelMdBoldTextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                'Responses:',
+                style: KStyle.labelMdBoldTextStyle.copyWith(
+                  color: KStyle.cBlackColor,
+                  fontSize: 16,
                 ),
-                const SizedBox(height: 12),
-                // Use structured data with null safety
-                ...submission.getStructuredData().map(
-                      (item) => _buildDetailRow(
-                        item['label'] ?? 'Unknown Question',
-                        item['answer'] ?? '',
-                      ),
+              ),
+              const SizedBox(height: 8),
+              ...submission.getStructuredData().map(
+                    (item) => _buildDetailRow(
+                      (item['label']?.isNotEmpty ?? false)
+                          ? item['label']!
+                          : (item['fieldId'] ?? 'Unknown Question'),
+                      item['answer'] ?? '',
                     ),
-              ],
+                  ),
 
               const SizedBox(height: 16),
 
