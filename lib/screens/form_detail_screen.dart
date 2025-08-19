@@ -406,8 +406,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                                     },
                                     icon: SvgPicture.asset(
                                       'assets/icons/edit.svg',
-                                      width: 12,
-                                      height: 12,
+                                      width: 18,
+                                      height: 18,
                                       colorFilter: ColorFilter.mode(
                                           KStyle.cWhiteColor, BlendMode.srcIn),
                                     ),
@@ -673,8 +673,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         ? KStyle.cE3GreyColor
                         : KStyle.cSelectedColor,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 20,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -683,8 +683,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ),
                   icon: SvgPicture.asset(
                     'assets/icons/download.svg',
-                    width: 12,
-                    height: 12,
+                    width: 18,
+                    height: 18,
                   ),
                   label: Text(
                     _isDownloadingCsv ? 'Downloading...' : 'Download CSV',

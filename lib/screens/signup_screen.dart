@@ -74,18 +74,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ? Row(
                 children: [
                   // Left: Image
-                  Expanded(
-                    flex: 1,
-                    child: Image.asset(
-                      'assets/images/side_photo.png',
-                      fit: BoxFit.fill,
-                    ),
+                  Image.asset(
+                    'assets/images/side_photo.png',
+                    fit: BoxFit.fill,
                   ),
                   // Right: Sign up form
                   Expanded(
-                    flex: 1,
+                    flex: 4,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 100),
+                      padding: EdgeInsets.symmetric(horizontal: 200),
                       color: KStyle.cWhiteColor,
                       child: Center(
                         child: SingleChildScrollView(
