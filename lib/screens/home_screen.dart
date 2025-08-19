@@ -549,11 +549,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                         return GridView.builder(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 80, vertical: 20),
+                                              horizontal: 20, vertical: 20),
                                           gridDelegate:
                                               const SliverGridDelegateWithFixedCrossAxisCount(
                                             crossAxisCount: 3,
-                                            crossAxisSpacing: 30,
+                                            crossAxisSpacing: 20,
                                             mainAxisSpacing: 30,
                                             childAspectRatio: 1.8,
                                           ),
@@ -697,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -754,15 +754,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Container(
-                          width: 18,
-                          height: 18,
+                          width: 20,
+                          height: 20,
                           child: SvgPicture.asset(
                             'assets/icons/inbox.svg',
-                            width: 18,
-                            height: 18,
+                            width: 20,
+                            height: 20,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 8),
                         Container(
                           width: 18,
                           height: 18,
@@ -809,27 +809,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         child: Container(
-                          width: 18,
-                          height: 18,
+                          width: 20,
+                          height: 20,
                           child: SvgPicture.asset(
                             'assets/icons/eye.svg',
-                            width: 18,
-                            height: 18,
+                            width: 20,
+                            height: 20,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       GestureDetector(
                         onTap: () {
                           _copyFormLink(form);
                         },
                         child: Container(
-                          width: 18,
-                          height: 18,
+                          width: 20,
+                          height: 20,
                           child: SvgPicture.asset(
                             'assets/icons/copy.svg',
-                            width: 18,
-                            height: 18,
+                            width: 20,
+                            height: 20,
                           ),
                         ),
                       ),
