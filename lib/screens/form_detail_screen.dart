@@ -119,7 +119,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           Container(
             width: 280,
             decoration: BoxDecoration(
-              color: KStyle.cWhiteColor,
+              color: KStyle.cPrimaryColor,
               border: Border(
                 right: BorderSide(
                   color: KStyle.cE3GreyColor,
@@ -139,7 +139,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       Text(
                         'form',
                         style: KStyle.heading2TextStyle.copyWith(
-                          color: KStyle.cBlackColor,
+                          color: KStyle.cWhiteColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -149,7 +149,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: KStyle.cPrimaryColor,
+                          color: KStyle.cWhiteColor,
                           borderRadius: BorderRadius.circular(50),
                         ),
                       ),
@@ -208,7 +208,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: KStyle.cE3GreyColor,
+                        color: KStyle.cWhiteColor,
                         width: 1,
                       ),
                     ),
@@ -223,13 +223,14 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: KStyle.cPrimaryColor,
+                            color: KStyle.cWhiteColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 20,
+                          child: Image.asset(
+                            'assets/images/profile.png',
+                            fit: BoxFit.cover,
+                            // width: double.infinity,
+                            // height: 140,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -240,14 +241,14 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               Text(
                                 'User Profile',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
+                                  color: KStyle.cWhiteColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 'View Profile',
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
+                                  color: KStyle.cWhiteColor,
                                 ),
                               ),
                             ],
@@ -255,7 +256,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         ),
                         Icon(
                           Icons.keyboard_arrow_down,
-                          color: KStyle.c72GreyColor,
+                          color: KStyle.cWhiteColor,
                           size: 20,
                         ),
                       ],
@@ -488,7 +489,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? KStyle.cSelectedColor : Colors.transparent,
+          color: isSelected ? KStyle.cWhiteColor : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -499,8 +500,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 Icon(
                   icon,
                   size: 20,
-                  color:
-                      isSelected ? KStyle.cPrimaryColor : KStyle.c72GreyColor,
+                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
                 ),
                 if (notificationCount != null)
                   Positioned(
@@ -527,7 +527,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
             Text(
               title,
               style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: isSelected ? KStyle.cPrimaryColor : KStyle.c72GreyColor,
+                color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
