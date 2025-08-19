@@ -1293,6 +1293,10 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         child: StatefulBuilder(
           builder: (context, setState) {
             return Container(
+              decoration: BoxDecoration(
+                color: KStyle.cWhiteColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
               width: 600,
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -1406,18 +1410,23 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _isDecisionMade
                                     ? KStyle.cE3GreyColor
+                                    : KStyle.cSelectedColor,
+                                foregroundColor: _isDecisionMade
+                                    ? KStyle.c72GreyColor
                                     : KStyle.cPrimaryColor,
-                                foregroundColor: KStyle.cWhiteColor,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
+                                elevation: 0,
                               ),
                               child: Text(
                                 'Approve',
                                 style: KStyle.labelMdBoldTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
+                                  color: _isDecisionMade
+                                      ? KStyle.c72GreyColor
+                                      : KStyle.cPrimaryColor,
                                 ),
                               ),
                             ),
@@ -1435,18 +1444,23 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _isDecisionMade
                                     ? KStyle.cE3GreyColor
+                                    : const Color(0xFFFFE5E5),
+                                foregroundColor: _isDecisionMade
+                                    ? KStyle.c72GreyColor
                                     : KStyle.cDBRedColor,
-                                foregroundColor: KStyle.cWhiteColor,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
+                                elevation: 0,
                               ),
                               child: Text(
                                 'Reject',
                                 style: KStyle.labelMdBoldTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
+                                  color: _isDecisionMade
+                                      ? KStyle.c72GreyColor
+                                      : KStyle.cDBRedColor,
                                 ),
                               ),
                             ),
@@ -1454,26 +1468,27 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         ],
                       ),
                     ] else ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: KStyle.cPrimaryColor,
-                            foregroundColor: KStyle.cWhiteColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            'Close',
-                            style: KStyle.labelMdBoldTextStyle.copyWith(
-                              color: KStyle.cWhiteColor,
-                            ),
-                          ),
-                        ),
-                      ),
+                      SizedBox.shrink(),
+                      // SizedBox(
+                      //   width: double.infinity,
+                      //   child: ElevatedButton(
+                      //     onPressed: () => Navigator.of(context).pop(),
+                      //     style: ElevatedButton.styleFrom(
+                      //       backgroundColor: KStyle.cPrimaryColor,
+                      //       foregroundColor: KStyle.cWhiteColor,
+                      //       padding: const EdgeInsets.symmetric(vertical: 16),
+                      //       shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(8),
+                      //       ),
+                      //     ),
+                      //     child: Text(
+                      //       'Close',
+                      //       style: KStyle.labelMdBoldTextStyle.copyWith(
+                      //         color: KStyle.cWhiteColor,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ],
                 ],

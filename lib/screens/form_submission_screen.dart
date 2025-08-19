@@ -730,6 +730,12 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         );
 
       case 'date':
+        final selectedDate = _responses[field.id];
+        String displayDate = field.placeholder ?? 'mm/dd/yyyy';
+        if (selectedDate is DateTime) {
+          displayDate =
+              '${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.year}';
+        }
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -745,6 +751,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               Expanded(
                 child: TextFormField(
                   readOnly: true,
+                  controller: TextEditingController(text: displayDate),
                   decoration: InputDecoration(
                     hintText: field.placeholder ?? 'mm/dd/yyyy',
                     border: InputBorder.none,
@@ -755,7 +762,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                   onTap: () async {
                     final date = await showDatePicker(
                       context: context,
-                      initialDate: DateTime.now(),
+                      initialDate: selectedDate is DateTime
+                          ? selectedDate
+                          : DateTime.now(),
                       firstDate: DateTime(1900),
                       lastDate: DateTime(2100),
                     );

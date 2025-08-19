@@ -380,6 +380,9 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
         );
 
       case 'date':
+        final today = DateTime.now();
+        final formattedDate =
+            '${today.month.toString().padLeft(2, '0')}/${today.day.toString().padLeft(2, '0')}/${today.year}';
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -394,9 +397,9 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'mm/dd/yyyy',
+                  formattedDate,
                   style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.c72GreyColor,
+                    color: KStyle.cBlackColor,
                   ),
                 ),
               ),
@@ -441,6 +444,9 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
         );
 
       case 'dropdown':
+        final sampleValue = (options != null && options.isNotEmpty)
+            ? options.first
+            : 'Select an option';
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -455,9 +461,9 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Select an option',
+                  sampleValue,
                   style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.c72GreyColor,
+                    color: KStyle.cBlackColor,
                   ),
                 ),
               ),
