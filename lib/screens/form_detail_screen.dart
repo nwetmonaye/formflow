@@ -1492,16 +1492,15 @@ class _FormDetailScreenState extends State<FormDetailScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // SizedBox(
-          //   width: 120,
-          //   child: Text(
-          //     '$label:',
-          //     style: KStyle.labelMdRegularTextStyle.copyWith(
-          //       color: KStyle.c72GreyColor,
-          //       fontWeight: FontWeight.w600,
-          //     ),
-          //   ),
-          // ),
+          SizedBox(
+            width: 160, // Adjust as needed for your layout
+            child: Text(
+              '$label:',
+              style: KStyle.labelMdBoldTextStyle.copyWith(
+                color: KStyle.cBlackColor,
+              ),
+            ),
+          ),
           Expanded(
             child: Text(
               value,
