@@ -26,6 +26,24 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> filters = ['All', 'Live', 'Draft', 'Closed'];
   int selectedNavItem = 0; // 0 = My Forms, 1 = Cohorts, 2 = Notifications
 
+  // Add state for closed warning
+  bool _showClosedWarning = false;
+  String? _copiedClosedFormTitle;
+
+  void _showClosedFormWarning(String formTitle) {
+    setState(() {
+      _showClosedWarning = true;
+      _copiedClosedFormTitle = formTitle;
+    });
+  }
+
+  void _hideClosedFormWarning() {
+    setState(() {
+      _showClosedWarning = false;
+      _copiedClosedFormTitle = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
@@ -70,440 +88,491 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return Scaffold(
             backgroundColor: KStyle.cBgColor,
-            body: Row(
+            body: Column(
               children: [
-                // Left Sidebar
-                Container(
-                  width: 280,
-                  decoration: BoxDecoration(
-                    color: KStyle.cWhiteColor,
-                    border: Border(
-                      right: BorderSide(
-                        color: KStyle.cE3GreyColor,
-                        width: 1,
-                      ),
+                if (_showClosedWarning)
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFFFFF3F0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
+                    margin: const EdgeInsets.only(bottom: 0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.red[400]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Link copied, but this form is closed and can't accept submissions.",
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: Colors.red[400],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 20),
+                          color: Colors.red[400],
+                          onPressed: _hideClosedFormWarning,
+                          splashRadius: 18,
+                        ),
+                      ],
                     ),
                   ),
-                  child: Column(
+                Expanded(
+                  child: Row(
                     children: [
-                      // Logo
+                      // Left Sidebar
                       Container(
-                        padding: const EdgeInsets.all(24),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              'form',
-                              style: KStyle.heading2TextStyle.copyWith(
-                                color: KStyle.cBlackColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              margin: const EdgeInsets.only(top: 10),
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: KStyle.cPrimaryColor,
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Navigation Menu
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildNavItem(
-                              icon: Icons.description_outlined,
-                              title: 'My Forms',
-                              isSelected: selectedNavItem == 0,
-                              onTap: () {
-                                setState(() {
-                                  selectedNavItem = 0;
-                                });
-                              },
-                            ),
-                            _buildNavItem(
-                              icon: Icons.group_outlined,
-                              title: 'Cohorts',
-                              isSelected: selectedNavItem == 1,
-                              onTap: () {
-                                setState(() {
-                                  selectedNavItem = 1;
-                                });
-                              },
-                            ),
-                            _buildNavItem(
-                              icon: Icons.notifications_outlined,
-                              title: 'Notifications',
-                              isSelected: selectedNavItem == 2,
-                              notificationCount: 5,
-                              onTap: () {
-                                setState(() {
-                                  selectedNavItem = 2;
-                                });
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const NotificationScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // User Profile
-                      Container(
-                        padding: const EdgeInsets.all(16),
+                        width: 280,
                         decoration: BoxDecoration(
+                          color: KStyle.cWhiteColor,
                           border: Border(
-                            top: BorderSide(
+                            right: BorderSide(
                               color: KStyle.cE3GreyColor,
                               width: 1,
                             ),
                           ),
                         ),
-                        child: GestureDetector(
-                          onTap: () {
-                            _showUserMenu(context);
-                          },
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: KStyle.cPrimaryColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 20,
+                        child: Column(
+                          children: [
+                            // Logo
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'form',
+                                    style: KStyle.heading2TextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 10),
+                                    width: 10,
+                                    height: 10,
+                                    decoration: BoxDecoration(
+                                      color: KStyle.cPrimaryColor,
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Navigation Menu
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  _buildNavItem(
+                                    icon: Icons.description_outlined,
+                                    title: 'My Forms',
+                                    isSelected: selectedNavItem == 0,
+                                    onTap: () {
+                                      setState(() {
+                                        selectedNavItem = 0;
+                                      });
+                                    },
+                                  ),
+                                  _buildNavItem(
+                                    icon: Icons.group_outlined,
+                                    title: 'Cohorts',
+                                    isSelected: selectedNavItem == 1,
+                                    onTap: () {
+                                      setState(() {
+                                        selectedNavItem = 1;
+                                      });
+                                    },
+                                  ),
+                                  _buildNavItem(
+                                    icon: Icons.notifications_outlined,
+                                    title: 'Notifications',
+                                    isSelected: selectedNavItem == 2,
+                                    notificationCount: 5,
+                                    onTap: () {
+                                      setState(() {
+                                        selectedNavItem = 2;
+                                      });
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const NotificationScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // User Profile
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                    color: KStyle.cE3GreyColor,
+                                    width: 1,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showUserMenu(context);
+                                },
+                                child: Row(
                                   children: [
-                                    Text(
-                                      authState.user.displayName ??
-                                          authState.user.email.split('@')[0],
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.cBlackColor,
-                                        fontWeight: FontWeight.w500,
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: KStyle.cPrimaryColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 20,
                                       ),
                                     ),
-                                    Text(
-                                      'View Profile',
-                                      style: KStyle.labelSmRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.c72GreyColor,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            authState.user.displayName ??
+                                                authState.user.email
+                                                    .split('@')[0],
+                                            style: KStyle
+                                                .labelMdRegularTextStyle
+                                                .copyWith(
+                                              color: KStyle.cBlackColor,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            'View Profile',
+                                            style: KStyle
+                                                .labelSmRegularTextStyle
+                                                .copyWith(
+                                              color: KStyle.c72GreyColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: KStyle.c72GreyColor,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Main Content Area
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: KStyle.cBackgroundColor,
+                            border: Border(
+                              right: BorderSide(
+                                color: KStyle.cE3GreyColor,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Header
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: KStyle.cWhiteColor,
+                                  // border: Border(
+                                  //   bottom: BorderSide(
+                                  //     color: KStyle.cE3GreyColor,
+                                  //     width: 1,
+                                  //   ),
+                                  // ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'My Forms',
+                                          style:
+                                              KStyle.headingTextStyle.copyWith(
+                                            color: KStyle.cBlackColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const FormBuilderScreen(),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: KStyle.cPrimaryColor,
+                                        foregroundColor: KStyle.cWhiteColor,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      icon: const Icon(Icons.add, size: 20),
+                                      label: Text(
+                                        'New Form',
+                                        style: KStyle.labelTextStyle.copyWith(
+                                          color: KStyle.cWhiteColor,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                color: KStyle.c72GreyColor,
-                                size: 20,
+
+                              // Filters
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: KStyle.cWhiteColor,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: KStyle.cE3GreyColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 16),
+                                child: Row(
+                                  children: filters.map((filter) {
+                                    bool isSelected = selectedFilter == filter;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedFilter = filter;
+                                        });
+                                      },
+                                      child: Container(
+                                        margin:
+                                            const EdgeInsets.only(right: 32),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              filter,
+                                              style: KStyle
+                                                  .labelMdRegularTextStyle
+                                                  .copyWith(
+                                                color: isSelected
+                                                    ? KStyle.cPrimaryColor
+                                                    : KStyle.c72GreyColor,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            if (isSelected)
+                                              Container(
+                                                width: 20,
+                                                height: 2,
+                                                decoration: BoxDecoration(
+                                                  color: KStyle.cPrimaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(1),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+                              // Forms Grid
+                              Expanded(
+                                child: FutureBuilder<bool>(
+                                  future: FirebaseService.ensureInitialized(),
+                                  builder: (context, initSnapshot) {
+                                    if (initSnapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const Center(
+                                          child: CircularProgressIndicator());
+                                    }
+
+                                    if (initSnapshot.hasError ||
+                                        initSnapshot.data != true) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.error_outline,
+                                              size: 64,
+                                              color: Colors.red,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Failed to initialize Firebase',
+                                              style: KStyle.heading3TextStyle
+                                                  .copyWith(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Please check your internet connection and try again',
+                                              style: KStyle
+                                                  .labelMdRegularTextStyle
+                                                  .copyWith(
+                                                color: KStyle.c72GreyColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    return StreamBuilder<List<FormModel>>(
+                                      stream: FirebaseService.getFormsStream(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+
+                                        if (snapshot.hasError) {
+                                          print(
+                                              'Stream error: ${snapshot.error}');
+                                          return Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.error_outline,
+                                                  size: 64,
+                                                  color: Colors.red,
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'Error loading forms',
+                                                  style: KStyle
+                                                      .heading3TextStyle
+                                                      .copyWith(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Error: ${snapshot.error}',
+                                                  style: KStyle
+                                                      .labelMdRegularTextStyle
+                                                      .copyWith(
+                                                    color: KStyle.c72GreyColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+
+                                        final forms = snapshot.data ?? [];
+                                        final filteredForms =
+                                            _filterForms(forms, selectedFilter);
+
+                                        if (filteredForms.isEmpty) {
+                                          return Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Image.asset(
+                                                  'assets/images/no_form.png',
+                                                  fit: BoxFit.contain,
+                                                  width: 150,
+                                                  height: 150,
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'No forms found',
+                                                  style: KStyle
+                                                      .heading3TextStyle
+                                                      .copyWith(
+                                                    color: KStyle.c72GreyColor,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Create your first form to get started',
+                                                  style: KStyle
+                                                      .labelMdRegularTextStyle
+                                                      .copyWith(
+                                                    color: KStyle.c72GreyColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+
+                                        return GridView.builder(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 80, vertical: 20),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                            crossAxisSpacing: 30,
+                                            mainAxisSpacing: 30,
+                                            childAspectRatio: 1.8,
+                                          ),
+                                          itemCount: filteredForms.length,
+                                          itemBuilder: (context, index) {
+                                            final form = filteredForms[index];
+                                            return _buildFormCard(form);
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-
-                // Main Content Area
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: KStyle.cBackgroundColor,
-                      border: Border(
-                        right: BorderSide(
-                          color: KStyle.cE3GreyColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
-                            // border: Border(
-                            //   bottom: BorderSide(
-                            //     color: KStyle.cE3GreyColor,
-                            //     width: 1,
-                            //   ),
-                            // ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'My Forms',
-                                    style: KStyle.headingTextStyle.copyWith(
-                                      color: KStyle.cBlackColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const FormBuilderScreen(),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: KStyle.cPrimaryColor,
-                                  foregroundColor: KStyle.cWhiteColor,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                icon: const Icon(Icons.add, size: 20),
-                                label: Text(
-                                  'New Form',
-                                  style: KStyle.labelTextStyle.copyWith(
-                                    color: KStyle.cWhiteColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Filters
-                        Container(
-                          decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: KStyle.cE3GreyColor,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 16),
-                          child: Row(
-                            children: filters.map((filter) {
-                              bool isSelected = selectedFilter == filter;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFilter = filter;
-                                  });
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(right: 32),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        filter,
-                                        style: KStyle.labelMdRegularTextStyle
-                                            .copyWith(
-                                          color: isSelected
-                                              ? KStyle.cPrimaryColor
-                                              : KStyle.c72GreyColor,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      if (isSelected)
-                                        Container(
-                                          width: 20,
-                                          height: 2,
-                                          decoration: BoxDecoration(
-                                            color: KStyle.cPrimaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(1),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-
-                        // Forms Grid
-                        Expanded(
-                          child: FutureBuilder<bool>(
-                            future: FirebaseService.ensureInitialized(),
-                            builder: (context, initSnapshot) {
-                              if (initSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-
-                              if (initSnapshot.hasError ||
-                                  initSnapshot.data != true) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        size: 64,
-                                        color: Colors.red,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Failed to initialize Firebase',
-                                        style:
-                                            KStyle.heading3TextStyle.copyWith(
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Please check your internet connection and try again',
-                                        style: KStyle.labelMdRegularTextStyle
-                                            .copyWith(
-                                          color: KStyle.c72GreyColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-
-                              return StreamBuilder<List<FormModel>>(
-                                stream: FirebaseService.getFormsStream(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  }
-
-                                  if (snapshot.hasError) {
-                                    print('Stream error: ${snapshot.error}');
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.error_outline,
-                                            size: 64,
-                                            color: Colors.red,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'Error loading forms',
-                                            style: KStyle.heading3TextStyle
-                                                .copyWith(
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Error: ${snapshot.error}',
-                                            style: KStyle
-                                                .labelMdRegularTextStyle
-                                                .copyWith(
-                                              color: KStyle.c72GreyColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  final forms = snapshot.data ?? [];
-                                  final filteredForms =
-                                      _filterForms(forms, selectedFilter);
-
-                                  if (filteredForms.isEmpty) {
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Image.asset(
-                                            'assets/images/no_form.png',
-                                            fit: BoxFit.contain,
-                                            width: 150,
-                                            height: 150,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'No forms found',
-                                            style: KStyle.heading3TextStyle
-                                                .copyWith(
-                                              color: KStyle.c72GreyColor,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Create your first form to get started',
-                                            style: KStyle
-                                                .labelMdRegularTextStyle
-                                                .copyWith(
-                                              color: KStyle.c72GreyColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  return GridView.builder(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 80, vertical: 20),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
-                                      crossAxisSpacing: 30,
-                                      mainAxisSpacing: 30,
-                                      childAspectRatio: 1.8,
-                                    ),
-                                    itemCount: filteredForms.length,
-                                    itemBuilder: (context, index) {
-                                      final form = filteredForms[index];
-                                      return _buildFormCard(form);
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ],
@@ -1098,6 +1167,9 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _copyToClipboard(link);
+                if (form.status == 'closed') {
+                  _showClosedFormWarning(form.title);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: KStyle.cPrimaryColor,
