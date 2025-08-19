@@ -51,14 +51,26 @@ class _QuestionCardState extends State<QuestionCard> {
   }
 
   void _initializeChoiceControllers() {
-    // Dispose existing controllers first
-    for (var controller in _choiceControllers) {
-      controller.dispose();
+    // Dispose only extra controllers
+    if (_choiceControllers.length > _localChoices.length) {
+      for (var i = _localChoices.length; i < _choiceControllers.length; i++) {
+        _choiceControllers[i].dispose();
+      }
+      _choiceControllers = _choiceControllers.sublist(0, _localChoices.length);
     }
-
-    _choiceControllers = _localChoices
-        .map((option) => TextEditingController(text: option))
-        .toList();
+    // Update or add controllers as needed
+    for (var i = 0; i < _localChoices.length; i++) {
+      if (i < _choiceControllers.length) {
+        if (_choiceControllers[i].text != _localChoices[i]) {
+          final oldSelection = _choiceControllers[i].selection;
+          _choiceControllers[i].text = _localChoices[i];
+          _choiceControllers[i].selection =
+              TextSelection.collapsed(offset: _localChoices[i].length);
+        }
+      } else {
+        _choiceControllers.add(TextEditingController(text: _localChoices[i]));
+      }
+    }
   }
 
   @override
@@ -66,15 +78,42 @@ class _QuestionCardState extends State<QuestionCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.field.label != widget.field.label) {
       _localLabel = widget.field.label;
-      _labelController.text = _localLabel;
+      if (_labelController.text != _localLabel) {
+        _labelController.text = _localLabel;
+        _labelController.selection =
+            TextSelection.collapsed(offset: _localLabel.length);
+      }
     }
     if (oldWidget.field.options != widget.field.options) {
       _localChoices = List<String>.from(widget.field.options ?? ['Choice 1']);
-      _initializeChoiceControllers();
+      // Update or add controllers as needed
+      for (var i = 0; i < _localChoices.length; i++) {
+        if (i < _choiceControllers.length) {
+          if (_choiceControllers[i].text != _localChoices[i]) {
+            _choiceControllers[i].text = _localChoices[i];
+            _choiceControllers[i].selection =
+                TextSelection.collapsed(offset: _localChoices[i].length);
+          }
+        } else {
+          _choiceControllers.add(TextEditingController(text: _localChoices[i]));
+        }
+      }
+      // Dispose extra controllers
+      if (_choiceControllers.length > _localChoices.length) {
+        for (var i = _localChoices.length; i < _choiceControllers.length; i++) {
+          _choiceControllers[i].dispose();
+        }
+        _choiceControllers =
+            _choiceControllers.sublist(0, _localChoices.length);
+      }
     }
     if (oldWidget.field.placeholder != widget.field.placeholder) {
       _localPlaceholder = widget.field.placeholder ?? '';
-      _placeholderController.text = _localPlaceholder;
+      if (_placeholderController.text != _localPlaceholder) {
+        _placeholderController.text = _localPlaceholder;
+        _placeholderController.selection =
+            TextSelection.collapsed(offset: _localPlaceholder.length);
+      }
     }
   }
 
