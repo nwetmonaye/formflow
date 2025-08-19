@@ -589,10 +589,10 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                   : KStyle.cE3GreyColor,
                               foregroundColor: _canShare
                                   ? KStyle.cPrimaryColor
-                                  : KStyle.c72GreyColor,
+                                  : KStyle.cSelectedColor,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 8,
+                                vertical: 16,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -622,7 +622,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                               foregroundColor: KStyle.cWhiteColor,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 8,
+                                vertical: 16,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -663,7 +663,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 350),
                   child: Column(
                     children: [
                       // Custom Title, Description, and Email Field
@@ -835,18 +835,16 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 0, vertical: 0),
-                                  decoration: const BoxDecoration(),
+                                  decoration: BoxDecoration(
+                                    border:
+                                        Border.all(color: KStyle.cE3GreyColor),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   child: TextFormField(
                                     initialValue: _form.emailField,
                                     decoration: InputDecoration(
                                       hintText: 'Valid Email',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                        borderSide: BorderSide(
-                                          color: KStyle.cE3GreyColor,
-                                          width: 1,
-                                        ),
-                                      ),
+                                      border: InputBorder.none,
                                       contentPadding:
                                           const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 12),
@@ -910,7 +908,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             foregroundColor: KStyle.cPrimaryColor,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
-                              vertical: 12,
+                              vertical: 16,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),

@@ -298,7 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               // Header
                               Container(
-                                padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 16),
                                 decoration: BoxDecoration(
                                   color: KStyle.cWhiteColor,
                                   // border: Border(
@@ -339,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         foregroundColor: KStyle.cWhiteColor,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 20,
-                                          vertical: 12,
+                                          vertical: 16,
                                         ),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
@@ -692,9 +693,6 @@ class _HomeScreenState extends State<HomeScreen> {
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border(
-            top: BorderSide(color: borderColor, width: 2),
-          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -721,15 +719,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       _showFormOptionsDialog(context, form);
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: KStyle.cF4GreyColor,
-                        borderRadius: BorderRadius.circular(4),
+                        color: KStyle.cSelectedColor,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(
                         Icons.more_horiz,
-                        size: 16,
-                        color: KStyle.c72GreyColor,
+                        size: 18,
+                        color: KStyle.cPrimaryColor,
                       ),
                     ),
                   ),
@@ -744,63 +742,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Inbox with count
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: KStyle.cSelectedColor,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          child: SvgPicture.asset(
-                            'assets/icons/inbox.svg',
-                            width: 20,
-                            height: 20,
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/inbox.svg',
+                        width: 20,
+                        height: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: KStyle.cNotiColor,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Center(
+                          child: StreamBuilder<List<SubmissionModel>>(
+                            stream:
+                                FirebaseService.getSubmissionsStream(form.id!),
+                            builder: (context, snapshot) {
+                              int count = 0;
+                              if (snapshot.hasData) {
+                                count = snapshot.data!.length;
+                              }
+                              return Text(
+                                count.toString(),
+                                style: KStyle.labelXsRegularTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: KStyle.cNotiColor,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: Center(
-                            child: StreamBuilder<List<SubmissionModel>>(
-                              stream: FirebaseService.getSubmissionsStream(
-                                  form.id!),
-                              builder: (context, snapshot) {
-                                int count = 0;
-                                if (snapshot.hasData) {
-                                  count = snapshot.data!.length;
-                                }
-                                return Text(
-                                  count.toString(),
-                                  style:
-                                      KStyle.labelXsRegularTextStyle.copyWith(
-                                    color: KStyle.cWhiteColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 10,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  // Action Icons
                   Row(
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Navigate to form preview screen when view icon is clicked
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
@@ -808,9 +791,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
-                        child: Container(
-                          width: 20,
-                          height: 20,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: SvgPicture.asset(
                             'assets/icons/eye.svg',
                             width: 20,
@@ -818,14 +800,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
                       GestureDetector(
                         onTap: () {
                           _copyFormLink(form);
                         },
-                        child: Container(
-                          width: 20,
-                          height: 20,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: SvgPicture.asset(
                             'assets/icons/copy.svg',
                             width: 20,
@@ -836,6 +816,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // Edit Form Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => FormBuilderScreen(form: form),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KStyle.cSelectedColor,
+                    foregroundColor: KStyle.cPrimaryColor,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    'Edit Form',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
