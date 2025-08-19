@@ -11,6 +11,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:formflow/screens/form_preview_screen.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
+import 'package:csv/csv.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:file_saver/file_saver.dart';
+import 'dart:typed_data';
 
 class FormDetailScreen extends StatefulWidget {
   final form_model.FormModel? form;
@@ -33,6 +37,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   int selectedNavItem = 0; // 0 = My Forms, 1 = Cohorts, 2 = Notifications
   form_model.FormModel? _form;
   bool _isLoading = false;
+  bool _isDownloadingCsv = false;
 
   @override
   void initState() {
@@ -650,9 +655,23 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 // ),
 
                 ElevatedButton.icon(
-                  onPressed: () async {},
+                  onPressed: _isDownloadingCsv
+                      ? null
+                      : () async {
+                          setState(() => _isDownloadingCsv = true);
+                          final allSubmissions =
+                              await FirebaseService.getSubmissionsForForm(
+                                  _form!.id!);
+                          final filtered = _filterSubmissions(allSubmissions);
+                          final toExport = selectedSubmissions.isNotEmpty
+                              ? selectedSubmissions
+                              : filtered;
+                          await _downloadCsv(toExport);
+                        },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: KStyle.cSelectedColor,
+                    backgroundColor: _isDownloadingCsv
+                        ? KStyle.cE3GreyColor
+                        : KStyle.cSelectedColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 8,
@@ -662,18 +681,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     ),
                     elevation: 0,
                   ),
-                  icon: IconButton(
-                    onPressed: () {
-                      // TODO: Implement preview
-                    },
-                    icon: SvgPicture.asset(
-                      'assets/icons/download.svg',
-                      width: 12,
-                      height: 12,
-                    ),
+                  icon: SvgPicture.asset(
+                    'assets/icons/download.svg',
+                    width: 12,
+                    height: 12,
                   ),
                   label: Text(
-                    'Download CSV',
+                    _isDownloadingCsv ? 'Downloading...' : 'Download CSV',
                     style: KStyle.labelTextStyle.copyWith(
                       color: KStyle.cPrimaryColor,
                     ),
@@ -1942,5 +1956,113 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _downloadCsv(List<SubmissionModel> submissions) async {
+    setState(() => _isDownloadingCsv = true);
+    print('DEBUG: Starting CSV download');
+    if (submissions.isEmpty) {
+      print('DEBUG: No submissions to export');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No submissions to export.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      setState(() => _isDownloadingCsv = false);
+      return;
+    }
+
+    // Request storage permission only on non-web
+    if (!kIsWeb) {
+      print('DEBUG: Requesting storage permission');
+      final status = await Permission.storage.request();
+      print('DEBUG: Permission status:  [33m${status.isGranted} [0m');
+      if (!status.isGranted) {
+        print('DEBUG: Storage permission denied');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Storage permission denied.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isDownloadingCsv = false);
+        return;
+      }
+    }
+
+    // Prepare CSV data
+    print('DEBUG: Preparing CSV data');
+    final headers = <String>[
+      'ID',
+      'Submitter Name',
+      'Submitter Email',
+      'Status',
+      'Created At',
+      ...?_form?.fields.map((f) => f.label),
+    ];
+    final rows = <List<String>>[headers];
+    for (final s in submissions) {
+      final row = <String>[
+        s.id ?? '',
+        s.submitterName,
+        s.submitterEmail,
+        s.status,
+        _formatDate(s.createdAt),
+      ];
+      if (_form?.fields != null) {
+        for (final f in _form!.fields) {
+          row.add(s.getQuestionAnswer(f.id));
+        }
+      }
+      rows.add(row);
+    }
+    final csvData = const ListToCsvConverter().convert(rows);
+    print('DEBUG: CSV data prepared, length: ${csvData.length}');
+
+    try {
+      final now = DateTime.now();
+      final fileName =
+          'form_submissions_${_form?.title ?? 'form'}_${now.millisecondsSinceEpoch}.csv';
+      final bytes = csvData.codeUnits;
+      print('DEBUG: Calling FileSaver.saveFile');
+      await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: Uint8List.fromList(bytes),
+        ext: 'csv',
+        mimeType: MimeType.csv,
+      );
+      print('DEBUG: FileSaver.saveFile completed');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('CSV downloaded: $fileName'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e, stack) {
+      print('DEBUG: Error saving CSV: $e\n$stack');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Download Error'),
+          content: Text('Failed to save CSV: $e'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save CSV: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isDownloadingCsv = false);
+      print('DEBUG: Download button state reset');
+    }
   }
 }
