@@ -6,6 +6,7 @@ import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/screens/form_builder_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:formflow/widgets/form_header.dart';
 
 class FormPreviewScreen extends StatefulWidget {
   final form_model.FormModel? form;
@@ -157,121 +158,79 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Form Header Card
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black
-                                    .withOpacity(0.15), // darker main shadow
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                              BoxShadow(
-                                color: Colors.black
-                                    .withOpacity(0.08), // soft spread shadow
-                                blurRadius: 30,
-                                offset: const Offset(0, 20),
-                              ),
-                            ],
-                            border: Border(
-                              left: BorderSide(
-                                color: KStyle.cPrimaryColor,
-                                width: 6,
-                              ),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _form!.title.isNotEmpty
-                                      ? _form!.title
-                                      : 'Untitled',
-                                  style: KStyle.heading2TextStyle.copyWith(
-                                    color: KStyle.cBlackColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 32,
+                      // Form Header Card with Email field inside
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: FormHeader(
+                          title: _form!.title,
+                          description: _form!.description,
+                          showEditIcon: false,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Email',
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _form!.description.isNotEmpty
-                                      ? _form!.description
-                                      : 'Form Description',
-                                  style:
+                                  Text(
+                                    ' *',
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.cRedColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                initialValue: _form!.emailField != null &&
+                                        _form!.emailField!.isNotEmpty
+                                    ? _form!.emailField!
+                                    : '',
+                                enabled: false,
+                                decoration: InputDecoration(
+                                  hintText: 'Valid Email',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                    borderSide: BorderSide(
+                                      color: KStyle.cE3GreyColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                    borderSide: BorderSide(
+                                      color: KStyle.cE3GreyColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                    borderSide: BorderSide(
+                                      color: KStyle.cE3GreyColor,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  hintStyle:
                                       KStyle.labelMdRegularTextStyle.copyWith(
                                     color: KStyle.c72GreyColor,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                // Email Field Display - Always show in form header
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Email*',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.cBlackColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '(Required)',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: Colors.red[200],
-                                      ),
-                                    ),
-                                  ],
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.cBlackColor,
                                 ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: KStyle.cE3GreyColor,
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    _form!.emailField != null &&
-                                            _form!.emailField!.isNotEmpty
-                                        ? _form!.emailField!
-                                        : 'Email field for form owner notifications',
-                                    style:
-                                        KStyle.labelMdRegularTextStyle.copyWith(
-                                      color: _form!.emailField != null &&
-                                              _form!.emailField!.isNotEmpty
-                                          ? KStyle.cBlackColor
-                                          : KStyle.c72GreyColor,
-                                      fontStyle: _form!.emailField != null &&
-                                              _form!.emailField!.isNotEmpty
-                                          ? FontStyle.normal
-                                          : FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  '* Indicates required question',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: Colors.red[200],
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -341,7 +300,45 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
             ),
             const SizedBox(height: 16),
             // Question input based on type
-            _buildQuestionInput(questionType, options, field),
+            if (questionType == 'text' || questionType == 'number')
+              TextFormField(
+                initialValue: field.placeholder ?? '',
+                enabled: false,
+                decoration: InputDecoration(
+                  hintText: 'Answer Text',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
+                    ),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
+                    ),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
+                    color: KStyle.c72GreyColor,
+                  ),
+                ),
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.cBlackColor,
+                ),
+              )
+            else
+              _buildQuestionInput(questionType, options, field),
           ],
         ),
       ),
@@ -351,25 +348,6 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
   Widget _buildQuestionInput(
       String questionType, List<String>? options, form_model.FormField field) {
     switch (questionType) {
-      case 'text':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: KStyle.cE3GreyColor,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Text(
-            field.placeholder ?? 'Your answer',
-            style: KStyle.labelMdRegularTextStyle.copyWith(
-              color: KStyle.c72GreyColor,
-            ),
-          ),
-        );
-
       case 'multiple_choice':
         return Column(
           children: (options ?? []).map<Widget>((option) {
@@ -489,25 +467,6 @@ class _FormPreviewScreenState extends State<FormPreviewScreen> {
                 size: 20,
               ),
             ],
-          ),
-        );
-
-      case 'number':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: KStyle.cE3GreyColor,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Text(
-            field.placeholder ?? 'Enter a number',
-            style: KStyle.labelMdRegularTextStyle.copyWith(
-              color: KStyle.c72GreyColor,
-            ),
           ),
         );
 

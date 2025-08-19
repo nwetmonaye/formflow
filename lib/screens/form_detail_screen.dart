@@ -1282,6 +1282,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   }
 
   void _showSubmissionDetails(SubmissionModel submission) {
+    final TextEditingController _commentController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -1372,6 +1373,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                 ),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: _commentController,
                   decoration: InputDecoration(
                     hintText: 'Comment',
                     border: OutlineInputBorder(
@@ -1392,7 +1394,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _approveSubmission(submission),
+                          onPressed: () => _approveSubmission(
+                              submission, _commentController.text),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: KStyle.cPrimaryColor,
                             foregroundColor: KStyle.cWhiteColor,
@@ -1412,7 +1415,8 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                       const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _rejectSubmission(submission),
+                          onPressed: () => _rejectSubmission(
+                              submission, _commentController.text),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: KStyle.cDBRedColor,
                             foregroundColor: KStyle.cWhiteColor,
@@ -1490,11 +1494,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     );
   }
 
-  Future<void> _approveSubmission(SubmissionModel submission) async {
+  Future<void> _approveSubmission(
+      SubmissionModel submission, String comment) async {
     try {
       await FirebaseService.updateSubmissionStatus(
         submission.id!,
         'approved',
+        comment: comment,
       );
 
       // Send approval email to submitter
@@ -1502,13 +1508,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         try {
           await FirebaseService.sendEmail(
             to: submission.submitterEmail,
-            subject: 'Submission Approved: ${_form!.title}',
+            subject: 'Submission Approved:  ${_form!.title}',
             html: '<p>Your submission has been approved!</p>',
             type: 'submission_decision',
             formTitle: _form!.title,
             submitterName: submission.submitterName,
             status: 'approved',
-            comments: '', // You can add a comment field if needed
+            comments: comment,
           );
         } catch (emailError) {
           print('Error sending approval email: $emailError');
@@ -1533,11 +1539,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
     }
   }
 
-  Future<void> _rejectSubmission(SubmissionModel submission) async {
+  Future<void> _rejectSubmission(
+      SubmissionModel submission, String comment) async {
     try {
       await FirebaseService.updateSubmissionStatus(
         submission.id!,
         'rejected',
+        comment: comment,
       );
 
       // Send rejection email to submitter
@@ -1545,13 +1553,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         try {
           await FirebaseService.sendEmail(
             to: submission.submitterEmail,
-            subject: 'Submission Rejected: ${_form!.title}',
+            subject: 'Submission Rejected:  ${_form!.title}',
             html: '<p>Your submission has been rejected.</p>',
             type: 'submission_decision',
             formTitle: _form!.title,
             submitterName: submission.submitterName,
             status: 'rejected',
-            comments: '', // You can add a comment field if needed
+            comments: comment,
           );
         } catch (emailError) {
           print('Error sending rejection email: $emailError');

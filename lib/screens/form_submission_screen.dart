@@ -4,6 +4,7 @@ import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
 import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/models/submission_model.dart';
+import 'package:formflow/widgets/form_header.dart';
 
 class FormSubmissionScreen extends StatefulWidget {
   final String formId;
@@ -394,107 +395,77 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                   child: Container(
                     width: 700,
                     margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                      border: Border(
-                        left: BorderSide(
-                          color: KStyle.cPrimaryColor,
-                          width: 5,
-                        ),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
+                    child: FormHeader(
+                      title: form!.title,
+                      description: form!.description,
+                      showEditIcon: false,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            form!.title.isNotEmpty ? form!.title : 'Untitled',
-                            style: KStyle.heading2TextStyle.copyWith(
-                              color: KStyle.cBlackColor,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 32,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            form!.description.isNotEmpty
-                                ? form!.description
-                                : 'Form Description',
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: KStyle.c72GreyColor,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Email Field Display - Always show for external users
                           Row(
                             children: [
                               Text(
-                                'Email*',
+                                'Email',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
                                   color: KStyle.cBlackColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Text(
-                                '(Required)',
+                                ' *',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: Colors.red[200],
+                                  color: KStyle.cRedColor,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
+                          TextFormField(
+                            initialValue: _responses['email'] ?? '',
+                            decoration: InputDecoration(
+                              hintText: 'Valid Email',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(
                                   color: KStyle.cE3GreyColor,
                                   width: 1,
                                 ),
                               ),
-                            ),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                hintText: 'Valid Email',
-                                border: InputBorder.none,
-                                hintStyle:
-                                    KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(
+                                  color: KStyle.cE3GreyColor,
+                                  width: 1,
                                 ),
                               ),
-                              onChanged: (value) {
-                                _responses['email'] = value;
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Email is required';
-                                }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                    .hasMatch(value)) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(
+                                  color: KStyle.cPrimaryColor,
+                                  width: 2,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              hintStyle:
+                                  KStyle.labelMdRegularTextStyle.copyWith(
+                                color: KStyle.c72GreyColor,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            '* Indicates required question',
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: Colors.red[200],
-                            ),
+                            onChanged: (value) {
+                              _responses['email'] = value;
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4} 0$')
+                                  .hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
                           ),
                         ],
                       ),
@@ -639,7 +610,53 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               ),
               const SizedBox(height: 16),
               // Question input based on type
-              _buildFieldInput(field),
+              if (field.type == 'text' || field.type == 'number')
+                TextFormField(
+                  decoration: InputDecoration(
+                    hintText: field.placeholder ?? 'Your answer',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: KStyle.cE3GreyColor,
+                        width: 1,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: KStyle.cE3GreyColor,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: KStyle.cPrimaryColor,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
+                    ),
+                  ),
+                  keyboardType: field.type == 'number'
+                      ? TextInputType.number
+                      : TextInputType.text,
+                  onChanged: (value) {
+                    _responses[field.id] =
+                        field.type == 'number' ? double.tryParse(value) : value;
+                  },
+                  validator: (value) {
+                    if (field.required && (value == null || value.isEmpty)) {
+                      return 'This field is required';
+                    }
+                    return null;
+                  },
+                )
+              else
+                _buildFieldInput(field),
             ],
           ),
         ),

@@ -31,6 +31,8 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   // Track if this is a new form session (created in this screen)
   late bool _isNewFormSession;
   bool _isDirty = false; // Track unsaved changes for existing forms
+  bool _isEditingDescription = false;
+  late TextEditingController _descriptionController;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
               '', // Initialize form owner email
         );
     _titleController = TextEditingController(text: _form.title);
+    _descriptionController = TextEditingController(text: _form.description);
     // Always sync _closeForm with form status
     _approvalRequired = _form.requiresApproval;
     _closeForm = _form.status == 'closed';
@@ -64,6 +67,9 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     });
     if (!_isEditingTitle) {
       _titleController.text = _form.title;
+    }
+    if (!_isEditingDescription) {
+      _descriptionController.text = _form.description;
     }
     // Use session flag for auto-save
     if (_isNewFormSession) {
@@ -365,6 +371,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -659,14 +666,13 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 200),
                   child: Column(
                     children: [
-                      // Custom Title Field
+                      // Custom Title, Description, and Email Field
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(12), // apply radius here
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.08),
@@ -682,39 +688,41 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             ),
                           ),
                         ),
-                        child: Row(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _isEditingTitle
-                                  ? TextField(
-                                      controller: _titleController,
-                                      onChanged: (value) {
-                                        final updatedForm =
-                                            _form.copyWith(title: value);
-                                        _updateForm(updatedForm);
-                                      },
-                                      onSubmitted: (value) {
-                                        setState(() {
-                                          _isEditingTitle = false;
-                                        });
-                                      },
-                                      autofocus: true,
-                                      style: KStyle.heading3TextStyle.copyWith(
-                                        color: KStyle.cBlackColor,
-                                      ),
-                                      decoration: const InputDecoration(
-                                        hintText: 'Enter form title',
-                                        border: InputBorder.none,
-                                        contentPadding: EdgeInsets.zero,
-                                      ),
-                                    )
-                                  : Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
+                            // Title Row (editable)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: _isEditingTitle
+                                      ? TextField(
+                                          controller: _titleController,
+                                          onChanged: (value) {
+                                            final updatedForm =
+                                                _form.copyWith(title: value);
+                                            _updateForm(updatedForm);
+                                          },
+                                          onSubmitted: (value) {
+                                            setState(() {
+                                              _isEditingTitle = false;
+                                            });
+                                          },
+                                          autofocus: true,
+                                          style:
+                                              KStyle.headingTextStyle.copyWith(
+                                            color: KStyle.cBlackColor,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          decoration: const InputDecoration(
+                                            hintText: 'Enter form title',
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                        )
+                                      : GestureDetector(
                                           onTap: () {
                                             setState(() {
                                               _isEditingTitle = true;
@@ -728,7 +736,9 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                                     : 'Untitled',
                                                 style: KStyle.headingTextStyle
                                                     .copyWith(
-                                                  color: KStyle.c3BGreyColor,
+                                                  color: KStyle.cBlackColor,
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
@@ -740,87 +750,130 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                             ],
                                           ),
                                         ),
-                                        Text(
-                                          _form.description.isNotEmpty
-                                              ? _form.description
-                                              : 'Form Description',
-                                          style:
-                                              KStyle.labelSmTextStyle.copyWith(
-                                            color: KStyle.c89GreyColor,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Description Row (editable)
+                            _isEditingDescription == true
+                                ? TextField(
+                                    controller: _descriptionController,
+                                    onChanged: (value) {
+                                      final updatedForm =
+                                          _form.copyWith(description: value);
+                                      _updateForm(updatedForm);
+                                    },
+                                    onSubmitted: (value) {
+                                      setState(() {
+                                        _isEditingDescription = false;
+                                      });
+                                    },
+                                    autofocus: true,
+                                    style: KStyle.labelSmTextStyle.copyWith(
+                                      color: KStyle.c89GreyColor,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      hintText: 'Enter form description',
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  )
+                                : GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isEditingDescription = true;
+                                      });
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _form.description.isNotEmpty
+                                                ? _form.description
+                                                : 'Form Description',
+                                            style: KStyle.labelSmTextStyle
+                                                .copyWith(
+                                              color: KStyle.c89GreyColor,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(height: 16),
-                                        // Email Field
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'Email*',
-                                              style: KStyle
-                                                  .labelMdRegularTextStyle
-                                                  .copyWith(
-                                                color: KStyle.cBlackColor,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              '(Required for external users)',
-                                              style: KStyle
-                                                  .labelSmRegularTextStyle
-                                                  .copyWith(
-                                                color: KStyle.c72GreyColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          decoration: BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(
-                                                color: KStyle.cE3GreyColor,
-                                                width: 1,
-                                              ),
-                                            ),
-                                          ),
-                                          child: TextFormField(
-                                            initialValue: _form.emailField,
-                                            decoration: InputDecoration(
-                                              hintText: 'Valid Email',
-                                              border: InputBorder.none,
-                                              hintStyle: KStyle
-                                                  .labelMdRegularTextStyle
-                                                  .copyWith(
-                                                color: KStyle.c72GreyColor,
-                                              ),
-                                            ),
-                                            onChanged: (value) {
-                                              print(
-                                                  '🔍 Email field changed to: $value');
-                                              final updatedForm = _form
-                                                  .copyWith(emailField: value);
-                                              print(
-                                                  '🔍 Updated form email field: ${updatedForm.emailField}');
-                                              _updateForm(updatedForm);
-                                            },
-                                            validator: (value) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'Email is required';
-                                              }
-                                              if (!RegExp(
-                                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                                  .hasMatch(value)) {
-                                                return 'Please enter a valid email';
-                                              }
-                                              return null;
-                                            },
-                                          ),
+                                        const SizedBox(width: 8),
+                                        SvgPicture.asset(
+                                          'assets/icons/edit.svg',
+                                          width: 15,
+                                          height: 15,
                                         ),
                                       ],
                                     ),
+                                  ),
+                            const SizedBox(height: 20),
+                            // Email Field (always visible, styled as standard input)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Email',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cBlackColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' *',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cRedColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 0, vertical: 0),
+                                  decoration: const BoxDecoration(),
+                                  child: TextFormField(
+                                    initialValue: _form.emailField,
+                                    decoration: InputDecoration(
+                                      hintText: 'Valid Email',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                        borderSide: BorderSide(
+                                          color: KStyle.cE3GreyColor,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 12),
+                                      hintStyle: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.c72GreyColor,
+                                      ),
+                                    ),
+                                    onChanged: (value) {
+                                      final updatedForm =
+                                          _form.copyWith(emailField: value);
+                                      _updateForm(updatedForm);
+                                    },
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Email is required';
+                                      }
+                                      if (!RegExp(
+                                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}  $')
+                                          .hasMatch(value)) {
+                                        return 'Please enter a valid email';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

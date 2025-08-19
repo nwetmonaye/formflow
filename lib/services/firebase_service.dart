@@ -582,15 +582,23 @@ class FirebaseService {
     }
   }
 
-  static Future<void> updateSubmissionStatus(
-      String submissionId, String status) async {
+  static Future<void> updateSubmissionStatus(String submissionId, String status,
+      {String? comment}) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
-    await _firestore!.collection('submissions').doc(submissionId).update({
+    final updateData = {
       'status': status,
       'reviewedAt': FieldValue.serverTimestamp(),
       'reviewedBy': currentUser?.uid,
-    });
+    };
+    if (comment != null) {
+      updateData['decisionComment'] = comment;
+    }
+
+    await _firestore!
+        .collection('submissions')
+        .doc(submissionId)
+        .update(updateData);
   }
 
   static Future<void> deleteSubmission(String submissionId) async {
