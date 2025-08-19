@@ -1283,119 +1283,182 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
   void _showSubmissionDetails(SubmissionModel submission) {
     final TextEditingController _commentController = TextEditingController();
+    bool _isDecisionMade = false;
     showDialog(
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Container(
-          width: 600,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              width: 600,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Submission Details',
-                    style: KStyle.heading3TextStyle.copyWith(
-                      color: KStyle.cBlackColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          color: KStyle.c72GreyColor,
-                          size: 24,
-                        ),
-                      ),
                       Text(
-                        _formatDate(submission.createdAt),
-                        style: KStyle.labelMdRegularTextStyle.copyWith(
+                        'Submission Details',
+                        style: KStyle.heading3TextStyle.copyWith(
                           color: KStyle.cBlackColor,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      if (_form!.requiresApproval)
-                        _buildStatusChip(submission.status),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Icon(
+                              Icons.close,
+                              color: KStyle.c72GreyColor,
+                              size: 24,
+                            ),
+                          ),
+                          Text(
+                            _formatDate(submission.createdAt),
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: KStyle.cBlackColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (_form!.requiresApproval)
+                            _buildStatusChip(submission.status),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
 
-              const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-              // Submission Info
-              _buildDetailRow(
-                  'Submission Time', _formatDate(submission.createdAt)),
-              if (_form!.requiresApproval)
-                _buildDetailRow('Status', submission.status),
+                  // Submission Info
+                  _buildDetailRow(
+                      'Submission Time', _formatDate(submission.createdAt)),
+                  if (_form!.requiresApproval)
+                    _buildDetailRow('Status', submission.status),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              const SizedBox(height: 8),
-              Text(
-                'Responses:',
-                style: KStyle.labelMdBoldTextStyle.copyWith(
-                  color: KStyle.cBlackColor,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...submission.getStructuredData().map(
-                    (item) => _buildDetailRow(
-                      (item['label']?.isNotEmpty ?? false)
-                          ? item['label']!
-                          : (item['fieldId'] ?? 'Unknown Question'),
-                      item['answer'] ?? '',
+                  const SizedBox(height: 8),
+                  Text(
+                    'Responses:',
+                    style: KStyle.labelMdBoldTextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                      fontSize: 16,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  ...submission.getStructuredData().map(
+                        (item) => _buildDetailRow(
+                          (item['label']?.isNotEmpty ?? false)
+                              ? item['label']!
+                              : (item['fieldId'] ?? 'Unknown Question'),
+                          item['answer'] ?? '',
+                        ),
+                      ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              if (_form!.requiresApproval) ...[
-                // Comment field for reviewers
-                Text(
-                  'Comment:',
-                  style: KStyle.labelMdRegularTextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _commentController,
-                  decoration: InputDecoration(
-                    hintText: 'Comment',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                  if (_form!.requiresApproval) ...[
+                    // Comment field for reviewers
+                    Text(
+                      'Comment:',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: KStyle.cPrimaryColor),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _commentController,
+                      decoration: InputDecoration(
+                        hintText: 'Comment',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: KStyle.cPrimaryColor),
+                        ),
+                      ),
+                      maxLines: 3,
                     ),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 24),
-                // Action Buttons
-                if (submission.status == 'pending') ...[
-                  Row(
-                    children: [
-                      Expanded(
+                    const SizedBox(height: 24),
+                    // Action Buttons
+                    if (submission.status == 'pending') ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _isDecisionMade
+                                  ? null
+                                  : () async {
+                                      setState(() => _isDecisionMade = true);
+                                      await _approveSubmission(
+                                          submission, _commentController.text);
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _isDecisionMade
+                                    ? KStyle.cE3GreyColor
+                                    : KStyle.cPrimaryColor,
+                                foregroundColor: KStyle.cWhiteColor,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Approve',
+                                style: KStyle.labelMdBoldTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _isDecisionMade
+                                  ? null
+                                  : () async {
+                                      setState(() => _isDecisionMade = true);
+                                      await _rejectSubmission(
+                                          submission, _commentController.text);
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _isDecisionMade
+                                    ? KStyle.cE3GreyColor
+                                    : KStyle.cDBRedColor,
+                                foregroundColor: KStyle.cWhiteColor,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Reject',
+                                style: KStyle.labelMdBoldTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _approveSubmission(
-                              submission, _commentController.text),
+                          onPressed: () => Navigator.of(context).pop(),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: KStyle.cPrimaryColor,
                             foregroundColor: KStyle.cWhiteColor,
@@ -1405,28 +1468,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                             ),
                           ),
                           child: Text(
-                            'Approve',
-                            style: KStyle.labelMdBoldTextStyle.copyWith(
-                              color: KStyle.cWhiteColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => _rejectSubmission(
-                              submission, _commentController.text),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: KStyle.cDBRedColor,
-                            foregroundColor: KStyle.cWhiteColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            'Reject',
+                            'Close',
                             style: KStyle.labelMdBoldTextStyle.copyWith(
                               color: KStyle.cWhiteColor,
                             ),
@@ -1434,32 +1476,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                         ),
                       ),
                     ],
-                  ),
-                ] else ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: KStyle.cPrimaryColor,
-                        foregroundColor: KStyle.cWhiteColor,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: KStyle.labelMdBoldTextStyle.copyWith(
-                          color: KStyle.cWhiteColor,
-                        ),
-                      ),
-                    ),
-                  ),
+                  ],
                 ],
-              ],
-            ],
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
