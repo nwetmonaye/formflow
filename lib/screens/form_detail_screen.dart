@@ -1338,10 +1338,9 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   const SizedBox(height: 24),
 
                   // Submission Info
-                  _buildDetailRow(
-                      'Submission Time', _formatDate(submission.createdAt)),
-                  if (_form!.requiresApproval)
-                    _buildDetailRow('Status', submission.status),
+                  // _buildDetailRow('Submission Time', _formatDate(submission.createdAt)),
+                  // if (_form!.requiresApproval)
+                  //   _buildDetailRow('Status', submission.status),
 
                   const SizedBox(height: 16),
 
