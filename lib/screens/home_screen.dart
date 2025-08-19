@@ -687,9 +687,9 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
           border: Border(
@@ -721,7 +721,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _showFormOptionsDialog(context, form);
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: KStyle.cF4GreyColor,
                         borderRadius: BorderRadius.circular(4),
@@ -746,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Inbox with count
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     decoration: BoxDecoration(
                       color: KStyle.cSelectedColor,
                       borderRadius: BorderRadius.circular(50),
