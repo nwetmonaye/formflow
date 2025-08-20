@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:formflow/screens/form_preview_screen.dart';
 import 'package:formflow/models/submission_model.dart';
+import 'package:formflow/screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,6 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
               content: Text('You have been signed out successfully.'),
               backgroundColor: Colors.blue,
             ),
+          );
+          // Navigate to login screen and remove all previous routes
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
           );
         }
       },
@@ -1046,7 +1052,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: KStyle.cE3GreyColor,
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-                _buildMenuItem('Sign Out', Icons.logout, () {
+                _buildMenuItem('Sign Out', Icons.logout, () async {
                   Navigator.of(context).pop();
                   context.read<AuthBloc>().add(SignOutRequested());
                 }, isDestructive: true),
