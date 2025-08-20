@@ -7,7 +7,6 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { setGlobalOptions } from "firebase-functions";
 import * as admin from "firebase-admin";
 
 // Initialize Firebase Admin
@@ -20,19 +19,24 @@ export { onFormSubmission } from "./form-submission";
 export { testFunction } from "./test-function";
 
 // Enable email functionality
-export { sendEmailFromApp } from "./send-email";
+export { sendEmailHttp } from "./send-email";
+
+// Export submissions functionality
+export { exportSubmissions } from "./export-submissions";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/get-started
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// Note: Global options are not supported in Firebase Functions v2
+// Each function should be configured individually with its own options
+
+// Global error handler for uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    // In production, you might want to send this to a logging service
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // In production, you might want to send this to a logging service
+});

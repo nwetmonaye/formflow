@@ -94,12 +94,27 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
       // Ensure createdBy is set to current user
       final currentUser = FirebaseService.currentUser;
       print('🔍 AutoSave: Current user: ${currentUser?.uid}');
-      print('🔍 AutoSave: Form createdBy before: ${_form.createdBy}');
+      print('🔍 AutoSave: Current user email: ${currentUser?.email}');
 
       if (currentUser != null) {
+        // Ensure form owner email is set
+        String? ownerEmail = currentUser.email;
+        if (ownerEmail == null || ownerEmail.isEmpty) {
+          print('⚠️ Warning: Current user has no email address!');
+          // Try to get email from user profile or show warning
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'Warning: Your account has no email address. Form notifications may not work.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+
         _form = _form.copyWith(
           createdBy: currentUser.uid,
-          formOwnerEmail: currentUser.email, // Store the form owner's email
+          formOwnerEmail: ownerEmail, // Store the form owner's email
         );
         print('🔍 AutoSave: Form createdBy after: ${_form.createdBy}');
         print('🔍 AutoSave: Form owner email: ${_form.formOwnerEmail}');

@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:formflow/models/form_model.dart';
 import 'package:formflow/models/submission_model.dart';
+import 'dart:convert'; // Added for jsonEncode and jsonDecode
+import 'package:http/http.dart' as http; // Added for http.post
 
 class FirebaseService {
   static bool _isInitialized = false;
@@ -518,7 +520,7 @@ class FirebaseService {
     return await _auth!.signInAnonymously();
   }
 
-  // Email operations
+  // Email operations - now using HTTP endpoint
   static Future<bool> sendEmail({
     required String to,
     required String subject,
@@ -530,27 +532,53 @@ class FirebaseService {
     String? status,
     String? comments,
   }) async {
-    if (_functions == null)
-      throw Exception('Firebase Functions not initialized');
-
     try {
-      final callable = _functions!.httpsCallable('sendEmailFromApp');
-      final result = await callable.call({
-        'to': to,
-        'subject': subject,
-        'html': html,
-        'type': type,
-        'formTitle': formTitle,
-        'submitterName': submitterName,
-        'submitterEmail': submitterEmail,
-        'status': status,
-        'comments': comments,
-      });
+      print('🔍 Sending email to: $to');
+      print('🔍 Email type: $type');
+      print('🔍 Email subject: $subject');
 
-      final data = result.data as Map<String, dynamic>;
-      return data['success'] == true;
+      // Use HTTP function directly - no authentication required
+      final url =
+          'https://us-central1-formflow-b0484.cloudfunctions.net/sendEmailHttp';
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'to': to,
+          'subject': subject,
+          'html': html,
+          'type': type,
+          'formTitle': formTitle,
+          'submitterName': submitterName,
+          'submitterEmail': submitterEmail,
+          'status': status,
+          'comments': comments,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final success = data['success'] == true;
+
+        if (success) {
+          print('✅ Email sent successfully to: $to');
+        } else {
+          print('❌ Email failed to send to: $to');
+          print('❌ Error details: ${data['message'] ?? 'Unknown error'}');
+        }
+
+        return success;
+      } else {
+        print('❌ HTTP error: ${response.statusCode}');
+        print('❌ Response body: ${response.body}');
+        return false;
+      }
     } catch (e) {
-      print('Error sending email: $e');
+      print('❌ Error sending email: $e');
+      print('❌ Email details: to=$to, type=$type, subject=$subject');
       return false;
     }
   }

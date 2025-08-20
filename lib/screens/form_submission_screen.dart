@@ -132,24 +132,67 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
           try {
             print(
                 '🔍 Sending new submission email to form owner: ${form!.formOwnerEmail}');
-            await FirebaseService.sendEmail(
-              to: form!
-                  .formOwnerEmail!, // Send to form owner's email stored in form
-              subject: 'New Form Submission: ${form!.title}',
-              html: '<p>You have received a new form submission!</p>',
+
+            // Create better email template
+            final emailHtml = '''
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">New Form Submission Received!</h2>
+                <p>You have received a new submission for your form: <strong>${form!.title}</strong></p>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #1e293b; margin-top: 0;">Submitter Details:</h3>
+                  <p><strong>Name:</strong> ${submission.submitterName}</p>
+                  <p><strong>Email:</strong> ${submission.submitterEmail}</p>
+                  <p><strong>Submitted:</strong> ${DateTime.now().toString()}</p>
+                </div>
+                
+                <p>You can review this submission in your FormFlow dashboard.</p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="https://formflow-b0484.web.app" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Dashboard</a>
+                </div>
+              </div>
+            ''';
+
+            // Send email using HTTP function
+            final emailSent = await FirebaseService.sendEmail(
+              to: form!.formOwnerEmail!,
+              subject: 'New Form Submission - ${form!.title}',
+              html: emailHtml,
               type: 'new_submission',
               formTitle: form!.title,
               submitterName: submission.submitterName,
               submitterEmail: submission.submitterEmail,
             );
-            print('🔍 New submission email sent successfully to form owner');
-          } catch (emailError) {
-            print('Error sending notification email: $emailError');
-            // Don't fail the submission if email fails
+
+            if (emailSent) {
+              print('✅ New submission email sent successfully to form owner');
+            } else {
+              print('❌ Failed to send new submission email to form owner');
+              // Show user-friendly error message
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Form submitted successfully, but notification email failed to send.'),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+          } catch (e) {
+            print('❌ Failed to send new submission email to form owner: $e');
+            // Show user-friendly error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Form submitted successfully, but notification email failed to send.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 5),
+              ),
+            );
           }
         } else {
-          print('🔍 Form owner email not found, skipping email notification');
-          print('🔍 Form owner email: ${form!.formOwnerEmail}');
+          print('⚠️ No form owner email found, skipping notification email');
         }
 
         setState(() {

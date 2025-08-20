@@ -1,246 +1,232 @@
-import { onCall } from "firebase-functions/v2/https";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
-import { emailTemplates } from "./email-notifications";
-import * as functions from "firebase-functions";
 
 const db = admin.firestore();
 
-// Email configuration - using Resend (better than Gmail for production)
-// For local development, use environment variables
-// For production, use Firebase Functions config
+// Email configuration - supports both Gmail and Resend
 const getEmailConfig = () => {
-    // Check for local environment variables first
-    const localApiKey = process.env.RESEND_API_KEY;
-    const localFromEmail = process.env.FROM_EMAIL;
-
-    if (localApiKey && localFromEmail) {
-        console.log('Using local environment variables for email config');
+    // Check for environment variables first (production)
+    if (process.env.EMAIL_SERVICE === 'gmail' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+        console.log('🔍 Using environment variables for Gmail');
         return {
-            apiKey: localApiKey,
-            fromEmail: localFromEmail
+            service: 'gmail',
+            user: process.env.EMAIL_USER,
+            password: process.env.EMAIL_PASSWORD,
+            fromEmail: process.env.FROM_EMAIL || process.env.EMAIL_USER
         };
     }
 
-    // Fall back to Firebase Functions config
-    console.log('Using Firebase Functions config for email config');
+    if (process.env.RESEND_API_KEY) {
+        console.log('🔍 Using environment variables for Resend');
+        return {
+            service: 'resend',
+            apiKey: process.env.RESEND_API_KEY,
+            fromEmail: process.env.FROM_EMAIL || 'noreply@formflow.com'
+        };
+    }
+
+    // Production fallback - check if we're in production
+    if (process.env.NODE_ENV === 'production') {
+        console.error('❌ No email configuration found in production!');
+        throw new Error('Email configuration not set in production environment');
+    }
+
+    // Development fallback (for testing only)
+    console.log('🔍 Using development Gmail config for testing');
     return {
-        apiKey: functions.config().resend?.api_key || "your-resend-api-key",
-        fromEmail: functions.config().email?.from || "noreply@formflow.com"
+        service: 'gmail',
+        user: 'nwetmonaye12345@gmail.com',
+        password: 'iiezzoujyxokxqbe',
+        fromEmail: 'nwetmonaye12345@gmail.com'
     };
 };
 
 const emailConfig = getEmailConfig();
 
 console.log('🔍 Email config loaded:');
-console.log('🔍 API Key:', emailConfig.apiKey ? `${emailConfig.apiKey.substring(0, 10)}...` : 'undefined');
+console.log('🔍 Service:', emailConfig.service);
 console.log('🔍 From Email:', emailConfig.fromEmail);
 
-// Resend transporter (commented out for now since we're using Gmail for testing)
-// const resendTransporter = nodemailer.createTransport({
-//     host: "smtp.resend.com",
-//     port: 587,
-//     secure: false,
-//     auth: {
-//         user: "resend", // Resend uses "resend" as the username
-//         pass: emailConfig.apiKey, // API key as password
-//     },
-//     tls: {
-//         rejectUnauthorized: false
-//     }
-// });
-
-// Fallback Gmail transporter for testing (uncomment if Resend fails)
-const gmailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'nwetmonaye12345@gmail.com', // Use your Gmail
-        pass: 'iiezzoujyxokxqbe'     // Replace with Gmail app password
+// Create appropriate transporter based on service
+const createTransporter = () => {
+    if (emailConfig.service === 'resend') {
+        console.log('🔍 Creating Resend transporter');
+        return nodemailer.createTransport({
+            host: "smtp.resend.com",
+            port: 587,
+            secure: false,
+            auth: {
+                user: "resend",
+                pass: emailConfig.apiKey,
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+    } else {
+        console.log('🔍 Creating Gmail transporter');
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: emailConfig.user,
+                pass: emailConfig.password
+            }
+        });
     }
-});
-
-// Function to get the appropriate transporter
-const getTransporter = () => {
-    // For now, use Gmail for testing since Resend has issues
-    console.log('🔍 Using Gmail transporter for testing');
-    return gmailTransporter;
-
-    // Uncomment this when Resend is working:
-    // return resendTransporter;
 };
 
-interface EmailRequest {
-    to: string;
-    subject: string;
-    html: string;
-    type: string;
-    formTitle?: string;
-    submitterName?: string;
-    submitterEmail?: string;
-    status?: string;
-    comments?: string;
-    formOwnerEmail?: string; // <-- add this
-}
+// Main email function - now public HTTP endpoint
+export const sendEmailHttp = onRequest(
+    {
+        maxInstances: 10,
+        timeoutSeconds: 300, // 5 minutes
+        memory: '256MiB',
+        region: 'us-central1'
+    },
+    async (req, res) => {
+        // Enable CORS
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-export const sendEmailFromApp = onCall(
-    { maxInstances: 10 },
-    async (request) => {
-        console.log('🔍 sendEmailFromApp: Function called');
-        console.log('🔍 sendEmailFromApp: Request data:', request.data);
-        console.log('🔍 sendEmailFromApp: Function type: onCall (callable)');
+        if (req.method === 'OPTIONS') {
+            res.status(204).send('');
+            return;
+        }
+
+        if (req.method !== 'POST') {
+            res.status(405).json({
+                error: 'Method not allowed. Use POST.',
+                method: req.method
+            });
+            return;
+        }
 
         try {
-            const { to, subject, html, type, formTitle, submitterName, submitterEmail, status, comments, formOwnerEmail } = request.data as EmailRequest;
+            const { to, subject, html, type, formTitle, submitterName, submitterEmail, status, comments, formOwnerEmail } = req.body;
+
+            console.log('🔍 sendEmailFromApp: Function called');
+            console.log('🔍 sendEmailFromApp: Request data:', req.body);
+            console.log('🔍 sendEmailFromApp: Function type: onRequest (HTTP)');
+
+            // Validate required fields
+            if (!to || !subject || !html) {
+                console.error('❌ Missing required email fields:', { to, subject, html });
+                res.status(400).json({
+                    error: 'Missing required email fields',
+                    required: ['to', 'subject', 'html'],
+                    received: { to, subject, html }
+                });
+                return;
+            }
 
             // SAFETY: Prevent sending approve/reject to form owner
             if (type === 'submission_decision' && formOwnerEmail && to && to.toLowerCase() === formOwnerEmail.toLowerCase()) {
                 console.log('🔍 sendEmailFromApp: Skipping approve/reject email to form owner:', to);
-                return {
+                res.status(200).json({
                     success: true,
                     message: 'Skipped sending approve/reject email to form owner',
-                };
+                    skipped: true
+                });
+                return;
             }
 
-            console.log('🔍 sendEmailFromApp: Processing email request');
-            console.log('🔍 sendEmailFromApp: To:', to);
-            console.log('🔍 sendEmailFromApp: Subject:', subject);
-            console.log('🔍 sendEmailFromApp: Type:', type);
-            console.log('🔍 sendEmailFromApp: Form title:', formTitle);
-            console.log('🔍 sendEmailFromApp: Submitter name:', submitterName);
-            console.log('🔍 sendEmailFromApp: Submitter email:', submitterEmail);
+            // Create transporter
+            const transporter = createTransporter();
 
-            // Test case for debugging
-            if (type === 'test') {
-                console.log('🔍 sendEmailFromApp: Test email requested');
-
-                // Test the email configuration
-                try {
-                    console.log('🔍 sendEmailFromApp: Testing email configuration...');
-                    console.log('🔍 sendEmailFromApp: Transporter configured successfully');
-                    console.log('🔍 sendEmailFromApp: From email:', emailConfig.fromEmail);
-
-                    // Verify the transporter
-                    const activeTransporter = getTransporter();
-                    await activeTransporter.verify();
-                    console.log('🔍 sendEmailFromApp: Email transporter verified successfully');
-
-                    return {
-                        success: true,
-                        messageId: 'test-message-id',
-                        message: 'Test email function working correctly - transporter verified',
-                        config: {
-                            fromEmail: emailConfig.fromEmail,
-                            apiKeyConfigured: !!emailConfig.apiKey,
-                            transporter: 'Gmail (testing)'
-                        }
-                    };
-                } catch (verifyError) {
-                    console.error('🔍 sendEmailFromApp: Email transporter verification failed:', verifyError);
-                    return {
-                        success: false,
-                        error: 'Email transporter verification failed',
-                        details: verifyError instanceof Error ? verifyError.message : 'Unknown error'
-                    };
-                }
+            // Verify transporter connection
+            try {
+                await transporter.verify();
+                console.log('🔍 Email transporter verified successfully');
+            } catch (verifyError) {
+                console.error('❌ Email transporter verification failed:', verifyError);
+                const errorMessage = verifyError instanceof Error ? verifyError.message : 'Unknown verification error';
+                res.status(500).json({
+                    error: 'Email service not available',
+                    details: errorMessage
+                });
+                return;
             }
 
-            if (!to || !subject || !html) {
-                console.log('🔍 sendEmailFromApp: Missing required fields');
-                throw new Error('Missing required fields: to, subject, html');
-            }
-
-            let emailContent: { subject: string; html: string };
-
-            // Generate email content based on type
-            switch (type) {
-                case 'new_submission':
-                    if (!formTitle || !submitterName || !submitterEmail) {
-                        console.log('🔍 sendEmailFromApp: Missing required fields for new submission email');
-                        throw new Error('Missing required fields for new submission email');
-                    }
-                    emailContent = emailTemplates.newSubmission(formTitle, submitterName, submitterEmail, {});
-                    break;
-
-                case 'submission_decision':
-                    if (!formTitle || !status || !submitterName) {
-                        console.log('🔍 sendEmailFromApp: Missing required fields for submission decision email');
-                        throw new Error('Missing required fields for submission decision email');
-                    }
-                    emailContent = emailTemplates.submissionDecision(formTitle, status, comments || '', submitterName);
-                    break;
-
-                case 'form_published':
-                    if (!formTitle) {
-                        console.log('🔍 sendEmailFromApp: Missing required fields for form published email');
-                        throw new Error('Missing required fields for form published email');
-                    }
-                    emailContent = emailTemplates.formPublished(formTitle, '');
-                    break;
-
-                default:
-                    // Use provided subject and html
-                    emailContent = { subject, html };
-            }
-
-            console.log('🔍 sendEmailFromApp: Email content generated:', emailContent);
-
+            // Prepare email options
             const mailOptions = {
                 from: emailConfig.fromEmail,
                 to: to,
-                subject: emailContent.subject,
-                html: emailContent.html,
+                subject: subject,
+                html: html,
+                headers: {
+                    'X-FormFlow-Type': type,
+                    'X-FormFlow-Form': formTitle || 'Unknown'
+                }
             };
 
-            console.log('🔍 sendEmailFromApp: Mail options:', mailOptions);
-            console.log('🔍 sendEmailFromApp: Attempting to send email...');
-            console.log('🔍 sendEmailFromApp: Email type:', type);
-            console.log('🔍 sendEmailFromApp: Recipient (to):', to);
-            console.log('🔍 sendEmailFromApp: From email:', emailConfig.fromEmail);
+            console.log('🔍 Sending email to:', to);
+            console.log('🔍 Email subject:', subject);
+            console.log('🔍 Email type:', type);
 
-            const activeTransporter = getTransporter();
-            const result = await activeTransporter.sendMail(mailOptions);
+            // Send email
+            const info = await transporter.sendMail(mailOptions);
 
-            console.log('🔍 sendEmailFromApp: Email sent successfully:', result.messageId);
+            console.log('✅ Email sent successfully');
+            console.log('🔍 Message ID:', info.messageId);
+            console.log('🔍 Response:', info.response);
 
-            // Log email sent
+            // Log email to Firestore for tracking
             try {
-                await db.collection("emailLogs").add({
-                    type: type,
+                await db.collection('emailLogs').add({
                     to: to,
-                    subject: emailContent.subject,
+                    subject: subject,
+                    type: type || 'unknown',
+                    formTitle: formTitle || 'No Form Title',
+                    submitterName: submitterName || 'Unknown',
+                    submitterEmail: submitterEmail || 'No Email',
+                    status: status || 'sent',
+                    comments: comments || '',
                     sentAt: new Date(),
                     success: true,
-                    messageId: result.messageId,
+                    service: emailConfig.service,
+                    fromEmail: emailConfig.fromEmail
                 });
-                console.log('🔍 sendEmailFromApp: Email logged to database');
+                console.log('✅ Email logged to Firestore successfully');
             } catch (logError) {
-                console.error('🔍 sendEmailFromApp: Error logging successful email:', logError);
-                // Don't fail the email sending if logging fails
+                console.error('⚠️ Failed to log email to Firestore:', logError);
+                // Don't fail the email send if logging fails
             }
 
-            return {
+            res.status(200).json({
                 success: true,
-                messageId: result.messageId,
-                message: 'Email sent successfully'
-            };
-        } catch (error) {
-            console.error("🔍 sendEmailFromApp: Error sending email:", error);
+                message: 'Email sent successfully',
+                messageId: info.messageId,
+                response: info.response
+            });
 
-            // Log failed email
+        } catch (error) {
+            console.error('❌ sendEmailFromApp: Error occurred:', error);
+
+            // Log error to Firestore
             try {
-                await db.collection("emailLogs").add({
-                    type: request.data?.type || 'unknown',
-                    to: request.data?.to || 'unknown',
-                    subject: request.data?.subject || 'unknown',
-                    sentAt: new Date(),
-                    success: false,
-                    error: error instanceof Error ? error.message : "Unknown error",
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorStack = error instanceof Error ? error.stack : undefined;
+
+                await db.collection('emailLogs').add({
+                    to: req.body?.to || 'unknown',
+                    subject: req.body?.subject || 'unknown',
+                    type: req.body?.type || 'unknown',
+                    error: errorMessage,
+                    errorStack: errorStack,
+                    failedAt: new Date(),
+                    success: false
                 });
             } catch (logError) {
-                console.error("🔍 sendEmailFromApp: Error logging failed email:", logError);
+                console.warn('⚠️ Failed to log error to Firestore:', logError);
             }
 
-            throw new Error(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            res.status(500).json({
+                error: 'Failed to send email',
+                details: errorMessage
+            });
         }
     }
 );

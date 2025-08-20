@@ -5,6 +5,8 @@ service cloud.firestore {
     match /forms/{formId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.createdBy;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
+      // Allow public read access for form submission (without auth)
+      allow read: if resource.data.isPublic == true;
     }
     
     // Submissions - form owners can read all submissions for their forms, submitters can read their own
@@ -12,7 +14,9 @@ service cloud.firestore {
       allow read, write: if request.auth != null && 
         (request.auth.uid == resource.data.submitterId || 
          request.auth.uid == get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.createdBy);
-      allow create: if request.auth != null;
+      allow create: if request.auth != null || 
+        (request.auth == null && 
+         get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.isPublic == true);
     }
     
     // Notifications - users can only access their own notifications
@@ -38,6 +42,13 @@ service cloud.firestore {
     // User Profiles - users can read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Public form submissions (for anonymous users)
+    match /publicSubmissions/{submissionId} {
+      allow create: if true; // Allow anonymous submissions
+      allow read: if request.auth != null && 
+        request.auth.uid == get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.createdBy;
     }
   }
 } 
