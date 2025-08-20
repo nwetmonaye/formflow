@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/screens/signup_screen.dart';
+import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/widgets/password_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isLoading = false;
+  String? _errorMessage; // Add this line
 
   @override
   void dispose() {
@@ -119,6 +121,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Clear any lingering SnackBars
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+    });
     final isWide = MediaQuery.of(context).size.width > 900;
     final formMaxWidth = 400.0;
     return Scaffold(
@@ -147,6 +153,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (state is AuthError) {
                                 setState(() {
                                   _isLoading = false;
+                                  _errorMessage =
+                                      state.message; // Store error message
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -157,6 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               } else if (state is Authenticated) {
                                 setState(() {
                                   _isLoading = false;
+                                  _errorMessage = null; // Clear error
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -165,6 +174,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                     backgroundColor: Colors.green,
                                   ),
                                 );
+                                // Navigate to HomeScreen after successful login
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (context) => const HomeScreen()),
+                                );
+                              } else if (state is Unauthenticated) {
+                                setState(() {
+                                  _isLoading = false;
+                                  _errorMessage = null; // Clear error
+                                });
                               }
                             },
                             child: Form(
@@ -172,6 +191,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (_errorMessage != null)
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 16.0),
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                                   // Logo and dot
                                   Row(
                                     crossAxisAlignment:
@@ -423,6 +454,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (_errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             TextFormField(
                               controller: _emailController,
                               decoration: InputDecoration(

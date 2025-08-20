@@ -47,8 +47,9 @@ class FirebaseService {
       _auth = FirebaseAuth.instance;
       _functions = FirebaseFunctions.instance;
 
-      // Configure emulators for local development
-      if (const bool.fromEnvironment('dart.vm.product') == false) {
+      // Configure emulators for local development (only when not running on web)
+      if (const bool.fromEnvironment('dart.vm.product') == false &&
+          !const bool.fromEnvironment('dart.library.html')) {
         print('🔧 Configuring Firebase emulators for local development...');
 
         // Connect to local Firestore emulator

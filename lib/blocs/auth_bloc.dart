@@ -144,12 +144,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         displayName: event.displayName,
       );
 
-      // After successful signup, emit authenticated state but don't keep user signed in
-      // The signup screen will handle routing to login
+      // After successful signup, emit authenticated state
       emit(Authenticated(user));
 
-      // Sign out immediately after signup to require user to sign in
-      await AuthService.signOut();
+      // Don't sign out immediately - let the signup screen handle the flow
+      // The user should be able to sign in immediately after signup
     } catch (e) {
       emit(AuthError(e.toString()));
     }

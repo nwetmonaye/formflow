@@ -130,6 +130,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 setState(() {
                                   _isLoading = false;
                                 });
+
+                                // Sign out the user after successful signup to require them to sign in
+                                context
+                                    .read<AuthBloc>()
+                                    .add(SignOutRequested());
+
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -137,6 +143,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     backgroundColor: Colors.green,
                                   ),
                                 );
+
+                                // Navigate to login screen
                                 Navigator.of(context)
                                     .pushReplacementNamed('/login');
                               }
@@ -256,7 +264,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         return 'Please enter your email';
                                       }
                                       if (!RegExp(
-                                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4} $')
+                                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                                           .hasMatch(value)) {
                                         return 'Please enter a valid email';
                                       }
@@ -387,157 +395,214 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: 40),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextFormField(
-                              controller: _fullNameController,
-                              decoration: InputDecoration(
-                                hintText: 'Full Name',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: KStyle.cE3GreyColor),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: KStyle.cE3GreyColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: KStyle.cPrimaryColor, width: 2),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                                hintStyle:
-                                    KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
-                                ),
-                              ),
-                              textCapitalization: TextCapitalization.words,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your full name';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18),
-                            TextFormField(
-                              controller: _emailController,
-                              decoration: InputDecoration(
-                                hintText: 'Email',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: KStyle.cE3GreyColor),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: KStyle.cE3GreyColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: KStyle.cPrimaryColor, width: 2),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                                hintStyle:
-                                    KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
-                                ),
-                              ),
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                if (!RegExp(
-                                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4} $')
-                                    .hasMatch(value)) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 18),
-                            PasswordField(
-                              controller: _passwordController,
-                              hintText: 'Password',
-                              validator: _validatePassword,
-                            ),
-                            const SizedBox(height: 18),
-                            PasswordField(
-                              controller: _confirmPasswordController,
-                              hintText: 'Confirm Password',
-                              validator: _validateConfirmPassword,
-                            ),
-                            const SizedBox(height: 32),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleSignUp,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: KStyle.cPrimaryColor,
-                                  foregroundColor: KStyle.cWhiteColor,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  Colors.white),
-                                        ),
-                                      )
-                                    : Text(
-                                        'Create Account',
-                                        style: KStyle.labelMdBoldTextStyle
+                      child: BlocListener<AuthBloc, AuthState>(
+                        listener: (context, state) {
+                          if (state is AuthError) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Row(
+                                  children: [
+                                    Icon(Icons.error_outline,
+                                        color: Colors.red, size: 24),
+                                    const SizedBox(width: 8),
+                                    Text('Account Creation Failed',
+                                        style: KStyle.heading3TextStyle
                                             .copyWith(
-                                          color: KStyle.cWhiteColor,
-                                        ),
-                                      ),
+                                                color: KStyle.cBlackColor)),
+                                  ],
+                                ),
+                                content: Text(state.message,
+                                    style: KStyle.labelMdRegularTextStyle
+                                        .copyWith(color: KStyle.c72GreyColor)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: Text('OK',
+                                        style: KStyle.labelMdRegularTextStyle
+                                            .copyWith(
+                                                color: KStyle.cPrimaryColor)),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Already have an account? ',
-                                  style:
+                            );
+                          } else if (state is Authenticated) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+
+                            // Sign out the user after successful signup to require them to sign in
+                            context.read<AuthBloc>().add(SignOutRequested());
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Account created successfully! Please sign in to continue.'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+
+                            // Navigate to login screen
+                            Navigator.of(context)
+                                .pushReplacementNamed('/login');
+                          }
+                        },
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextFormField(
+                                controller: _fullNameController,
+                                decoration: InputDecoration(
+                                  hintText: 'Full Name',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide:
+                                        BorderSide(color: KStyle.cE3GreyColor),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide:
+                                        BorderSide(color: KStyle.cE3GreyColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                        color: KStyle.cPrimaryColor, width: 2),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  hintStyle:
                                       KStyle.labelMdRegularTextStyle.copyWith(
                                     color: KStyle.c72GreyColor,
                                   ),
                                 ),
-                                GestureDetector(
-                                  onTap: () => Navigator.of(context)
-                                      .pushReplacementNamed('/login'),
-                                  child: Text(
-                                    'Log In',
-                                    style:
-                                        KStyle.labelMdRegularTextStyle.copyWith(
-                                      color: KStyle.cPrimaryColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                textCapitalization: TextCapitalization.words,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your full name';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 18),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide:
+                                        BorderSide(color: KStyle.cE3GreyColor),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide:
+                                        BorderSide(color: KStyle.cE3GreyColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(
+                                        color: KStyle.cPrimaryColor, width: 2),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  hintStyle:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your email';
+                                  }
+                                  if (!RegExp(
+                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                      .hasMatch(value)) {
+                                    return 'Please enter a valid email';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 18),
+                              PasswordField(
+                                controller: _passwordController,
+                                hintText: 'Password',
+                                validator: _validatePassword,
+                              ),
+                              const SizedBox(height: 18),
+                              PasswordField(
+                                controller: _confirmPasswordController,
+                                hintText: 'Confirm Password',
+                                validator: _validateConfirmPassword,
+                              ),
+                              const SizedBox(height: 32),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleSignUp,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: KStyle.cPrimaryColor,
+                                    foregroundColor: KStyle.cWhiteColor,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Create Account',
+                                          style: KStyle.labelMdBoldTextStyle
+                                              .copyWith(
+                                            color: KStyle.cWhiteColor,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Already have an account? ',
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.c72GreyColor,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => Navigator.of(context)
+                                        .pushReplacementNamed('/login'),
+                                    child: Text(
+                                      'Log In',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cPrimaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:formflow/models/user_model.dart';
 
 class AuthService {
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static FirebaseAuth get _auth => FirebaseAuth.instance;
 
   // Get current user
   static UserModel? get currentUser {
@@ -37,7 +37,7 @@ class AuthService {
 
       print('Signing in with email: $email');
 
-      final userCredential = await _auth!.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -99,7 +99,7 @@ class AuthService {
 
       print('Creating user with email: $email');
 
-      final userCredential = await _auth!.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
