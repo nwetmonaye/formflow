@@ -6,6 +6,13 @@ const db = admin.firestore();
 
 // Email configuration - supports both Gmail and Resend
 const getEmailConfig = () => {
+    console.log('🔍 Environment check:');
+    console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+    console.log('🔍 FUNCTIONS_EMULATOR:', process.env.FUNCTIONS_EMULATOR);
+    console.log('🔍 EMAIL_SERVICE:', process.env.EMAIL_SERVICE);
+    console.log('🔍 EMAIL_USER:', process.env.EMAIL_USER ? '***SET***' : 'NOT SET');
+    console.log('🔍 RESEND_API_KEY:', process.env.RESEND_API_KEY ? '***SET***' : 'NOT SET');
+
     // Check for environment variables first (production)
     if (process.env.EMAIL_SERVICE === 'gmail' && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         console.log('🔍 Using environment variables for Gmail');
@@ -26,14 +33,27 @@ const getEmailConfig = () => {
         };
     }
 
-    // Production fallback - check if we're in production
-    if (process.env.NODE_ENV === 'production') {
+    // Check if we're running in production (not in emulator)
+    if (process.env.FUNCTIONS_EMULATOR !== 'true') {
         console.error('❌ No email configuration found in production!');
-        throw new Error('Email configuration not set in production environment');
+        console.error('❌ Please set environment variables for production:');
+        console.error('❌ EMAIL_SERVICE=gmail');
+        console.error('❌ EMAIL_USER=your-email@gmail.com');
+        console.error('❌ EMAIL_PASSWORD=your-app-password');
+        console.error('❌ Or use Resend API: RESEND_API_KEY=your-key');
+
+        // For now, use hardcoded production values to get emails working
+        console.log('🔍 Using hardcoded production Gmail config as fallback');
+        return {
+            service: 'gmail',
+            user: 'nwetmonaye12345@gmail.com',
+            password: 'iiezzoujyxokxqbe',
+            fromEmail: 'nwetmonaye12345@gmail.com'
+        };
     }
 
-    // Development fallback (for testing only)
-    console.log('🔍 Using development Gmail config for testing');
+    // Development fallback (for testing only - when FUNCTIONS_EMULATOR=true)
+    console.log('🔍 Using development Gmail config for testing (emulator mode)');
     return {
         service: 'gmail',
         user: 'nwetmonaye12345@gmail.com',

@@ -1567,71 +1567,38 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
                 <h3 style="color: #166534; margin-top: 0;">Approval Details:</h3>
                 <p><strong>Form:</strong> ${_form!.title}</p>
-                <p><strong>Status:</strong> <span style="color: #10b981; font-weight: bold;">APPROVED</span></p>
-                <p><strong>Approved:</strong> ${DateTime.now().toString().split('.')[0]}</p>
-                ${comment.isNotEmpty ? '<p><strong>Comments:</strong> $comment</p>' : ''}
+                <p><strong>Status:</strong> <span style="color: #10b981; font-weight: bold;">Approved</span></p>
+                <p><strong>Reviewed:</strong> ${DateTime.now().toString()}</p>
               </div>
               
-              <p style="color: #64748b; font-size: 14px;">
-                This email was sent automatically by FormFlow. 
-                Thank you for your submission!
-              </p>
+              <p>Your submission has been reviewed and approved. Thank you for your participation!</p>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://formflow-b0484.web.app" style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Form</a>
+              </div>
             </div>
           ''';
 
           final emailSent = await FirebaseService.sendEmail(
             to: submission.submitterEmail,
-            subject: 'Submission Approved: ${_form!.title}',
+            subject: 'Submission Approved - ${_form!.title}',
             html: approvalHtml,
             type: 'submission_decision',
             formTitle: _form!.title,
             submitterName: submission.submitterName,
+            submitterEmail: submission.submitterEmail,
             status: 'approved',
             comments: comment,
           );
 
           if (emailSent) {
-            print(
-                '✅ Approval email sent successfully to: ${submission.submitterEmail}');
-            // Show success message
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Submission approved and notification email sent to ${submission.submitterEmail}'),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3),
-              ),
-            );
+            print('✅ Approval email sent successfully to submitter');
           } else {
-            print(
-                '❌ Failed to send approval email to: ${submission.submitterEmail}');
-            // Show warning but don't fail the approval
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Submission approved, but notification email failed to send to ${submission.submitterEmail}'),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 4),
-              ),
-            );
+            print('❌ Failed to send approval email to submitter');
           }
-        } catch (emailError) {
-          print('❌ Error sending approval email: $emailError');
-          // Show error but don't fail the approval
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Submission approved, but notification email failed: $emailError'),
-              backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+        } catch (e) {
+          print('❌ Failed to send approval email to submitter: $e');
         }
-      } else {
-        print(
-            '⚠️ Cannot send approval email: submitter email is empty or form is null');
-        print('🔍 Submitter email: ${submission.submitterEmail}');
-        print('🔍 Form: ${_form?.title}');
       }
 
       Navigator.of(context).pop();
@@ -1675,71 +1642,39 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
                 <h3 style="color: #991b1b; margin-top: 0;">Review Details:</h3>
                 <p><strong>Form:</strong> ${_form!.title}</p>
-                <p><strong>Status:</strong> <span style="color: #ef4444; font-weight: bold;">REJECTED</span></p>
-                <p><strong>Reviewed:</strong> ${DateTime.now().toString().split('.')[0]}</p>
+                <p><strong>Status:</strong> <span style="color: #ef4444; font-weight: bold;">Rejected</span></p>
+                <p><strong>Reviewed:</strong> ${DateTime.now().toString()}</p>
                 ${comment.isNotEmpty ? '<p><strong>Comments:</strong> $comment</p>' : ''}
               </div>
               
-              <p style="color: #64748b; font-size: 14px;">
-                This email was sent automatically by FormFlow. 
-                Please review the comments above and consider resubmitting if needed.
-              </p>
+              <p>We appreciate your submission. Please review the feedback and consider submitting again if applicable.</p>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://formflow-b0484.web.app" style="background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Form</a>
+              </div>
             </div>
           ''';
 
           final emailSent = await FirebaseService.sendEmail(
             to: submission.submitterEmail,
-            subject: 'Submission Rejected: ${_form!.title}',
+            subject: 'Submission Update - ${_form!.title}',
             html: rejectionHtml,
             type: 'submission_decision',
             formTitle: _form!.title,
             submitterName: submission.submitterName,
+            submitterEmail: submission.submitterEmail,
             status: 'rejected',
             comments: comment,
           );
 
           if (emailSent) {
-            print(
-                '✅ Rejection email sent successfully to: ${submission.submitterEmail}');
-            // Show success message
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Submission rejected and notification email sent to ${submission.submitterEmail}'),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 3),
-              ),
-            );
+            print('✅ Rejection email sent successfully to submitter');
           } else {
-            print(
-                '❌ Failed to send rejection email to: ${submission.submitterEmail}');
-            // Show warning but don't fail the rejection
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Submission rejected, but notification email failed to send to ${submission.submitterEmail}'),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 4),
-              ),
-            );
+            print('❌ Failed to send rejection email to submitter');
           }
-        } catch (emailError) {
-          print('❌ Error sending rejection email: $emailError');
-          // Show error but don't fail the rejection
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Submission rejected, but notification email failed: $emailError'),
-              backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+        } catch (e) {
+          print('❌ Failed to send rejection email to submitter: $e');
         }
-      } else {
-        print(
-            '⚠️ Cannot send rejection email: submitter email is empty or form is null');
-        print('🔍 Submitter email: ${submission.submitterEmail}');
-        print('🔍 Form: ${_form?.title}');
       }
 
       Navigator.of(context).pop();

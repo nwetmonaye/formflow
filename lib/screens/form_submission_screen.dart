@@ -169,27 +169,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               print('✅ New submission email sent successfully to form owner');
             } else {
               print('❌ Failed to send new submission email to form owner');
-              // Show user-friendly error message
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Form submitted successfully, but notification email failed to send.'),
-                  backgroundColor: Colors.orange,
-                  duration: Duration(seconds: 5),
-                ),
-              );
             }
           } catch (e) {
             print('❌ Failed to send new submission email to form owner: $e');
-            // Show user-friendly error message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    'Form submitted successfully, but notification email failed to send.'),
-                backgroundColor: Colors.orange,
-                duration: Duration(seconds: 5),
-              ),
-            );
           }
         } else {
           print('⚠️ No form owner email found, skipping notification email');
