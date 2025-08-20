@@ -585,11 +585,11 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                 : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _canShare
-                                  ? KStyle.cPrimaryColor.withOpacity(0.1)
+                                  ? KStyle.cSelectedColor
                                   : KStyle.cE3GreyColor,
-                              foregroundColor: _canShare
-                                  ? KStyle.cPrimaryColor
-                                  : KStyle.cSelectedColor,
+                              // foregroundColor: _canShare
+                              //     ? KStyle.cPrimaryColor
+                              //     : KStyle.cSelectedColor,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 16,
@@ -601,7 +601,11 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                             icon: const Icon(Icons.people, size: 16),
                             label: Text(
                               'Share',
-                              style: KStyle.labelSmRegularTextStyle,
+                              style: KStyle.labelSmRegularTextStyle.copyWith(
+                                color: _canShare
+                                    ? KStyle.cPrimaryColor
+                                    : KStyle.cWhiteColor,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),

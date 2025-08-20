@@ -11,6 +11,9 @@ class FirebaseService {
   static FirebaseAuth? _auth;
   static FirebaseFunctions? _functions;
 
+  // Set this to false to use production Firebase services instead of emulators
+  static const bool _useEmulators = false;
+
   // Firebase configuration
   static const Map<String, dynamic> firebaseConfig = {
     "apiKey": "AIzaSyBlPlYZKa2jtYb2uNEKHNexpk07IFSRJuo",
@@ -47,8 +50,9 @@ class FirebaseService {
       _auth = FirebaseAuth.instance;
       _functions = FirebaseFunctions.instance;
 
-      // Configure emulators for local development (only when not running on web)
-      if (const bool.fromEnvironment('dart.vm.product') == false &&
+      // Configure emulators based on the flag
+      if (_useEmulators &&
+          const bool.fromEnvironment('dart.vm.product') == false &&
           !const bool.fromEnvironment('dart.library.html')) {
         print('🔧 Configuring Firebase emulators for local development...');
 
@@ -272,6 +276,24 @@ class FirebaseService {
 
   // Check if Firebase is initialized
   static bool get isInitialized => _isInitialized;
+
+  // Method to switch between emulator and production
+  static void switchToEmulators() {
+    if (_firestore != null && _functions != null) {
+      print('🔧 Switching to Firebase emulators...');
+      _firestore!.useFirestoreEmulator('127.0.0.1', 8080);
+      _functions!.useFunctionsEmulator('127.0.0.1', 5001);
+      print('🔧 Switched to emulators successfully');
+    }
+  }
+
+  // Method to switch back to production
+  static void switchToProduction() {
+    print('🔧 Switching to production Firebase services...');
+    // Reinitialize Firebase to use production services
+    _isInitialized = false;
+    initializeFirebase();
+  }
 
   // Form operations
   static Future<String> createForm(FormModel form) async {
