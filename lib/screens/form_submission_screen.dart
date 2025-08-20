@@ -117,8 +117,100 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     }
   }
 
+  // Custom validator for all form fields
+  String? _validateField(form_model.FormField field) {
+    final value = _responses[field.id];
+
+    if (field.required) {
+      switch (field.type) {
+        case 'text':
+        case 'number':
+        case 'date':
+        case 'file_upload':
+          if (value == null || value.toString().isEmpty) {
+            return 'This field is required';
+          }
+          break;
+
+        case 'multiple_choice':
+          if (value == null) {
+            return 'Please select an option';
+          }
+          break;
+
+        case 'checkbox':
+          if (value == null || (value is List && value.isEmpty)) {
+            return 'Please select at least one option';
+          }
+          break;
+
+        case 'dropdown':
+          if (value == null) {
+            return 'Please select an option';
+          }
+          break;
+      }
+    }
+
+    // Additional validation for specific field types
+    if (field.type == 'number' &&
+        value != null &&
+        value.toString().isNotEmpty) {
+      if (double.tryParse(value.toString()) == null) {
+        return 'Please enter a valid number';
+      }
+    }
+
+    if (field.type == 'date' && field.required && value != null) {
+      if (!(value is DateTime)) {
+        return 'Please select a valid date';
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _submitForm() async {
+    // Custom validation for all fields
+    Map<String, String?> fieldErrors = {};
+    bool hasErrors = false;
+
+    for (final field in form!.fields) {
+      final error = _validateField(field);
+      if (error != null) {
+        fieldErrors[field.id] = error;
+        hasErrors = true;
+      }
+    }
+
+    // Also validate email field
+    if (_responses['email'] == null || _responses['email'].toString().isEmpty) {
+      fieldErrors['email'] = 'Email is required';
+      hasErrors = true;
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+        .hasMatch(_responses['email'].toString())) {
+      fieldErrors['email'] = 'Please enter a valid email';
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      // Show error messages
+      setState(() {
+        // Trigger rebuild to show validation errors
+      });
+
+      // Show snackbar with error count
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fix ${fieldErrors.length} validation error(s)'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _isSubmitting = true;
     });
@@ -503,6 +595,13 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                                   width: 2,
                                 ),
                               ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(6),
+                                borderSide: BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                              ),
                               contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
                               hintStyle:
@@ -512,12 +611,15 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             ),
                             onChanged: (value) {
                               _responses['email'] = value;
+                              // Clear validation error when user starts typing
+                              setState(() {});
                             },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Email is required';
                               }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4} 0$')
+                              // Fix the regex pattern for email validation
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                                   .hasMatch(value)) {
                                 return 'Please enter a valid email';
                               }
@@ -692,6 +794,13 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                         width: 2,
                       ),
                     ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: Colors.red,
+                        width: 2,
+                      ),
+                    ),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
@@ -704,12 +813,11 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                   onChanged: (value) {
                     _responses[field.id] =
                         field.type == 'number' ? double.tryParse(value) : value;
+                    // Clear validation error when user starts typing
+                    setState(() {});
                   },
                   validator: (value) {
-                    if (field.required && (value == null || value.isEmpty)) {
-                      return 'This field is required';
-                    }
-                    return null;
+                    return _validateField(field);
                   },
                 )
               else
@@ -781,6 +889,11 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               if (field.required && (value == null || value.isEmpty)) {
                 return 'This field is required';
               }
+              if (value != null && value.isNotEmpty) {
+                if (double.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+              }
               return null;
             },
           ),
@@ -832,7 +945,8 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                     }
                   },
                   validator: (value) {
-                    if (field.required && (value == null || value.isEmpty)) {
+                    if (field.required &&
+                        (selectedDate == null || !(selectedDate is DateTime))) {
                       return 'This field is required';
                     }
                     return null;
@@ -851,32 +965,47 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       case 'multiple_choice':
         if (field.options != null && field.options!.isNotEmpty) {
           return Column(
-            children: field.options!
-                .map((option) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Radio<String>(
-                            value: option,
-                            groupValue: _responses[field.id],
-                            onChanged: (value) {
-                              setState(() {
-                                _responses[field.id] = value;
-                              });
-                            },
-                            activeColor: KStyle.cPrimaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            option,
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: KStyle.cBlackColor,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...field.options!
+                  .map((option) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Radio<String>(
+                              value: option,
+                              groupValue: _responses[field.id],
+                              onChanged: (value) {
+                                setState(() {
+                                  _responses[field.id] = value;
+                                });
+                              },
+                              activeColor: KStyle.cPrimaryColor,
                             ),
-                          ),
-                        ],
-                      ),
-                    ))
-                .toList(),
+                            const SizedBox(width: 8),
+                            Text(
+                              option,
+                              style: KStyle.labelMdRegularTextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+              // Add validation message for required fields
+              if (field.required && _responses[field.id] == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Please select an option',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
           );
         }
         break;
@@ -884,153 +1013,209 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       case 'checkbox':
         if (field.options != null && field.options!.isNotEmpty) {
           return Column(
-            children: field.options!
-                .map((option) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value:
-                                _responses[field.id]?.contains(option) ?? false,
-                            onChanged: (value) {
-                              setState(() {
-                                if (value!) {
-                                  _responses[field.id] = List<String>.from(
-                                      _responses[field.id] ?? <String>[]);
-                                  _responses[field.id]!.add(option);
-                                } else {
-                                  _responses[field.id] = List<String>.from(
-                                          _responses[field.id] ?? <String>[])
-                                      .where((item) => item != option)
-                                      .toList();
-                                }
-                              });
-                            },
-                            activeColor: KStyle.cPrimaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            option,
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: KStyle.cBlackColor,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...field.options!
+                  .map((option) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _responses[field.id]?.contains(option) ??
+                                  false,
+                              onChanged: (value) {
+                                setState(() {
+                                  if (value!) {
+                                    _responses[field.id] = List<String>.from(
+                                        _responses[field.id] ?? <String>[]);
+                                    _responses[field.id]!.add(option);
+                                  } else {
+                                    _responses[field.id] = List<String>.from(
+                                            _responses[field.id] ?? <String>[])
+                                        .where((item) => item != option)
+                                        .toList();
+                                  }
+                                });
+                              },
+                              activeColor: KStyle.cPrimaryColor,
                             ),
-                          ),
-                        ],
-                      ),
-                    ))
-                .toList(),
+                            const SizedBox(width: 8),
+                            Text(
+                              option,
+                              style: KStyle.labelMdRegularTextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+              // Add validation message for required fields
+              if (field.required &&
+                  (_responses[field.id] == null ||
+                      (_responses[field.id] is List &&
+                          (_responses[field.id] as List).isEmpty)))
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Please select at least one option',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
           );
         }
         break;
 
       case 'dropdown':
         if (field.options != null && field.options!.isNotEmpty) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: KStyle.cE3GreyColor,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      hint: Text(
-                        field.placeholder ?? 'Select an option',
-                        style: KStyle.labelMdRegularTextStyle.copyWith(
-                          color: KStyle.c72GreyColor,
-                        ),
-                      ),
-                      items: field.options!
-                          .map((option) => DropdownMenuItem(
-                                value: option,
-                                child: Text(option),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _responses[field.id] = value;
-                        });
-                      },
-                      value: _responses[field.id],
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: KStyle.c72GreyColor,
-                  size: 20,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          hint: Text(
+                            field.placeholder ?? 'Select an option',
+                            style: KStyle.labelMdRegularTextStyle.copyWith(
+                              color: KStyle.c72GreyColor,
+                            ),
+                          ),
+                          items: field.options!
+                              .map((option) => DropdownMenuItem(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _responses[field.id] = value;
+                            });
+                          },
+                          value: _responses[field.id],
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: KStyle.c72GreyColor,
+                      size: 20,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // Add validation message for required fields
+              if (field.required && _responses[field.id] == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Please select an option',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
           );
         }
         break;
 
       case 'file_upload':
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: KStyle.cE3GreyColor,
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.upload_file,
-                color: KStyle.c72GreyColor,
-                size: 20,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: KStyle.cE3GreyColor,
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Text(
-                'Click to upload file',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: KStyle.c72GreyColor,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.upload_file,
+                    color: KStyle.c72GreyColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Click to upload file',
+                    style: KStyle.labelMdRegularTextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Add validation message for required fields
+            if (field.required && _responses[field.id] == null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Please upload a file',
+                  style: KStyle.labelMdRegularTextStyle.copyWith(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ],
+          ],
+        );
+
+      default:
+        // Default fallback for unknown field types
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: KStyle.cE3GreyColor,
+                width: 1,
+              ),
+            ),
+          ),
+          child: TextFormField(
+            decoration: InputDecoration(
+              hintText: field.placeholder ?? 'Your answer',
+              border: InputBorder.none,
+              hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+            ),
+            onChanged: (value) {
+              _responses[field.id] = value;
+            },
+            validator: (value) {
+              if (field.required && (value == null || value.isEmpty)) {
+                return 'This field is required';
+              }
+              return null;
+            },
           ),
         );
-        break;
     }
 
-    // Default fallback
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: KStyle.cE3GreyColor,
-            width: 1,
-          ),
-        ),
-      ),
-      child: TextFormField(
-        decoration: InputDecoration(
-          hintText: field.placeholder ?? 'Your answer',
-          border: InputBorder.none,
-          hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
-            color: KStyle.c72GreyColor,
-          ),
-        ),
-        onChanged: (value) {
-          _responses[field.id] = value;
-        },
-        validator: (value) {
-          if (field.required && (value == null || value.isEmpty)) {
-            return 'This field is required';
-          }
-          return null;
-        },
-      ),
-    );
+    // Return empty container if no case matched
+    return Container();
   }
 }

@@ -185,9 +185,9 @@ class _QuestionCardState extends State<QuestionCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Question Input Area
+              // Question Label
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
                 child: Row(
                   children: [
                     Expanded(
@@ -639,52 +639,69 @@ class _QuestionCardState extends State<QuestionCard> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          if (icon !=
-              Icons
-                  .arrow_drop_down) // Show icon for checkbox and radio, not for dropdown
-            Icon(
-              icon,
-              size: 16,
-              color: KStyle.cPrimaryColor,
-            ),
-          if (icon != Icons.arrow_drop_down) const SizedBox(width: 8),
+          Icon(
+            icon,
+            size: 16,
+            color: KStyle.cPrimaryColor,
+          ),
+          const SizedBox(width: 8),
           Expanded(
-            child: TextField(
-              controller: controller,
-              onChanged: (value) {
-                _updateChoice(index, value);
-              },
-              textInputAction: TextInputAction.next,
-              keyboardType: TextInputType.text,
-              textCapitalization: TextCapitalization.none,
-              style: KStyle.labelSmRegularTextStyle.copyWith(
-                color: KStyle.cBlackColor,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border.all(color: KStyle.cE3GreyColor),
+                borderRadius: BorderRadius.circular(6),
               ),
-              decoration: InputDecoration(
-                hintText: 'Choice ${index + 1}',
-                hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
-                  color: KStyle.c72GreyColor,
+              child: TextField(
+                controller: controller,
+                onChanged: (value) {
+                  _updateChoice(index, value);
+                },
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.none,
+                style: KStyle.labelSmRegularTextStyle.copyWith(
+                  color: KStyle.cBlackColor,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: KStyle.cE3GreyColor),
+                decoration: InputDecoration(
+                  hintText: 'Choice ${index + 1}',
+                  hintStyle: KStyle.labelSmRegularTextStyle.copyWith(
+                    color: KStyle.c72GreyColor,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: KStyle.cE3GreyColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: KStyle.cPrimaryColor, width: 2),
-                ),
-                contentPadding: const EdgeInsets.all(8),
-                isDense: true,
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {
+              _removeChoice(index);
+            },
+            child: Icon(
+              Icons.remove_circle_outline,
+              size: 20,
+              color: Colors.red,
             ),
           ),
         ],
       ),
     );
+  }
+
+  void _removeChoice(int index) {
+    final currentOptions = List<String>.from(_localChoices);
+    currentOptions.removeAt(index);
+
+    setState(() {
+      _localChoices = currentOptions;
+      _initializeChoiceControllers();
+    });
+
+    final updatedField = widget.field.copyWith(options: currentOptions);
+    widget.onUpdate(updatedField);
   }
 
   String _getQuestionTypeName(String type) {
