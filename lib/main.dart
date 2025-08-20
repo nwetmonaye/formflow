@@ -55,7 +55,7 @@ class FormFlowApp extends StatelessWidget {
           print('🔍 Route length: ${initialRoute.length}');
           print('🔍 Route contains /form/: ${initialRoute.contains('/form/')}');
 
-          // Handle form routes first - these should bypass auth wrapper
+          // Handle form routes first - these should bypass auth wrapper for public access
           if (initialRoute.startsWith('/form/')) {
             print('🔍 Initial route is a form route: $initialRoute');
 
@@ -99,11 +99,23 @@ class FormFlowApp extends StatelessWidget {
             }
 
             // Default to form submission screen for public access (form responders)
+            // This bypasses authentication - anyone can access the form
             print(
-                '🔍 Routing to FormSubmissionScreen with formId: $formId (submission mode)');
+                '🔍 Routing to FormSubmissionScreen with formId: $formId (public submission mode)');
+
+            // Check if there's an access token in the URL
+            String? accessToken = uri.queryParameters['token'];
+            if (accessToken != null) {
+              print(
+                  '🔍 Access token provided: ${accessToken.substring(0, 8)}...');
+            }
+
             return [
               MaterialPageRoute(
-                builder: (context) => FormSubmissionScreen(formId: formId),
+                builder: (context) => FormSubmissionScreen(
+                  formId: formId,
+                  accessToken: accessToken,
+                ),
               ),
             ];
           }
@@ -113,8 +125,10 @@ class FormFlowApp extends StatelessWidget {
             print('🔍 Test route accessed in initial routes');
             return [
               MaterialPageRoute(
-                builder: (context) =>
-                    const FormSubmissionScreen(formId: 'sample-form-1'),
+                builder: (context) => const FormSubmissionScreen(
+                  formId: 'sample-form-1',
+                  accessToken: null,
+                ),
               ),
             ];
           }
@@ -132,7 +146,7 @@ class FormFlowApp extends StatelessWidget {
           print('🔍 onGenerateRoute called with: ${settings.name}');
           print('🔍 Settings arguments: ${settings.arguments}');
 
-          // Handle form routes FIRST - these should take priority
+          // Handle form routes FIRST - these should take priority and bypass auth
           if (settings.name?.startsWith('/form/') == true) {
             print(
                 '🔍 Processing form route in onGenerateRoute: ${settings.name}');
@@ -170,10 +184,22 @@ class FormFlowApp extends StatelessWidget {
             }
 
             // Default to form submission screen for public access (form responders)
+            // This bypasses authentication - anyone can access the form
             print(
-                '🔍 Routing to FormSubmissionScreen with formId: $formId (submission mode)');
+                '🔍 Routing to FormSubmissionScreen with formId: $formId (public submission mode)');
+
+            // Check if there's an access token in the URL
+            String? accessToken = uri.queryParameters['token'];
+            if (accessToken != null) {
+              print(
+                  '🔍 Access token provided: ${accessToken.substring(0, 8)}...');
+            }
+
             return MaterialPageRoute(
-              builder: (context) => FormSubmissionScreen(formId: formId),
+              builder: (context) => FormSubmissionScreen(
+                formId: formId,
+                accessToken: accessToken,
+              ),
             );
           }
 
@@ -199,8 +225,10 @@ class FormFlowApp extends StatelessWidget {
             case '/test-form':
               print('🔍 Test route accessed - showing sample form');
               return MaterialPageRoute(
-                builder: (context) =>
-                    const FormSubmissionScreen(formId: 'sample-form-1'),
+                builder: (context) => const FormSubmissionScreen(
+                  formId: 'sample-form-1',
+                  accessToken: null,
+                ),
               );
             // Add debug route to show current routing state
             case '/debug-routing':
@@ -263,8 +291,20 @@ class FormFlowApp extends StatelessWidget {
               }
               if (formId.isNotEmpty) {
                 print('🔍 Extracted form ID from unknown route: $formId');
+
+                // Check if there's an access token in the URL
+                String? accessToken = uri.queryParameters['token'];
+                if (accessToken != null) {
+                  print(
+                      '🔍 Access token provided: ${accessToken.substring(0, 8)}...');
+                }
+
+                // Route to form submission screen for public access
                 return MaterialPageRoute(
-                  builder: (context) => FormSubmissionScreen(formId: formId),
+                  builder: (context) => FormSubmissionScreen(
+                    formId: formId,
+                    accessToken: accessToken,
+                  ),
                 );
               }
             } catch (e) {
@@ -272,9 +312,52 @@ class FormFlowApp extends StatelessWidget {
             }
           }
 
-          print('🔍 Falling back to HomeScreen for unknown route');
+          // For any other unknown route, show a user-friendly error page
+          print('🔍 Falling back to error page for unknown route');
           return MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
+            builder: (context) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Page Not Found'),
+                backgroundColor: KStyle.cPrimaryColor,
+                foregroundColor: Colors.white,
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: KStyle.c72GreyColor,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Page Not Found',
+                      style: KStyle.heading2TextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'The page you are looking for does not exist.',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pushNamed('/'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: KStyle.cPrimaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Go to Home'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         },
       ),

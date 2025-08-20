@@ -705,4 +705,86 @@ class FirebaseService {
       });
     }
   }
+
+  // Check if a form is publicly accessible
+  static Future<bool> isFormPubliclyAccessible(String formId) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      final doc = await _firestore!.collection('forms').doc(formId).get();
+
+      if (!doc.exists) {
+        print('🔍 Form not found: $formId');
+        return false;
+      }
+
+      final formData = doc.data();
+      final status = formData?['status'] as String?;
+      final isPublic =
+          formData?['isPublic'] as bool? ?? true; // Default to public
+
+      print('🔍 Form $formId - Status: $status, IsPublic: $isPublic');
+
+      // Form is accessible if it's active and public
+      return status == 'active' && isPublic;
+    } catch (e) {
+      print('🔍 Error checking form accessibility: $e');
+      return false;
+    }
+  }
+
+  // Validate form access with optional token
+  static Future<bool> validateFormAccess(String formId,
+      {String? accessToken}) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      final doc = await _firestore!.collection('forms').doc(formId).get();
+
+      if (!doc.exists) {
+        print('🔍 Form not found: $formId');
+        return false;
+      }
+
+      final formData = doc.data();
+      final status = formData?['status'] as String?;
+      final isPublic = formData?['isPublic'] as bool? ?? true;
+      final requiredToken = formData?['accessToken'] as String?;
+
+      print(
+          '🔍 Form $formId - Status: $status, IsPublic: $isPublic, HasToken: ${requiredToken != null}');
+
+      // If form is not active, deny access
+      if (status != 'active') {
+        print('🔍 Form $formId is not active (status: $status)');
+        return false;
+      }
+
+      // If form is public, allow access
+      if (isPublic) {
+        print('🔍 Form $formId is publicly accessible');
+        return true;
+      }
+
+      // If form requires token, validate it
+      if (requiredToken != null && accessToken != null) {
+        final isValid = requiredToken == accessToken;
+        print('🔍 Form $formId token validation: $isValid');
+        return isValid;
+      }
+
+      // If form requires token but none provided, deny access
+      if (requiredToken != null && accessToken == null) {
+        print('🔍 Form $formId requires access token but none provided');
+        return false;
+      }
+
+      // Default to deny access for private forms
+      print('🔍 Form $formId is private and no valid token provided');
+      return false;
+    } catch (e) {
+      print('🔍 Error validating form access: $e');
+      return false;
+    }
+  }
 }

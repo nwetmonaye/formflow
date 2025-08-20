@@ -8,10 +8,12 @@ import 'package:formflow/widgets/form_header.dart';
 
 class FormSubmissionScreen extends StatefulWidget {
   final String formId;
+  final String? accessToken;
 
   const FormSubmissionScreen({
     super.key,
     required this.formId,
+    this.accessToken,
   });
 
   @override
@@ -37,6 +39,36 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   Future<void> _loadForm() async {
     try {
       print('🔍 Loading form with ID: ${widget.formId}');
+
+      // First validate form access
+      bool hasAccess = false;
+      try {
+        if (await FirebaseService.ensureInitialized()) {
+          // Check if form is publicly accessible or validate access token
+          if (widget.accessToken != null) {
+            hasAccess = await FirebaseService.validateFormAccess(widget.formId,
+                accessToken: widget.accessToken);
+            print('🔍 Form access check with token: $hasAccess');
+          } else {
+            hasAccess =
+                await FirebaseService.isFormPubliclyAccessible(widget.formId);
+            print('🔍 Form access check (public): $hasAccess');
+          }
+        }
+      } catch (e) {
+        print('🔍 Error checking form access: $e');
+      }
+
+      if (!hasAccess) {
+        setState(() {
+          isError = true;
+          errorMessage =
+              'This form is not publicly accessible or has been removed.';
+          isLoading = false;
+        });
+        print('🔍 Form access denied: ${widget.formId}');
+        return;
+      }
 
       // Try Firebase first
       form_model.FormModel? loadedForm;
