@@ -15,6 +15,7 @@ import 'package:csv/csv.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:typed_data';
+import 'package:formflow/screens/profile_screen.dart';
 
 class FormDetailScreen extends StatefulWidget {
   final form_model.FormModel? form;
@@ -225,7 +226,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      _showUserMenu(context);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
                     },
                     child: Row(
                       children: [
@@ -1973,7 +1978,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
               children: [
                 _buildMenuItem('View Profile', Icons.person_outline, () {
                   Navigator.of(context).pop();
-                  // TODO: Navigate to profile screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ProfileScreen(),
+                    ),
+                  );
                 }),
                 _buildMenuItem('Settings', Icons.settings_outlined, () {
                   Navigator.of(context).pop();

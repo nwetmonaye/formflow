@@ -4,6 +4,7 @@ import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/notification_model.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/screens/profile_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -133,7 +134,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      _showUserMenu(context);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
                     },
                     child: Row(
                       children: [
@@ -144,10 +149,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             color: KStyle.cWhiteColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Icon(
-                            Icons.person,
-                            color: KStyle.cPrimaryColor,
-                            size: 20,
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/profile.png',
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -601,7 +607,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                         foregroundColor: KStyle.cPrimaryColor,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
-                                          vertical: 8,
+                                          vertical: 16,
                                         ),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
@@ -653,12 +659,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createTestNotification,
-        backgroundColor: KStyle.cPrimaryColor,
-        foregroundColor: KStyle.cWhiteColor,
-        child: const Icon(Icons.add),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _createTestNotification,
+      //   backgroundColor: KStyle.cPrimaryColor,
+      //   foregroundColor: KStyle.cWhiteColor,
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 
@@ -892,86 +898,86 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
 
                     // Action buttons for form submissions
-                    if (notification.type == 'form_submission' &&
-                        notification.formId != null &&
-                        notification.submissionId != null)
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () => _viewSubmission(notification),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: KStyle.cPrimaryColor,
-                                  foregroundColor: KStyle.cWhiteColor,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text(
-                                  'View Submission',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: KStyle.cWhiteColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () =>
-                                    _approveSubmission(notification),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: KStyle.cE8GreenColor,
-                                  side: BorderSide(color: KStyle.cE8GreenColor),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text(
-                                  'Approve',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: KStyle.cE8GreenColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () =>
-                                    _rejectSubmission(notification),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: KStyle.cDBRedColor,
-                                  side: BorderSide(color: KStyle.cDBRedColor),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: Text(
-                                  'Reject',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: KStyle.cDBRedColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    // if (notification.type == 'form_submission' &&
+                    //     notification.formId != null &&
+                    //     notification.submissionId != null)
+                    //   Container(
+                    //     margin: const EdgeInsets.only(top: 16),
+                    //     child: Row(
+                    //       children: [
+                    //         Expanded(
+                    //           child: ElevatedButton(
+                    //             onPressed: () => _viewSubmission(notification),
+                    //             style: ElevatedButton.styleFrom(
+                    //               backgroundColor: KStyle.cPrimaryColor,
+                    //               foregroundColor: KStyle.cWhiteColor,
+                    //               padding:
+                    //                   const EdgeInsets.symmetric(vertical: 12),
+                    //               shape: RoundedRectangleBorder(
+                    //                 borderRadius: BorderRadius.circular(8),
+                    //               ),
+                    //             ),
+                    //             child: Text(
+                    //               'View Submission',
+                    //               style:
+                    //                   KStyle.labelMdRegularTextStyle.copyWith(
+                    //                 color: KStyle.cWhiteColor,
+                    //                 fontWeight: FontWeight.w500,
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ),
+                    //         const SizedBox(width: 12),
+                    //         Expanded(
+                    //           child: OutlinedButton(
+                    //             onPressed: () =>
+                    //                 _approveSubmission(notification),
+                    //             style: OutlinedButton.styleFrom(
+                    //               foregroundColor: KStyle.cE8GreenColor,
+                    //               side: BorderSide(color: KStyle.cE8GreenColor),
+                    //               padding:
+                    //                   const EdgeInsets.symmetric(vertical: 12),
+                    //               shape: RoundedRectangleBorder(
+                    //                 borderRadius: BorderRadius.circular(8),
+                    //               ),
+                    //             ),
+                    //             child: Text(
+                    //               'Approve',
+                    //               style:
+                    //                   KStyle.labelMdRegularTextStyle.copyWith(
+                    //                 color: KStyle.cE8GreenColor,
+                    //                 fontWeight: FontWeight.w500,
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ),
+                    //         const SizedBox(width: 12),
+                    //         Expanded(
+                    //           child: OutlinedButton(
+                    //             onPressed: () =>
+                    //                 _rejectSubmission(notification),
+                    //             style: OutlinedButton.styleFrom(
+                    //               foregroundColor: KStyle.cDBRedColor,
+                    //               side: BorderSide(color: KStyle.cDBRedColor),
+                    //               padding:
+                    //                   const EdgeInsets.symmetric(vertical: 12),
+                    //               shape: RoundedRectangleBorder(
+                    //                 borderRadius: BorderRadius.circular(8),
+                    //               ),
+                    //             ),
+                    //             child: Text(
+                    //               'Reject',
+                    //               style:
+                    //                   KStyle.labelMdRegularTextStyle.copyWith(
+                    //                 color: KStyle.cDBRedColor,
+                    //                 fontWeight: FontWeight.w500,
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
                   ],
                 ),
               ),
@@ -1127,44 +1133,44 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  void _createTestNotification() async {
-    try {
-      final notification = NotificationModel(
-        title: 'Test Notification',
-        message: 'This is a test notification for demonstration purposes.',
-        type: 'form_submission',
-        formId: 'test_form_id',
-        submissionId: 'test_submission_id',
-        createdAt: DateTime.now(),
-        isRead: false,
-      );
+//   void _createTestNotification() async {
+//     try {
+//       final notification = NotificationModel(
+//         title: 'Test Notification',
+//         message: 'This is a test notification for demonstration purposes.',
+//         type: 'form_submission',
+//         formId: 'test_form_id',
+//         submissionId: 'test_submission_id',
+//         createdAt: DateTime.now(),
+//         isRead: false,
+//       );
 
-      // Get current user ID from Firebase service
-      final currentUser = FirebaseService.currentUser;
-      if (currentUser != null) {
-        await FirebaseService.createNotification(notification,
-            userId: currentUser.uid);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Test notification created!'),
-            backgroundColor: KStyle.cPrimaryColor,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please sign in to create test notifications'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error creating test notification: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+//       // Get current user ID from Firebase service
+//       final currentUser = FirebaseService.currentUser;
+//       if (currentUser != null) {
+//         await FirebaseService.createNotification(notification,
+//             userId: currentUser.uid);
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//             content: const Text('Test notification created!'),
+//             backgroundColor: KStyle.cPrimaryColor,
+//           ),
+//         );
+//       } else {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(
+//             content: Text('Please sign in to create test notifications'),
+//             backgroundColor: Colors.orange,
+//           ),
+//         );
+//       }
+//     } catch (e) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text('Error creating test notification: $e'),
+//           backgroundColor: Colors.red,
+//         ),
+//       );
+//     }
+//   }
 }

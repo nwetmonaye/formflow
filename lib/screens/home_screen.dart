@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:formflow/screens/form_preview_screen.dart';
 import 'package:formflow/models/submission_model.dart';
 import 'package:formflow/screens/login_screen.dart';
+import 'package:formflow/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -238,7 +239,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               child: GestureDetector(
                                 onTap: () {
-                                  _showUserMenu(context);
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfileScreen(),
+                                    ),
+                                  );
                                 },
                                 child: Row(
                                   children: [
@@ -1051,7 +1057,11 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildMenuItem('View Profile', Icons.person_outline, () {
                   Navigator.of(context).pop();
-                  // TODO: Navigate to profile screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
                 }),
                 _buildMenuItem('Settings', Icons.settings_outlined, () {
                   Navigator.of(context).pop();
