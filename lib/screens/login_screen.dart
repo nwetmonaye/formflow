@@ -5,6 +5,8 @@ import 'package:formflow/constants/style.dart';
 import 'package:formflow/screens/signup_screen.dart';
 import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/widgets/password_field.dart';
+import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +21,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isLoading = false;
-  String? _errorMessage; // Add this line
+  String? _errorMessage; // General error message
+  String? _emailError; // Email-specific error
+  String? _passwordError; // Password-specific error
+
+  @override
+  void initState() {
+    super.initState();
+    print('🔍 LoginScreen initialized');
+    print('🔍 Firebase Auth instance: ${FirebaseAuth.instance}');
+    print('🔍 Current user: ${FirebaseAuth.instance.currentUser}');
+  }
 
   @override
   void dispose() {
@@ -29,17 +41,48 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLogin() {
+    print('🔍 Login attempt started');
+    print('🔍 Email: ${_emailController.text.trim()}');
+    print('🔍 Password length: ${_passwordController.text.length}');
+
+    // Clear any existing errors before attempting login
+    setState(() {
+      _errorMessage = null;
+      _emailError = null;
+      _passwordError = null;
+    });
+
     if (_formKey.currentState!.validate()) {
+      print('🔍 Form validation passed, proceeding with login');
       setState(() {
         _isLoading = true;
       });
+
+      print('🔍 Dispatching SignInRequested event');
       context.read<AuthBloc>().add(
             SignInRequested(
               email: _emailController.text.trim(),
               password: _passwordController.text,
             ),
           );
+    } else {
+      print('🔍 Form validation failed');
     }
+  }
+
+  // Method to clear all errors
+  void _clearErrors() {
+    setState(() {
+      _errorMessage = null;
+      _emailError = null;
+      _passwordError = null;
+    });
+  }
+
+  // Method to reset form and clear errors
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    _clearErrors();
   }
 
   void _handleForgotPassword() {
@@ -150,22 +193,55 @@ class _LoginScreenState extends State<LoginScreen> {
                               horizontal: 32, vertical: 32),
                           child: BlocListener<AuthBloc, AuthState>(
                             listener: (context, state) {
+                              print(
+                                  '🔍 BlocListener triggered with state: ${state.runtimeType}');
+
                               if (state is AuthError) {
+                                print(
+                                    '🔍 AuthError received: ${state.message}');
                                 setState(() {
                                   _isLoading = false;
-                                  _errorMessage =
-                                      state.message; // Store error message
+                                  _errorMessage = state
+                                      .message; // Store general error message
+
+                                  // Parse error message to set field-specific errors
+                                  final message = state.message.toLowerCase();
+                                  print('🔍 Parsing error message: $message');
+
+                                  if (message.contains('email') ||
+                                      message.contains('user-not-found') ||
+                                      message.contains('invalid-email')) {
+                                    print('🔍 Setting email error');
+                                    _emailError = state.message;
+                                    _passwordError = null;
+                                  } else if (message.contains('password') ||
+                                      message.contains('wrong-password')) {
+                                    print('🔍 Setting password error');
+                                    _passwordError = state.message;
+                                    _emailError = null;
+                                  } else {
+                                    // General error, clear field-specific errors
+                                    print('🔍 Setting general error');
+                                    _emailError = null;
+                                    _passwordError = null;
+                                  }
                                 });
+
+                                // Show snackbar for immediate feedback
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(state.message),
                                     backgroundColor: Colors.red,
+                                    duration: const Duration(seconds: 4),
                                   ),
                                 );
                               } else if (state is Authenticated) {
+                                print('🔍 Authenticated state received');
                                 setState(() {
                                   _isLoading = false;
-                                  _errorMessage = null; // Clear error
+                                  _errorMessage = null; // Clear general error
+                                  _emailError = null; // Clear email error
+                                  _passwordError = null; // Clear password error
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -180,10 +256,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                       builder: (context) => const HomeScreen()),
                                 );
                               } else if (state is Unauthenticated) {
+                                print('🔍 Unauthenticated state received');
                                 setState(() {
                                   _isLoading = false;
-                                  _errorMessage = null; // Clear error
+                                  _errorMessage = null; // Clear general error
+                                  _emailError = null; // Clear email error
+                                  _passwordError = null; // Clear password error
                                 });
+                              } else if (state is AuthLoading) {
+                                print('🔍 AuthLoading state received');
+                              } else {
+                                print(
+                                    '🔍 Unknown state received: ${state.runtimeType}');
                               }
                             },
                             child: Form(
@@ -203,6 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
+
                                   // Logo and dot
                                   Row(
                                     crossAxisAlignment:
@@ -270,7 +355,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                     keyboardType: TextInputType.emailAddress,
+                                    onChanged: (value) {
+                                      print('🔍 Email changed: $value');
+                                      // Clear email error when user starts typing
+                                      if (_emailError != null) {
+                                        setState(() {
+                                          _emailError = null;
+                                        });
+                                      }
+                                    },
+                                    onTap: () {
+                                      print('🔍 Email field tapped');
+                                      // Clear email error when field is tapped
+                                      if (_emailError != null) {
+                                        setState(() {
+                                          _emailError = null;
+                                        });
+                                      }
+                                    },
                                     validator: (value) {
+                                      print('🔍 Validating email: $value');
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter your email';
                                       }
@@ -282,11 +386,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                       return null;
                                     },
                                   ),
+                                  // Display email error if exists
+                                  if (_emailError != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        _emailError!,
+                                        style: KStyle.labelSmRegularTextStyle
+                                            .copyWith(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
                                   const SizedBox(height: 18),
                                   PasswordField(
                                     controller: _passwordController,
                                     hintText: 'Password',
+                                    onChanged: (value) {
+                                      print(
+                                          '🔍 Password changed: ${value.length} characters');
+                                      // Clear password error when user starts typing
+                                      if (_passwordError != null) {
+                                        setState(() {
+                                          _passwordError = null;
+                                        });
+                                      }
+                                    },
+                                    onTap: () {
+                                      print('🔍 Password field tapped');
+                                      // Clear password error when field is tapped
+                                      if (_passwordError != null) {
+                                        setState(() {
+                                          _passwordError = null;
+                                        });
+                                      }
+                                    },
                                     validator: (value) {
+                                      print(
+                                          '🔍 Validating password: ${value?.length ?? 0} characters');
                                       if (value == null || value.isEmpty) {
                                         return 'Please enter your password';
                                       }
@@ -296,6 +434,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                       return null;
                                     },
                                   ),
+                                  // Display password error if exists
+                                  if (_passwordError != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        _passwordError!,
+                                        style: KStyle.labelSmRegularTextStyle
+                                            .copyWith(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
                                   const SizedBox(height: 18),
                                   Row(
                                     mainAxisAlignment:
@@ -492,6 +643,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               keyboardType: TextInputType.emailAddress,
+                              onChanged: (value) {
+                                // Clear email error when user starts typing
+                                if (_emailError != null) {
+                                  setState(() {
+                                    _emailError = null;
+                                  });
+                                }
+                              },
+                              onTap: () {
+                                // Clear email error when field is tapped
+                                if (_emailError != null) {
+                                  setState(() {
+                                    _emailError = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your email';
@@ -503,10 +670,39 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
+                            // Display email error if exists
+                            if (_emailError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _emailError!,
+                                  style:
+                                      KStyle.labelSmRegularTextStyle.copyWith(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             const SizedBox(height: 18),
                             PasswordField(
                               controller: _passwordController,
                               hintText: 'Password',
+                              onChanged: (value) {
+                                // Clear password error when user starts typing
+                                if (_passwordError != null) {
+                                  setState(() {
+                                    _passwordError = null;
+                                  });
+                                }
+                              },
+                              onTap: () {
+                                // Clear password error when field is tapped
+                                if (_passwordError != null) {
+                                  setState(() {
+                                    _passwordError = null;
+                                  });
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
@@ -517,6 +713,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
+                            // Display password error if exists
+                            if (_passwordError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _passwordError!,
+                                  style:
+                                      KStyle.labelSmRegularTextStyle.copyWith(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             const SizedBox(height: 18),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -555,6 +764,53 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                             const SizedBox(height: 32),
+                            // Test button for debugging (remove in production)
+                            if (kDebugMode)
+                              Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              _emailError =
+                                                  'Test email error message';
+                                              _passwordError = null;
+                                              _errorMessage = null;
+                                            });
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.orange,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: const Text('Test Email Error'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              _passwordError =
+                                                  'Test password error message';
+                                              _emailError = null;
+                                              _errorMessage = null;
+                                            });
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.orange,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child:
+                                              const Text('Test Password Error'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
                             SizedBox(
                               width: double.infinity,
                               height: 48,

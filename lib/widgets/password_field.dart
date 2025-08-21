@@ -6,6 +6,8 @@ class PasswordField extends StatefulWidget {
   final String hintText;
   final String? Function(String?)? validator;
   final bool enabled;
+  final Function(String)? onChanged; // Add onChanged parameter
+  final VoidCallback? onTap; // Add onTap parameter
 
   const PasswordField({
     super.key,
@@ -13,6 +15,8 @@ class PasswordField extends StatefulWidget {
     required this.hintText,
     this.validator,
     this.enabled = true,
+    this.onChanged, // Add onChanged parameter
+    this.onTap, // Add onTap parameter
   });
 
   @override
@@ -28,6 +32,8 @@ class _PasswordFieldState extends State<PasswordField> {
       controller: widget.controller,
       obscureText: _obscureText,
       enabled: widget.enabled,
+      onChanged: widget.onChanged, // Add onChanged callback
+      onTap: widget.onTap, // Add onTap callback
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
