@@ -45,6 +45,140 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     super.dispose();
   }
 
+  // Responsive breakpoints
+  static const double mobileBreakpoint = 600;
+  static const double tabletBreakpoint = 900;
+  static const double desktopBreakpoint = 1200;
+
+  // Get screen size category
+  String _getScreenSize(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < mobileBreakpoint) return 'mobile';
+    if (width < tabletBreakpoint) return 'tablet';
+    if (width < desktopBreakpoint) return 'desktop';
+    return 'large';
+  }
+
+  // Get responsive container width
+  double _getContainerWidth(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    switch (screenSize) {
+      case 'mobile':
+        return screenWidth * 0.95; // 95% of screen width
+      case 'tablet':
+        return screenWidth * 0.85; // 85% of screen width
+      case 'desktop':
+        return 700; // Fixed width for desktop
+      case 'large':
+        return 800; // Fixed width for large screens
+      default:
+        return 700;
+    }
+  }
+
+  // Get responsive padding
+  EdgeInsets _getResponsivePadding(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+
+    switch (screenSize) {
+      case 'mobile':
+        return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+      case 'tablet':
+        return const EdgeInsets.symmetric(horizontal: 24, vertical: 24);
+      case 'desktop':
+      case 'large':
+        return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+      default:
+        return const EdgeInsets.symmetric(horizontal: 24, vertical: 24);
+    }
+  }
+
+  // Get responsive spacing
+  double _getResponsiveSpacing(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+
+    switch (screenSize) {
+      case 'mobile':
+        return 16;
+      case 'tablet':
+        return 20;
+      case 'desktop':
+      case 'large':
+        return 24;
+      default:
+        return 20;
+    }
+  }
+
+  // Get responsive font size
+  double _getResponsiveFontSize(BuildContext context, double baseSize) {
+    final screenSize = _getScreenSize(context);
+
+    switch (screenSize) {
+      case 'mobile':
+        return baseSize * 0.9;
+      case 'tablet':
+        return baseSize * 0.95;
+      case 'desktop':
+      case 'large':
+        return baseSize;
+      default:
+        return baseSize;
+    }
+  }
+
+  // Get responsive button height
+  double _getResponsiveButtonHeight(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+
+    switch (screenSize) {
+      case 'mobile':
+        return 56; // Larger touch target for mobile
+      case 'tablet':
+        return 52;
+      case 'desktop':
+      case 'large':
+        return 48;
+      default:
+        return 48;
+    }
+  }
+
+  // Get responsive icon size
+  double _getResponsiveIconSize(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+
+    switch (screenSize) {
+      case 'mobile':
+        return 28;
+      case 'tablet':
+        return 24;
+      case 'desktop':
+      case 'large':
+        return 20;
+      default:
+        return 20;
+    }
+  }
+
+  // Check if device is mobile
+  bool _isMobile(BuildContext context) {
+    return _getScreenSize(context) == 'mobile';
+  }
+
+  // Check if device is tablet
+  bool _isTablet(BuildContext context) {
+    return _getScreenSize(context) == 'tablet';
+  }
+
+  // Check if device is desktop or larger
+  bool _isDesktop(BuildContext context) {
+    final screenSize = _getScreenSize(context);
+    return screenSize == 'desktop' || screenSize == 'large';
+  }
+
   Future<void> _loadForm() async {
     try {
       print('🔍 Loading form with ID: ${widget.formId}');
@@ -606,15 +740,16 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
           decoration: BoxDecoration(
             color: KStyle.cWhiteColor,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 32),
+          padding: _getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (_showSuccessCard)
                 Center(
                   child: Container(
-                    width: 500,
-                    margin: const EdgeInsets.only(bottom: 12),
+                    width: _getContainerWidth(context),
+                    margin:
+                        EdgeInsets.only(bottom: _getResponsiveSpacing(context)),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -643,8 +778,8 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                         const SizedBox(height: 12),
                         // Checkmark in colored circle
                         Container(
-                          width: 64,
-                          height: 64,
+                          width: _getScreenSize(context) == 'mobile' ? 80 : 64,
+                          height: _getScreenSize(context) == 'mobile' ? 80 : 64,
                           decoration: BoxDecoration(
                             color: KStyle.cSelectedColor,
                             shape: BoxShape.circle,
@@ -670,7 +805,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                           style: KStyle.heading2TextStyle.copyWith(
                             color: KStyle.c3BGreyColor,
                             fontWeight: FontWeight.w600,
-                            fontSize: 20,
+                            fontSize: _getResponsiveFontSize(context, 20),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -692,11 +827,11 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                               : 'Form Description is the description of the form to describe more about the form.',
                           style: KStyle.labelTextStyle.copyWith(
                             color: KStyle.c3BGreyColor,
-                            fontSize: 14,
+                            fontSize: _getResponsiveFontSize(context, 14),
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: _getResponsiveSpacing(context)),
                         // Optionally, add a button to submit another response
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -704,7 +839,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             Text(
                               'form',
                               style: KStyle.labelTextStyle.copyWith(
-                                  color: KStyle.cBlackColor, fontSize: 20),
+                                  color: KStyle.cBlackColor,
+                                  fontSize:
+                                      _getResponsiveFontSize(context, 20)),
                             ),
                             const SizedBox(width: 8),
                             Container(
@@ -718,7 +855,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(width: 32),
+                        SizedBox(width: _getResponsiveSpacing(context)),
                       ],
                     ),
                   ),
@@ -726,8 +863,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               else ...[
                 Center(
                   child: Container(
-                    width: 700,
-                    margin: const EdgeInsets.only(bottom: 24),
+                    width: _getContainerWidth(context),
+                    margin:
+                        EdgeInsets.only(bottom: _getResponsiveSpacing(context)),
                     child: FormHeader(
                       title: form!.title,
                       description: form!.description,
@@ -828,7 +966,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                                 _emailError!,
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
                                   color: Colors.red,
-                                  fontSize: 12,
+                                  fontSize: _getResponsiveFontSize(context, 12),
                                 ),
                               ),
                             ),
@@ -839,7 +977,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                 ),
                 Center(
                   child: Container(
-                    width: 700,
+                    width: _getContainerWidth(context),
                     child: Column(
                       children: [
                         if (form!.fields.isNotEmpty) ...[
@@ -879,45 +1017,106 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 160,
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: _isSubmitting ? null : _submitForm,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isSubmitting
-                                      ? KStyle.cE3GreyColor
-                                      : KStyle.cPrimaryColor,
-                                  foregroundColor: KStyle.cWhiteColor,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                        SizedBox(height: _getResponsiveSpacing(context)),
+                        _getScreenSize(context) == 'mobile'
+                            ? Column(
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: _getResponsiveButtonHeight(context),
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          _isSubmitting ? null : _submitForm,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: _isSubmitting
+                                            ? KStyle.cE3GreyColor
+                                            : KStyle.cPrimaryColor,
+                                        foregroundColor: KStyle.cWhiteColor,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Text(
+                                        _isSubmitting
+                                            ? 'Submitting...'
+                                            : 'Submit',
+                                        style: KStyle.labelMdBoldTextStyle
+                                            .copyWith(
+                                          color: KStyle.cWhiteColor,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Submit',
-                                  style: KStyle.labelMdBoldTextStyle.copyWith(
-                                    color: KStyle.cWhiteColor,
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: _getResponsiveButtonHeight(context),
+                                    child: TextButton(
+                                      onPressed: _clearForm,
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          side: BorderSide(
+                                              color: KStyle.cPrimaryColor),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Clear form',
+                                        style: KStyle.labelMdRegularTextStyle
+                                            .copyWith(
+                                          color: KStyle.cPrimaryColor,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  SizedBox(
+                                    width: 160,
+                                    height: _getResponsiveButtonHeight(context),
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          _isSubmitting ? null : _submitForm,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: _isSubmitting
+                                            ? KStyle.cE3GreyColor
+                                            : KStyle.cPrimaryColor,
+                                        foregroundColor: KStyle.cWhiteColor,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Text(
+                                        'Submit',
+                                        style: KStyle.labelMdBoldTextStyle
+                                            .copyWith(
+                                          color: KStyle.cWhiteColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  TextButton(
+                                    onPressed: _clearForm,
+                                    child: Text(
+                                      'Clear form',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cPrimaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: _clearForm,
-                              child: Text(
-                                'Clear form',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cPrimaryColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 100),
+                        SizedBox(height: _getResponsiveSpacing(context)),
                       ],
                     ),
                   ),
@@ -933,8 +1132,8 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   Widget _buildFormField(form_model.FormField field) {
     return Center(
       child: Container(
-        width: 700,
-        margin: const EdgeInsets.only(bottom: 24),
+        width: _getContainerWidth(context),
+        margin: EdgeInsets.only(bottom: _getResponsiveSpacing(context)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -947,7 +1146,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          padding: _getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1007,8 +1206,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                         width: 2,
                       ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: _isMobile(context) ? 20 : 16,
+                        vertical: _isMobile(context) ? 16 : 12),
                     hintStyle: KStyle.labelMdRegularTextStyle.copyWith(
                       color: KStyle.c72GreyColor,
                     ),
@@ -1039,7 +1239,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     switch (field.type) {
       case 'text':
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+              horizontal: _isMobile(context) ? 20 : 16,
+              vertical: _isMobile(context) ? 16 : 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -1070,7 +1272,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
 
       case 'number':
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+              horizontal: _isMobile(context) ? 20 : 16,
+              vertical: _isMobile(context) ? 16 : 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -1113,7 +1317,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               '${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.year}';
         }
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+              horizontal: _isMobile(context) ? 20 : 16,
+              vertical: _isMobile(context) ? 16 : 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -1176,27 +1382,60 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               ...field.options!
                   .map((option) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            Radio<String>(
-                              value: option,
-                              groupValue: _responses[field.id],
-                              onChanged: (value) {
-                                setState(() {
-                                  _responses[field.id] = value;
-                                });
-                              },
-                              activeColor: KStyle.cPrimaryColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              option,
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: KStyle.cBlackColor,
+                        child: _isMobile(context)
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Radio<String>(
+                                        value: option,
+                                        groupValue: _responses[field.id],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _responses[field.id] = value;
+                                          });
+                                        },
+                                        activeColor: KStyle.cPrimaryColor,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          option,
+                                          style: KStyle.labelMdRegularTextStyle
+                                              .copyWith(
+                                            color: KStyle.cBlackColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_isMobile(context))
+                                    const SizedBox(height: 8),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Radio<String>(
+                                    value: option,
+                                    groupValue: _responses[field.id],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _responses[field.id] = value;
+                                      });
+                                    },
+                                    activeColor: KStyle.cPrimaryColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    option,
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
                       ))
                   .toList(),
               // Add validation message for required fields
@@ -1207,7 +1446,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                     'Please select an option',
                     style: KStyle.labelMdRegularTextStyle.copyWith(
                       color: Colors.red,
-                      fontSize: 12,
+                      fontSize: _getResponsiveFontSize(context, 12),
                     ),
                   ),
                 ),
@@ -1224,36 +1463,90 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
               ...field.options!
                   .map((option) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            Checkbox(
-                              value: _responses[field.id]?.contains(option) ??
-                                  false,
-                              onChanged: (value) {
-                                setState(() {
-                                  if (value!) {
-                                    _responses[field.id] = List<String>.from(
-                                        _responses[field.id] ?? <String>[]);
-                                    _responses[field.id]!.add(option);
-                                  } else {
-                                    _responses[field.id] = List<String>.from(
-                                            _responses[field.id] ?? <String>[])
-                                        .where((item) => item != option)
-                                        .toList();
-                                  }
-                                });
-                              },
-                              activeColor: KStyle.cPrimaryColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              option,
-                              style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: KStyle.cBlackColor,
+                        child: _isMobile(context)
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: _responses[field.id]
+                                                ?.contains(option) ??
+                                            false,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            if (value!) {
+                                              _responses[field.id] =
+                                                  List<String>.from(
+                                                      _responses[field.id] ??
+                                                          <String>[]);
+                                              _responses[field.id]!.add(option);
+                                            } else {
+                                              _responses[
+                                                  field.id] = List<String>.from(
+                                                      _responses[field.id] ??
+                                                          <String>[])
+                                                  .where(
+                                                      (item) => item != option)
+                                                  .toList();
+                                            }
+                                          });
+                                        },
+                                        activeColor: KStyle.cPrimaryColor,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          option,
+                                          style: KStyle.labelMdRegularTextStyle
+                                              .copyWith(
+                                            color: KStyle.cBlackColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_isMobile(context))
+                                    const SizedBox(height: 8),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Checkbox(
+                                    value: _responses[field.id]
+                                            ?.contains(option) ??
+                                        false,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        if (value!) {
+                                          _responses[field.id] =
+                                              List<String>.from(
+                                                  _responses[field.id] ??
+                                                      <String>[]);
+                                          _responses[field.id]!.add(option);
+                                        } else {
+                                          _responses[field.id] =
+                                              List<String>.from(
+                                                      _responses[field.id] ??
+                                                          <String>[])
+                                                  .where(
+                                                      (item) => item != option)
+                                                  .toList();
+                                        }
+                                      });
+                                    },
+                                    activeColor: KStyle.cPrimaryColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    option,
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
                       ))
                   .toList(),
               // Add validation message for required fields
@@ -1267,7 +1560,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                     'Please select at least one option',
                     style: KStyle.labelMdRegularTextStyle.copyWith(
                       color: Colors.red,
-                      fontSize: 12,
+                      fontSize: _getResponsiveFontSize(context, 12),
                     ),
                   ),
                 ),
@@ -1282,8 +1575,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                    horizontal: _isMobile(context) ? 20 : 16,
+                    vertical: _isMobile(context) ? 16 : 12),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
@@ -1334,7 +1628,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                     'Please select an option',
                     style: KStyle.labelMdRegularTextStyle.copyWith(
                       color: Colors.red,
-                      fontSize: 12,
+                      fontSize: _getResponsiveFontSize(context, 12),
                     ),
                   ),
                 ),
@@ -1348,7 +1642,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(_isMobile(context) ? 20 : 16),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: KStyle.cE3GreyColor,
@@ -1381,7 +1675,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                   'Please upload a file',
                   style: KStyle.labelMdRegularTextStyle.copyWith(
                     color: Colors.red,
-                    fontSize: 12,
+                    fontSize: _getResponsiveFontSize(context, 12),
                   ),
                 ),
               ),
@@ -1391,7 +1685,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       default:
         // Default fallback for unknown field types
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(
+              horizontal: _isMobile(context) ? 20 : 16,
+              vertical: _isMobile(context) ? 16 : 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(

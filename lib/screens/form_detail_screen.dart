@@ -1123,64 +1123,83 @@ class _FormDetailScreenState extends State<FormDetailScreen>
   }
 
   Widget _buildSubmissionRow(SubmissionModel submission) {
-    return InkWell(
-      onTap: () => _showSubmissionDetails(submission),
+    final isSelected = selectedSubmissions.contains(submission);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? KStyle.cSelectedColor.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
               width: 24,
-              child: Checkbox(
-                value: selectedSubmissions.contains(submission),
-                onChanged: (value) {
-                  setState(() {
-                    if (value == true) {
-                      selectedSubmissions.add(submission);
-                    } else {
-                      selectedSubmissions.remove(submission);
-                    }
-                  });
-                },
-                activeColor: KStyle.cPrimaryColor,
+              child: Tooltip(
+                message:
+                    isSelected ? 'Deselect submission' : 'Select submission',
+                child: Checkbox(
+                  value: isSelected,
+                  onChanged: (value) {
+                    print(
+                        '🔍 Checkbox clicked for submission: ${submission.id}');
+                    print('🔍 Current value: $value');
+                    print(
+                        '🔍 Current selectedSubmissions count: ${selectedSubmissions.length}');
+                    print(
+                        '🔍 Submission already selected: ${selectedSubmissions.contains(submission)}');
+
+                    setState(() {
+                      if (value == true) {
+                        selectedSubmissions.add(submission);
+                        print('🔍 Added submission to selection');
+                      } else {
+                        selectedSubmissions.remove(submission);
+                        print('🔍 Removed submission from selection');
+                      }
+                    });
+
+                    print(
+                        '🔍 New selectedSubmissions count: ${selectedSubmissions.length}');
+                  },
+                  activeColor: KStyle.cPrimaryColor,
+                ),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text(
-                  //   submission.submitterName,
-                  //   style: KStyle.labelMdBoldTextStyle.copyWith(
-                  //     color: KStyle.cBlackColor,
-                  //   ),
-                  // ),
-                  // Text(
-                  //   submission.submitterEmail,
-                  //   style: KStyle.labelSmRegularTextStyle.copyWith(
-                  //     color: KStyle.c72GreyColor,
-                  //   ),
-                  // ),
-                  Text(
-                    _formatDate(submission.createdAt),
-                    style: KStyle.labelTextStyle.copyWith(
-                      color: KStyle.c3BGreyColor,
+              child: InkWell(
+                onTap: () => _showSubmissionDetails(submission),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatDate(submission.createdAt),
+                      style: KStyle.labelTextStyle.copyWith(
+                        color: KStyle.c3BGreyColor,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Expanded(
               flex: 5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStatusChip(
-                      _form!.requiresApproval ? submission.status : '-'),
-                ],
+              child: InkWell(
+                onTap: () => _showSubmissionDetails(submission),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatusChip(
+                        _form!.requiresApproval ? submission.status : '-'),
+                  ],
+                ),
               ),
             ),
             Row(
