@@ -26,10 +26,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Container(
             width: 280,
             decoration: BoxDecoration(
-              color: KStyle.cPrimaryColor,
+              color: KStyle.cWhiteColor,
               border: Border(
                 right: BorderSide(
-                  color: KStyle.cE3GreyColor,
+                  color: KStyle.cE3GreyColor.withOpacity(0.3),
                   width: 1,
                 ),
               ),
@@ -46,7 +46,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Text(
                         'form',
                         style: KStyle.heading2TextStyle.copyWith(
-                          color: KStyle.cWhiteColor,
+                          color: KStyle.cBlackColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -56,7 +56,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: KStyle.cWhiteColor,
+                          color: KStyle.cPrimaryColor,
                           borderRadius: BorderRadius.circular(50),
                         ),
                       ),
@@ -124,7 +124,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: KStyle.cWhiteColor,
+                        color: KStyle.cE3GreyColor.withOpacity(0.3),
                         width: 1,
                       ),
                     ),
@@ -139,12 +139,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
+                            color: KStyle.cPrimaryColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Image.asset(
-                            'assets/images/profile.png',
-                            fit: BoxFit.cover,
+                          child: Icon(
+                            Icons.person,
+                            color: KStyle.cWhiteColor,
+                            size: 20,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -153,16 +154,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'User Profile',
+                                'Thomas Willy',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
+                                  color: KStyle.cBlackColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 'View Profile',
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
+                                  color: KStyle.c72GreyColor,
                                 ),
                               ),
                             ],
@@ -170,7 +171,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         Icon(
                           Icons.keyboard_arrow_down,
-                          color: KStyle.cWhiteColor,
+                          color: KStyle.c72GreyColor,
                           size: 20,
                         ),
                       ],
@@ -201,12 +202,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         horizontal: 24, vertical: 16),
                     decoration: BoxDecoration(
                       color: KStyle.cWhiteColor,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: KStyle.cE3GreyColor.withOpacity(0.5),
-                          width: 1,
-                        ),
-                      ),
+                      // border: Border(
+                      //   bottom: BorderSide(
+                      //     color: KStyle.cE3GreyColor.withOpacity(0.5),
+                      //     width: 1,
+                      //   ),
+                      // ),
                     ),
                     child: Row(
                       children: [
@@ -331,7 +332,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             if (notifications.any((n) => !n.isRead))
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 16),
                                 decoration: BoxDecoration(
                                   color: KStyle.cWhiteColor,
                                   border: Border(
@@ -358,10 +360,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       onPressed:
                                           _isLoading ? null : _markAllAsRead,
                                       style: TextButton.styleFrom(
+                                        backgroundColor: KStyle.cSelectedColor,
                                         foregroundColor: KStyle.cPrimaryColor,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 8,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                       child: _isLoading
@@ -374,7 +381,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                               ),
                                             )
                                           : Text(
-                                              'Mark all as read',
+                                              'Clear Notifications',
                                               style: KStyle
                                                   .labelMdRegularTextStyle
                                                   .copyWith(
@@ -390,7 +397,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             // Notifications list
                             Expanded(
                               child: ListView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(24),
                                 itemCount: notifications.length,
                                 itemBuilder: (context, index) {
                                   final notification = notifications[index];
@@ -436,7 +443,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? KStyle.cWhiteColor : Colors.transparent,
+          color: isSelected ? KStyle.cSelectedColor : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -447,23 +454,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
+                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cBlackColor,
                 ),
                 if (notificationCount != null)
                   Positioned(
                     right: -6,
                     top: -6,
-                    child: CircleAvatar(
-                      radius: 8,
-                      backgroundColor: KStyle.cNotiColor,
-                      child: Center(
-                        child: Text(
-                          notificationCount.toString(),
-                          style: KStyle.labelXsRegularTextStyle.copyWith(
-                            color: KStyle.cWhiteColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 10,
-                          ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: KStyle.cDBRedColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        notificationCount.toString(),
+                        style: KStyle.labelXsRegularTextStyle.copyWith(
+                          color: KStyle.cWhiteColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
                         ),
                       ),
                     ),
@@ -474,7 +483,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             Text(
               title,
               style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
+                color: isSelected ? KStyle.cPrimaryColor : KStyle.cBlackColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
