@@ -22,87 +22,101 @@ class FormHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    return Stack(
+      children: [
+        // Main container with shadow
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-        border: Border(
-          left: BorderSide(
-            color: KStyle.cPrimaryColor,
-            width: 6,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title Row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title.isNotEmpty ? title : 'Untitled',
+                      style: KStyle.headingTextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (showEditIcon && onEditTitle != null)
+                    IconButton(
+                      onPressed: onEditTitle,
+                      icon: SvgPicture.asset(
+                        'assets/icons/edit.svg',
+                        width: 17,
+                        height: 17,
+                      ),
+                      tooltip: 'Edit title',
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Description Row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      description.isNotEmpty ? description : 'Form Description',
+                      style: KStyle.labelSmTextStyle.copyWith(
+                        color: KStyle.c89GreyColor,
+                      ),
+                    ),
+                  ),
+                  if (showEditIcon && onEditDescription != null)
+                    IconButton(
+                      onPressed: onEditDescription,
+                      icon: SvgPicture.asset(
+                        'assets/icons/edit.svg',
+                        width: 15,
+                        height: 15,
+                      ),
+                      tooltip: 'Edit description',
+                    ),
+                ],
+              ),
+              if (child != null) ...[
+                const SizedBox(height: 20),
+                child!,
+              ],
+            ],
           ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  title.isNotEmpty ? title : 'Untitled',
-                  style: KStyle.headingTextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+        // Left border overlay
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: Container(
+            width: 6,
+            decoration: BoxDecoration(
+              color: KStyle.cPrimaryColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
               ),
-              if (showEditIcon && onEditTitle != null)
-                IconButton(
-                  onPressed: onEditTitle,
-                  icon: SvgPicture.asset(
-                    'assets/icons/edit.svg',
-                    width: 17,
-                    height: 17,
-                  ),
-                  tooltip: 'Edit title',
-                ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
-          // Description Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  description.isNotEmpty ? description : 'Form Description',
-                  style: KStyle.labelSmTextStyle.copyWith(
-                    color: KStyle.c89GreyColor,
-                  ),
-                ),
-              ),
-              if (showEditIcon && onEditDescription != null)
-                IconButton(
-                  onPressed: onEditDescription,
-                  icon: SvgPicture.asset(
-                    'assets/icons/edit.svg',
-                    width: 15,
-                    height: 15,
-                  ),
-                  tooltip: 'Edit description',
-                ),
-            ],
-          ),
-          if (child != null) ...[
-            const SizedBox(height: 20),
-            child!,
-          ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
