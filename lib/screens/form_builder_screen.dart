@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/form_model.dart' as form_model;
 import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/screens/form_preview_screen.dart';
 import 'package:formflow/widgets/question_type_dialog.dart';
 import 'package:formflow/widgets/question_card.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FormBuilderScreen extends StatefulWidget {
   final form_model.FormModel? form; // If null, create new form
@@ -105,11 +108,15 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
           print('⚠️ Warning: Current user has no email address!');
           // Try to get email from user profile or show warning
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
                   'Warning: Your account has no email address. Form notifications may not work.'),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           );
         }
@@ -223,7 +230,15 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
       _isNewFormSession = false;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form published successfully!')),
+        SnackBar(
+          content: Text(
+            'Form published successfully!',
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       );
     } catch (e) {
       String errorMessage = 'Error publishing form';
@@ -409,6 +424,330 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     );
   }
 
+  // Method to reset form and clear errors
+  void _resetForm() {
+    // _formKey.currentState?.reset(); // This line was not in the original file, so it's removed.
+    // _clearErrors(); // This line was not in the original file, so it's removed.
+  }
+
+  // Show copy link dialog
+  void _showCopyLinkDialog() {
+    if (_form.shareLink == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Form must be published first to get a share link'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.link,
+              color: KStyle.cPrimaryColor,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Share Form',
+              style: KStyle.heading3TextStyle.copyWith(
+                color: KStyle.cBlackColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Copy this link to share your form:',
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: KStyle.cBgColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: KStyle.cE3GreyColor),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _form.shareLink!,
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                        fontFamily: 'monospace',
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _form.shareLink!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Link copied to clipboard!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.copy,
+                      color: KStyle.cPrimaryColor,
+                      size: 20,
+                    ),
+                    tooltip: 'Copy link',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: _form.shareLink!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Link copied to clipboard!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KStyle.cSelectedColor,
+                      foregroundColor: KStyle.cPrimaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: Icon(
+                      Icons.copy,
+                      color: KStyle.cPrimaryColor,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Copy Link',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.cPrimaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final url = Uri.parse(_form.shareLink!);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url,
+                            mode: LaunchMode.externalApplication);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Could not open link'),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KStyle.cPrimaryColor,
+                      foregroundColor: KStyle.cWhiteColor,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: Icon(
+                      Icons.open_in_new,
+                      color: KStyle.cWhiteColor,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Open Form',
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.cWhiteColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue[700],
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Anyone with this link can view and submit your form.',
+                      style: KStyle.labelSmRegularTextStyle.copyWith(
+                        color: Colors.blue[700],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Close',
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.c72GreyColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // View form in FormPreviewScreen
+  void _viewForm() {
+    if (_form.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Form must be saved first to preview'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (_form.fields.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Add some questions to preview the form'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (_form.status == 'draft') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Previewing draft form'),
+          backgroundColor: Colors.blue,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    } else if (_form.status == 'closed') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Previewing closed form'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+
+    // Navigate to FormPreviewScreen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FormPreviewScreen(
+          form: _form,
+        ),
+      ),
+    );
+  }
+
+  // Quick copy link to clipboard
+  void _quickCopyLink() {
+    if (_form.shareLink == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Form must be published first to get a share link'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Clipboard.setData(ClipboardData(text: _form.shareLink!));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.check_circle,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Link copied to clipboard!',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -567,9 +906,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                           ),
                           const SizedBox(width: 12),
                           IconButton(
-                            onPressed: () {
-                              // TODO: Implement preview
-                            },
+                            onPressed: _viewForm,
                             icon: Container(
                               width: 24,
                               height: 24,
@@ -579,73 +916,54 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                                 height: 17,
                               ),
                             ),
+                            tooltip: 'Preview form',
                           ),
                           const SizedBox(width: 12),
-                          IconButton(
-                            onPressed: _canShare
-                                ? () {
-                                    if (_form.shareLink != null) {
-                                      // Copy to clipboard
-                                      // TODO: Implement clipboard functionality
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Link copied: ${_form.shareLink}'),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                : null,
-                            icon: Container(
-                              width: 22,
-                              height: 22,
-                              child: SvgPicture.asset(
-                                'assets/icons/copy.svg',
-                                width: 17,
-                                height: 17,
+                          GestureDetector(
+                            onLongPress: _canShare ? _showCopyLinkDialog : null,
+                            child: IconButton(
+                              onPressed: _canShare ? _quickCopyLink : null,
+                              icon: Container(
+                                width: 22,
+                                height: 22,
+                                child: SvgPicture.asset(
+                                  'assets/icons/copy.svg',
+                                  width: 17,
+                                  height: 17,
+                                ),
                               ),
+                              tooltip:
+                                  'Tap to copy, long press for more options',
                             ),
                           ),
                           const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: _canShare
-                                ? () {
-                                    if (_form.shareLink != null) {
-                                      // Copy to clipboard
-                                      // TODO: Implement clipboard functionality
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Link copied: ${_form.shareLink}'),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _canShare
-                                  ? KStyle.cSelectedColor
-                                  : KStyle.cE3GreyColor,
-                              // foregroundColor: _canShare
-                              //     ? KStyle.cPrimaryColor
-                              //     : KStyle.cSelectedColor,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
+                          GestureDetector(
+                            onLongPress: _canShare ? _showCopyLinkDialog : null,
+                            child: ElevatedButton.icon(
+                              onPressed: _canShare ? _showCopyLinkDialog : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _canShare
+                                    ? KStyle.cSelectedColor
+                                    : KStyle.cE3GreyColor,
+                                // foregroundColor: _canShare
+                                //     ? KStyle.cPrimaryColor
+                                //     : KStyle.cSelectedColor,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            icon: const Icon(Icons.people, size: 16),
-                            label: Text(
-                              'Share',
-                              style: KStyle.labelSmRegularTextStyle.copyWith(
-                                color: _canShare
-                                    ? KStyle.cPrimaryColor
-                                    : KStyle.cWhiteColor,
+                              icon: const Icon(Icons.people, size: 16),
+                              label: Text(
+                                'Share',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: _canShare
+                                      ? KStyle.cPrimaryColor
+                                      : KStyle.cWhiteColor,
+                                ),
                               ),
                             ),
                           ),

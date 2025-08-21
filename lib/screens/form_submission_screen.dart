@@ -254,6 +254,10 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         SnackBar(
           content: Text('Please fill all required fields'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
       return;
@@ -369,6 +373,10 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         SnackBar(
           content: Text('Error submitting form: $e'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }

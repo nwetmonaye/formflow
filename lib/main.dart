@@ -277,6 +277,10 @@ class FormFlowApp extends StatelessWidget {
                                   content: Text(
                                       'Test form created with ID: $formId'),
                                   backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               );
                             } catch (e) {
@@ -284,6 +288,10 @@ class FormFlowApp extends StatelessWidget {
                                 SnackBar(
                                   content: Text('Error creating test form: $e'),
                                   backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               );
                             }
