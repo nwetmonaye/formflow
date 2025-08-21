@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:formflow/constants/style.dart';
-import 'package:formflow/models/submission_model.dart';
+import 'package:formflow/models/notification_model.dart';
 import 'package:formflow/services/firebase_service.dart';
+import 'package:formflow/screens/home_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -11,95 +13,510 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  bool _isLoading = false;
+  int selectedNavItem = 2; // 0 = My Forms, 1 = Cohorts, 2 = Notifications
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: KStyle.cBgColor,
-      appBar: AppBar(
-        backgroundColor: KStyle.cWhiteColor,
-        elevation: 0,
-        title: Text(
-          'Notifications',
-          style: KStyle.heading3TextStyle.copyWith(
-            color: KStyle.cBlackColor,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: KStyle.cBlackColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: StreamBuilder<List<SubmissionModel>>(
-        stream: _getAllSubmissionsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error loading notifications: ${snapshot.error}',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: Colors.red,
+      body: Row(
+        children: [
+          // Left Sidebar
+          Container(
+            width: 280,
+            decoration: BoxDecoration(
+              color: KStyle.cPrimaryColor,
+              border: Border(
+                right: BorderSide(
+                  color: KStyle.cE3GreyColor,
+                  width: 1,
                 ),
               ),
-            );
-          }
-
-          final submissions = snapshot.data ?? [];
-          final pendingSubmissions =
-              submissions.where((s) => s.status == 'pending').toList();
-
-          if (pendingSubmissions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_none,
-                    size: 64,
-                    color: KStyle.c72GreyColor,
+            ),
+            child: Column(
+              children: [
+                // Logo
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'form',
+                        style: KStyle.heading2TextStyle.copyWith(
+                          color: KStyle.cWhiteColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: KStyle.cWhiteColor,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No new notifications',
-                    style: KStyle.heading3TextStyle.copyWith(
-                      color: KStyle.c72GreyColor,
+                ),
+
+                // Navigation Menu
+                Expanded(
+                  child: Column(
+                    children: [
+                      _buildNavItem(
+                        icon: Icons.description_outlined,
+                        title: 'My Forms',
+                        isSelected: selectedNavItem == 0,
+                        onTap: () {
+                          setState(() {
+                            selectedNavItem = 0;
+                          });
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildNavItem(
+                        icon: Icons.group_outlined,
+                        title: 'Cohorts',
+                        isSelected: selectedNavItem == 1,
+                        onTap: () {
+                          setState(() {
+                            selectedNavItem = 1;
+                          });
+                        },
+                      ),
+                      StreamBuilder<int>(
+                        stream:
+                            FirebaseService.getUnreadNotificationsCountStream(),
+                        builder: (context, snapshot) {
+                          final notificationCount = snapshot.data ?? 0;
+                          return _buildNavItem(
+                            icon: Icons.notifications_outlined,
+                            title: 'Notifications',
+                            isSelected: selectedNavItem == 2,
+                            notificationCount: notificationCount > 0
+                                ? notificationCount
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                selectedNavItem = 2;
+                              });
+                              // Already on notifications screen
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // User Profile
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: KStyle.cWhiteColor,
+                        width: 1,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'You\'re all caught up!',
-                    style: KStyle.labelMdRegularTextStyle.copyWith(
-                      color: KStyle.c72GreyColor,
+                  child: GestureDetector(
+                    onTap: () {
+                      _showUserMenu(context);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: KStyle.cWhiteColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Image.asset(
+                            'assets/images/profile.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'User Profile',
+                                style: KStyle.labelMdRegularTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'View Profile',
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: KStyle.cWhiteColor,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Main Content Area
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: KStyle.cBackgroundColor,
+                border: Border(
+                  right: BorderSide(
+                    color: KStyle.cE3GreyColor,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: KStyle.cWhiteColor,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: KStyle.cE3GreyColor.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Notifications',
+                            style: KStyle.heading3TextStyle.copyWith(
+                              color: KStyle.cBlackColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        StreamBuilder<int>(
+                          stream: FirebaseService
+                              .getUnreadNotificationsCountStream(),
+                          builder: (context, snapshot) {
+                            final unreadCount = snapshot.data ?? 0;
+                            if (unreadCount == 0)
+                              return const SizedBox.shrink();
+
+                            return Container(
+                              margin: const EdgeInsets.only(right: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: KStyle.cPrimaryColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                unreadCount.toString(),
+                                style: KStyle.labelXsRegularTextStyle.copyWith(
+                                  color: KStyle.cWhiteColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Notifications Content
+                  Expanded(
+                    child: StreamBuilder<List<NotificationModel>>(
+                      stream: FirebaseService.getNotificationsStream(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: KStyle.cPrimaryColor,
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: KStyle.cDBRedColor,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Error loading notifications',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please try again later',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final notifications = snapshot.data ?? [];
+
+                        if (notifications.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/no_form.png',
+                                  width: 120,
+                                  height: 120,
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'No notifications yet',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'You\'ll see notifications here when you receive them',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            // Header with mark all as read button
+                            if (notifications.any((n) => !n.isRead))
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: KStyle.cWhiteColor,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color:
+                                          KStyle.cE3GreyColor.withOpacity(0.5),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${notifications.where((n) => !n.isRead).length} unread notifications',
+                                        style: KStyle.labelMdRegularTextStyle
+                                            .copyWith(
+                                          color: KStyle.cBlackColor,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          _isLoading ? null : _markAllAsRead,
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: KStyle.cPrimaryColor,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                      child: _isLoading
+                                          ? SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: KStyle.cPrimaryColor,
+                                              ),
+                                            )
+                                          : Text(
+                                              'Mark all as read',
+                                              style: KStyle
+                                                  .labelMdRegularTextStyle
+                                                  .copyWith(
+                                                color: KStyle.cPrimaryColor,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            // Notifications list
+                            Expanded(
+                              child: ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: notifications.length,
+                                itemBuilder: (context, index) {
+                                  final notification = notifications[index];
+                                  return _buildNotificationCard(notification);
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: pendingSubmissions.length,
-            itemBuilder: (context, index) {
-              final submission = pendingSubmissions[index];
-              return _buildNotificationCard(submission);
-            },
-          );
-        },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createTestNotification,
+        backgroundColor: KStyle.cPrimaryColor,
+        foregroundColor: KStyle.cWhiteColor,
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildNotificationCard(SubmissionModel submission) {
+  // Navigation item builder
+  Widget _buildNavItem({
+    required IconData icon,
+    required String title,
+    required bool isSelected,
+    int? notificationCount,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: () {
+        print('Nav item tapped: $title'); // Debug print
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? KStyle.cWhiteColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
+                ),
+                if (notificationCount != null)
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: KStyle.cNotiColor,
+                      child: Center(
+                        child: Text(
+                          notificationCount.toString(),
+                          style: KStyle.labelXsRegularTextStyle.copyWith(
+                            color: KStyle.cWhiteColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // User menu
+  void _showUserMenu(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('User Menu'),
+          content: const Text('User menu options will be implemented here.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationCard(NotificationModel notification) {
+    final isUnread = !notification.isRead;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: KStyle.cWhiteColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: KStyle.cE3GreyColor),
+        border: Border.all(
+          color: isUnread
+              ? KStyle.cPrimaryColor.withOpacity(0.2)
+              : KStyle.cE3GreyColor.withOpacity(0.5),
+          width: isUnread ? 2 : 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -108,142 +525,401 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ],
       ),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: KStyle.cPrimaryColor.withOpacity(0.1),
-            shape: BoxShape.circle,
+      child: InkWell(
+        onTap: () => _onNotificationTap(notification),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Notification icon
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _getNotificationIconColor(notification.type)
+                      .withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _getNotificationIcon(notification.type),
+                  color: _getNotificationIconColor(notification.type),
+                  size: 24,
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // Notification content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title and time
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: KStyle.labelMdBoldTextStyle.copyWith(
+                              color: KStyle.cBlackColor,
+                              fontWeight:
+                                  isUnread ? FontWeight.w600 : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _formatTimeAgo(notification.createdAt),
+                          style: KStyle.labelSmRegularTextStyle.copyWith(
+                            color: KStyle.c72GreyColor,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Message
+                    Text(
+                      notification.message,
+                      style: KStyle.labelMdRegularTextStyle.copyWith(
+                        color: KStyle.c3BGreyColor,
+                        height: 1.4,
+                      ),
+                    ),
+
+                    // Additional details based on notification type
+                    if (notification.submitterName != null ||
+                        notification.submitterEmail != null)
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: KStyle.cBgColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (notification.submitterName != null) ...[
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline,
+                                    size: 16,
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'From: ${notification.submitterName}',
+                                    style:
+                                        KStyle.labelSmRegularTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (notification.submitterEmail != null) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.email_outlined,
+                                      size: 16,
+                                      color: KStyle.c72GreyColor,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      notification.submitterEmail!,
+                                      style: KStyle.labelSmRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.c72GreyColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+
+                    // Action buttons for form submissions
+                    if (notification.type == 'form_submission' &&
+                        notification.formId != null &&
+                        notification.submissionId != null)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => _viewSubmission(notification),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: KStyle.cPrimaryColor,
+                                  foregroundColor: KStyle.cWhiteColor,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text(
+                                  'View Submission',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.cWhiteColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    _approveSubmission(notification),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: KStyle.cE8GreenColor,
+                                  side: BorderSide(color: KStyle.cE8GreenColor),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Approve',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.cE8GreenColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    _rejectSubmission(notification),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: KStyle.cDBRedColor,
+                                  side: BorderSide(color: KStyle.cDBRedColor),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Reject',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.cDBRedColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Unread indicator
+              if (isUnread)
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: KStyle.cPrimaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
           ),
-          child: Icon(
-            Icons.person,
-            color: KStyle.cPrimaryColor,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          'New form submission',
-          style: KStyle.labelMdBoldTextStyle.copyWith(
-            color: KStyle.cBlackColor,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'From: ${submission.submitterName}',
-              style: KStyle.labelSmRegularTextStyle.copyWith(
-                color: KStyle.c72GreyColor,
-              ),
-            ),
-            Text(
-              'Submitted: ${_formatDate(submission.createdAt)}',
-              style: KStyle.labelXsRegularTextStyle.copyWith(
-                color: KStyle.c72GreyColor,
-              ),
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: () => _approveSubmission(submission),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: KStyle.cE8GreenColor,
-                foregroundColor: KStyle.c25GreenColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: Text(
-                'Approve',
-                style: KStyle.labelXsRegularTextStyle.copyWith(
-                  color: KStyle.c25GreenColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () => _rejectSubmission(submission),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: KStyle.cFF3Color,
-                foregroundColor: KStyle.cDBRedColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: Text(
-                'Reject',
-                style: KStyle.labelXsRegularTextStyle.copyWith(
-                  color: KStyle.cDBRedColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+  Color _getNotificationIconColor(String type) {
+    switch (type) {
+      case 'form_submission':
+        return KStyle.cPrimaryColor;
+      case 'form_approved':
+        return KStyle.cE8GreenColor;
+      case 'form_rejected':
+        return KStyle.cDBRedColor;
+      default:
+        return KStyle.cPrimaryColor;
+    }
   }
 
-  void _approveSubmission(SubmissionModel submission) async {
+  IconData _getNotificationIcon(String type) {
+    switch (type) {
+      case 'form_submission':
+        return Icons.assignment_turned_in;
+      case 'form_approved':
+        return Icons.check_circle;
+      case 'form_rejected':
+        return Icons.cancel;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  void _onNotificationTap(NotificationModel notification) {
+    if (!notification.isRead) {
+      FirebaseService.markNotificationAsRead(notification.id!);
+    }
+
+    // Handle navigation based on notification type
+    switch (notification.type) {
+      case 'form_submission':
+        if (notification.formId != null) {
+          // Navigate to form submissions
+          // You can implement navigation to form detail screen here
+        }
+        break;
+      case 'form_approved':
+      case 'form_rejected':
+        if (notification.formId != null) {
+          // Navigate to form detail
+          // You can implement navigation to form detail screen here
+        }
+        break;
+    }
+  }
+
+  void _viewSubmission(NotificationModel notification) {
+    if (!notification.isRead) {
+      FirebaseService.markNotificationAsRead(notification.id!);
+    }
+
+    // Navigate to submission detail
+    // You can implement navigation to submission detail screen here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Viewing submission: ${notification.submissionId}'),
+        backgroundColor: KStyle.cPrimaryColor,
+      ),
+    );
+  }
+
+  void _approveSubmission(NotificationModel notification) {
+    if (!notification.isRead) {
+      FirebaseService.markNotificationAsRead(notification.id!);
+    }
+
+    // Handle submission approval
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Submission approved'),
+        backgroundColor: KStyle.cE8GreenColor,
+      ),
+    );
+  }
+
+  void _rejectSubmission(NotificationModel notification) {
+    if (!notification.isRead) {
+      FirebaseService.markNotificationAsRead(notification.id!);
+    }
+
+    // Handle submission rejection
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Submission rejected'),
+        backgroundColor: KStyle.cDBRedColor,
+      ),
+    );
+  }
+
+  Future<void> _markAllAsRead() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      await FirebaseService.updateSubmissionStatus(
-        submission.id!,
-        'approved',
-      );
+      await FirebaseService.markAllNotificationsAsRead();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Submission approved'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('All notifications marked as read'),
+          backgroundColor: KStyle.cPrimaryColor,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error approving submission: $e'),
-          backgroundColor: Colors.red,
+          content: Text('Error: $e'),
+          backgroundColor: KStyle.cDBRedColor,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  void _rejectSubmission(SubmissionModel submission) async {
+  void _createTestNotification() async {
     try {
-      await FirebaseService.updateSubmissionStatus(
-        submission.id!,
-        'rejected',
+      final notification = NotificationModel(
+        title: 'Test Notification',
+        message: 'This is a test notification for demonstration purposes.',
+        type: 'form_submission',
+        formId: 'test_form_id',
+        submissionId: 'test_submission_id',
+        createdAt: DateTime.now(),
+        isRead: false,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Submission rejected'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+
+      // Get current user ID from Firebase service
+      final currentUser = FirebaseService.currentUser;
+      if (currentUser != null) {
+        await FirebaseService.createNotification(notification,
+            userId: currentUser.uid);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Test notification created!'),
+            backgroundColor: KStyle.cPrimaryColor,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please sign in to create test notifications'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error rejecting submission: $e'),
+          content: Text('Error creating test notification: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
-  }
-
-  Stream<List<SubmissionModel>> _getAllSubmissionsStream() {
-    // This would need to be implemented to get all submissions across all forms
-    // For now, we'll return an empty stream
-    return Stream.fromFuture(Future.value(<SubmissionModel>[]));
   }
 }

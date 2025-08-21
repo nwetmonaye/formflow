@@ -6,6 +6,7 @@ import 'package:formflow/models/form_model.dart';
 import 'package:formflow/models/submission_model.dart';
 import 'dart:convert'; // Added for jsonEncode and jsonDecode
 import 'package:http/http.dart' as http; // Added for http.post
+import 'package:formflow/models/notification_model.dart'; // Added for NotificationModel
 
 class FirebaseService {
   static bool _isInitialized = false;
@@ -935,6 +936,190 @@ class FirebaseService {
     } catch (e) {
       print('🔧 Error during form migration: $e');
       rethrow;
+    }
+  }
+
+  // ==================== NOTIFICATION METHODS ====================
+
+  // Get all notifications for the current user
+  static Stream<List<NotificationModel>> getNotificationsStream() {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      return _firestore!
+          .collection('notifications')
+          .where('userId', isEqualTo: currentUser!.uid)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs
+            .map((doc) => NotificationModel.fromMap(doc.data(), doc.id))
+            .toList();
+      });
+    } catch (e) {
+      print('🔍 Error getting notifications stream: $e');
+      // Fallback to basic query without ordering
+      return _firestore!
+          .collection('notifications')
+          .where('userId', isEqualTo: currentUser!.uid)
+          .snapshots()
+          .map((snapshot) {
+        final notifications = snapshot.docs
+            .map((doc) => NotificationModel.fromMap(doc.data(), doc.id))
+            .toList();
+        // Sort locally by createdAt (most recent first)
+        notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return notifications;
+      });
+    }
+  }
+
+  // Get unread notifications count
+  static Stream<int> getUnreadNotificationsCountStream() {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      return _firestore!
+          .collection('notifications')
+          .where('userId', isEqualTo: currentUser!.uid)
+          .where('isRead', isEqualTo: false)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.length);
+    } catch (e) {
+      print('🔍 Error getting unread notifications count: $e');
+      return Stream.value(0);
+    }
+  }
+
+  // Mark notification as read
+  static Future<void> markNotificationAsRead(String notificationId) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      await _firestore!.collection('notifications').doc(notificationId).update({
+        'isRead': true,
+        'readAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('🔍 Error marking notification as read: $e');
+      rethrow;
+    }
+  }
+
+  // Mark all notifications as read
+  static Future<void> markAllNotificationsAsRead() async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      final batch = _firestore!.batch();
+      final notificationsSnapshot = await _firestore!
+          .collection('notifications')
+          .where('userId', isEqualTo: currentUser!.uid)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      for (final doc in notificationsSnapshot.docs) {
+        batch.update(doc.reference, {
+          'isRead': true,
+          'readAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('🔍 Error marking all notifications as read: $e');
+      rethrow;
+    }
+  }
+
+  // Create a notification
+  static Future<String> createNotification(NotificationModel notification,
+      {required String userId}) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      final notificationData = notification.toMap();
+      notificationData['userId'] = userId;
+
+      final docRef =
+          await _firestore!.collection('notifications').add(notificationData);
+
+      return docRef.id;
+    } catch (e) {
+      print('🔍 Error creating notification: $e');
+      rethrow;
+    }
+  }
+
+  // Delete a notification
+  static Future<void> deleteNotification(String notificationId) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      await _firestore!
+          .collection('notifications')
+          .doc(notificationId)
+          .delete();
+    } catch (e) {
+      print('🔍 Error deleting notification: $e');
+      rethrow;
+    }
+  }
+
+  // Create notification for form submission
+  static Future<void> createFormSubmissionNotification({
+    required String formId,
+    required String submissionId,
+    required String submitterName,
+    required String submitterEmail,
+    required String formTitle,
+    required String formOwnerId,
+  }) async {
+    try {
+      final notification = NotificationModel.formSubmission(
+        formId: formId,
+        submissionId: submissionId,
+        submitterName: submitterName,
+        submitterEmail: submitterEmail,
+        formTitle: formTitle,
+      );
+
+      await createNotification(notification, userId: formOwnerId);
+      print('✅ Form submission notification created for user: $formOwnerId');
+    } catch (e) {
+      print('❌ Error creating form submission notification: $e');
+      // Don't rethrow - notification failure shouldn't break form submission
+    }
+  }
+
+  // Create notification for form approval/rejection
+  static Future<void> createFormStatusNotification({
+    required String formId,
+    required String formTitle,
+    required String formOwnerId,
+    required bool isApproved,
+    String? reason,
+  }) async {
+    try {
+      final notification = isApproved
+          ? NotificationModel.formApproved(
+              formId: formId,
+              formTitle: formTitle,
+            )
+          : NotificationModel.formRejected(
+              formId: formId,
+              formTitle: formTitle,
+              reason: reason,
+            );
+
+      await createNotification(notification, userId: formOwnerId);
+      print('✅ Form status notification created for user: $formOwnerId');
+    } catch (e) {
+      print('❌ Error creating form status notification: $e');
+      // Don't rethrow - notification failure shouldn't break form status update
     }
   }
 }

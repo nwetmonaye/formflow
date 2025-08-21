@@ -194,20 +194,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                       });
                                     },
                                   ),
-                                  _buildNavItem(
-                                    icon: Icons.notifications_outlined,
-                                    title: 'Notifications',
-                                    isSelected: selectedNavItem == 2,
-                                    notificationCount: 5,
-                                    onTap: () {
-                                      setState(() {
-                                        selectedNavItem = 2;
-                                      });
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const NotificationScreen(),
-                                        ),
+                                  StreamBuilder<int>(
+                                    stream: FirebaseService
+                                        .getUnreadNotificationsCountStream(),
+                                    builder: (context, snapshot) {
+                                      final notificationCount =
+                                          snapshot.data ?? 0;
+                                      return _buildNavItem(
+                                        icon: Icons.notifications_outlined,
+                                        title: 'Notifications',
+                                        isSelected: selectedNavItem == 2,
+                                        notificationCount: notificationCount > 0
+                                            ? notificationCount
+                                            : null,
+                                        onTap: () {
+                                          setState(() {
+                                            selectedNavItem = 2;
+                                          });
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const NotificationScreen(),
+                                            ),
+                                          );
+                                        },
                                       );
                                     },
                                   ),

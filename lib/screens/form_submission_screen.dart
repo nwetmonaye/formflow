@@ -485,6 +485,26 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         final submissionId = await FirebaseService.createSubmission(submission);
         print('🔍 Submission created with ID: $submissionId');
 
+        // Create notification for form owner
+        if (form!.createdBy != null && form!.createdBy!.isNotEmpty) {
+          try {
+            await FirebaseService.createFormSubmissionNotification(
+              formId: widget.formId,
+              submissionId: submissionId,
+              submitterName: submission.submitterName,
+              submitterEmail: submission.submitterEmail,
+              formTitle: form!.title,
+              formOwnerId: form!.createdBy!,
+            );
+            print('✅ Form submission notification created successfully');
+          } catch (e) {
+            print('❌ Failed to create form submission notification: $e');
+            // Don't fail the submission if notification creation fails
+          }
+        } else {
+          print('⚠️ No form owner ID found, skipping notification creation');
+        }
+
         // Send notification email to form owner
         if (form!.formOwnerEmail != null && form!.formOwnerEmail!.isNotEmpty) {
           try {

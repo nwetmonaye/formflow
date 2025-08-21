@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Notifications collection rules
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      
+      // Users can create notifications for themselves
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      
+      // Users can update their own notifications (e.g., mark as read)
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId &&
+        request.resource.data.userId == resource.data.userId;
+      
+      // Users can delete their own notifications
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Forms collection rules (for form submission notifications)
+    match /forms/{formId} {
+      // Allow reading forms for notification creation
+      allow read: if request.auth != null;
+    }
+    
+    // Submissions collection rules (for submission notifications)
+    match /submissions/{submissionId} {
+      // Allow reading submissions for notification creation
+      allow read: if request.auth != null;
+    }
+  }
+}
