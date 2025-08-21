@@ -14,6 +14,7 @@ class FormModel {
   final bool requiresApproval; // New field for approval toggle
   final String? emailField; // Email field for external users
   final String? formOwnerEmail; // Form owner's email address for notifications
+  final bool isPublic; // New field for public access control
 
   FormModel({
     this.id,
@@ -31,6 +32,7 @@ class FormModel {
     this.requiresApproval = false,
     this.emailField,
     this.formOwnerEmail,
+    this.isPublic = true, // Default to public for easy sharing
   });
 
   Map<String, dynamic> toMap() {
@@ -49,6 +51,7 @@ class FormModel {
       'requiresApproval': requiresApproval,
       'emailField': emailField,
       'formOwnerEmail': formOwnerEmail,
+      'isPublic': isPublic,
     };
   }
 
@@ -71,6 +74,7 @@ class FormModel {
       requiresApproval: map['requiresApproval'] ?? false,
       emailField: map['emailField'],
       formOwnerEmail: map['formOwnerEmail'],
+      isPublic: map['isPublic'] ?? true,
     );
   }
 
@@ -90,6 +94,7 @@ class FormModel {
     bool? requiresApproval,
     String? emailField,
     String? formOwnerEmail,
+    bool? isPublic,
   }) {
     return FormModel(
       id: id ?? this.id,
@@ -107,6 +112,7 @@ class FormModel {
       requiresApproval: requiresApproval ?? this.requiresApproval,
       emailField: emailField ?? this.emailField,
       formOwnerEmail: formOwnerEmail ?? this.formOwnerEmail,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 }

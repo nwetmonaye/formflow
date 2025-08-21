@@ -40,7 +40,29 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     try {
       print('🔍 Loading form with ID: ${widget.formId}');
 
-      // First validate form access
+      // First check if the form exists at all
+      bool formExists = false;
+      try {
+        if (await FirebaseService.ensureInitialized()) {
+          formExists = await FirebaseService.formExists(widget.formId);
+          print('🔍 Form exists check: $formExists');
+        }
+      } catch (e) {
+        print('🔍 Error checking if form exists: $e');
+      }
+
+      if (!formExists) {
+        setState(() {
+          isError = true;
+          errorMessage =
+              'Form not found. Please check the URL or try again later.';
+          isLoading = false;
+        });
+        print('🔍 Form does not exist: ${widget.formId}');
+        return;
+      }
+
+      // Then validate form access
       bool hasAccess = false;
       try {
         if (await FirebaseService.ensureInitialized()) {
@@ -84,6 +106,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         }
       } catch (e) {
         print('🔍 Firebase error: $e');
+        // Don't set error state yet, try to provide more specific error message
       }
 
       if (loadedForm != null) {
@@ -99,10 +122,19 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         print(
             '🔍 Form email field is empty: ${loadedForm.emailField?.isEmpty}');
       } else {
+        // Provide more specific error messages based on the access check
+        String specificErrorMessage;
+        if (hasAccess == false) {
+          specificErrorMessage =
+              'This form is not publicly accessible or has been removed.';
+        } else {
+          specificErrorMessage =
+              'Form not found. Please check the URL or try again later.';
+        }
+
         setState(() {
           isError = true;
-          errorMessage =
-              'Form not found. Please check the URL or try again later.';
+          errorMessage = specificErrorMessage;
           isLoading = false;
         });
         print('🔍 Form not found in Firebase');
@@ -398,6 +430,75 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                     foregroundColor: KStyle.cWhiteColor,
                   ),
                   child: const Text('Go Back'),
+                ),
+                const SizedBox(height: 16),
+                // Debug button for troubleshooting
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      final formExists =
+                          await FirebaseService.formExists(widget.formId);
+                      final isPublic =
+                          await FirebaseService.isFormPubliclyAccessible(
+                              widget.formId);
+
+                      showDialog(
+                        context: context,
+                        builder: (context) => FutureBuilder(
+                          future: Future.wait([
+                            FirebaseService.ensureInitialized(),
+                            Future.value(FirebaseService.currentUser),
+                          ]),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const AlertDialog(
+                                title: Text('Form Access Debug'),
+                                content: CircularProgressIndicator(),
+                              );
+                            }
+
+                            final firebaseInitialized =
+                                snapshot.data?[0] as bool? ?? false;
+                            final currentUser = snapshot.data?[1] as dynamic;
+
+                            return AlertDialog(
+                              title: const Text('Form Access Debug'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Form ID: ${widget.formId}'),
+                                  Text('Form exists: $formExists'),
+                                  Text('Is publicly accessible: $isPublic'),
+                                  Text(
+                                      'Access token: ${widget.accessToken ?? 'None'}'),
+                                  const Divider(),
+                                  Text(
+                                      'Firebase initialized: $firebaseInitialized'),
+                                  Text(
+                                      'Current user: ${currentUser?.uid ?? 'None'}'),
+                                  Text(
+                                      'User authenticated: ${currentUser != null}'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Debug error: $e')),
+                      );
+                    }
+                  },
+                  child: const Text('Debug Form Access'),
                 ),
               ],
             ),

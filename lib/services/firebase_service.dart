@@ -78,6 +78,14 @@ class FirebaseService {
       print('Firestore instance: ${_firestore != null}');
       print('Auth instance: ${_auth != null}');
       print('Functions instance: ${_functions != null}');
+
+      // Migrate existing forms to include isPublic field
+      try {
+        await migrateFormsToIncludeIsPublic();
+      } catch (e) {
+        print('⚠️ Warning: Could not migrate forms: $e');
+        // Don't fail initialization if migration fails
+      }
     } catch (e) {
       print('Error initializing Firebase: $e');
       _isInitialized = false;
@@ -337,10 +345,17 @@ class FirebaseService {
       // Generate share link
       final shareLink = 'https://formflow-b0484.web.app/form/$formId';
 
-      // Update form status to active and add share link
+      // Get the current form to preserve its settings
+      final currentForm = await getForm(formId);
+      if (currentForm == null) {
+        throw Exception('Form not found');
+      }
+
+      // Update form status to active and add share link, preserving isPublic setting
       await _firestore!.collection('forms').doc(formId).update({
         'status': 'active',
         'shareLink': shareLink,
+        'isPublic': currentForm.isPublic, // Ensure isPublic field is set
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -733,6 +748,19 @@ class FirebaseService {
     }
   }
 
+  // Check if a form exists (regardless of access permissions)
+  static Future<bool> formExists(String formId) async {
+    if (_firestore == null) return false;
+
+    try {
+      final doc = await _firestore!.collection('forms').doc(formId).get();
+      return doc.exists;
+    } catch (e) {
+      print('🔍 Error checking if form exists: $e');
+      return false;
+    }
+  }
+
   // Validate form access with optional token
   static Future<bool> validateFormAccess(String formId,
       {String? accessToken}) async {
@@ -785,6 +813,35 @@ class FirebaseService {
     } catch (e) {
       print('🔍 Error validating form access: $e');
       return false;
+    }
+  }
+
+  // Migrate existing forms to include isPublic field
+  static Future<void> migrateFormsToIncludeIsPublic() async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+
+    try {
+      print('🔧 Starting migration of forms to include isPublic field...');
+
+      final formsSnapshot = await _firestore!.collection('forms').get();
+      int migratedCount = 0;
+
+      for (final doc in formsSnapshot.docs) {
+        final data = doc.data();
+        if (!data.containsKey('isPublic')) {
+          print('🔧 Migrating form ${doc.id} to include isPublic field');
+          await _firestore!.collection('forms').doc(doc.id).update({
+            'isPublic': true, // Default to public for existing forms
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+          migratedCount++;
+        }
+      }
+
+      print('🔧 Migration completed. ${migratedCount} forms updated.');
+    } catch (e) {
+      print('🔧 Error during form migration: $e');
+      rethrow;
     }
   }
 }

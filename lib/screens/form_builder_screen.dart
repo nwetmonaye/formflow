@@ -28,6 +28,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
   // Settings state
   bool _approvalRequired = false;
   bool _closeForm = false;
+  bool _isPublic = true; // New state for public/private toggle
   // Track if this is a new form session (created in this screen)
   late bool _isNewFormSession;
   bool _isDirty = false; // Track unsaved changes for existing forms
@@ -52,6 +53,7 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
     // Always sync _closeForm with form status
     _approvalRequired = _form.requiresApproval;
     _closeForm = _form.status == 'closed';
+    _isPublic = _form.isPublic; // Sync with form's public setting
     // Set session flag: true if creating a new form
     _isNewFormSession = widget.form == null;
   }
@@ -352,6 +354,30 @@ class _FormBuilderScreenState extends State<FormBuilderScreen> {
                   const SizedBox(height: 4),
                   const Text(
                     'Submissions require manual approval by the form owner.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Public Access',
+                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      Switch(
+                        value: _isPublic,
+                        onChanged: (val) {
+                          setStateDialog(() => _isPublic = val);
+                          setState(() {
+                            _isPublic = val;
+                            _form = _form.copyWith(isPublic: val);
+                          });
+                          _autoSave(); // Persist the change
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Allow anyone with the link to view and submit this form.',
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                   const SizedBox(height: 20),

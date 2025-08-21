@@ -12,6 +12,7 @@ import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/screens/form_submission_screen.dart';
 import 'package:formflow/screens/form_detail_screen.dart';
 import 'package:formflow/screens/form_preview_screen.dart';
+import 'package:formflow/models/form_model.dart' as form_model;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -230,6 +231,70 @@ class FormFlowApp extends StatelessWidget {
                   accessToken: null,
                 ),
               );
+            // Add test route for creating a sample form
+            case '/create-test-form':
+              print('🔍 Create test form route accessed');
+              return MaterialPageRoute(
+                builder: (context) => Scaffold(
+                  appBar: AppBar(title: const Text('Create Test Form')),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Creating test form...'),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Create a test form
+                            try {
+                              final testForm = form_model.FormModel(
+                                title: 'Test Public Form',
+                                description:
+                                    'This is a test form to verify public access',
+                                fields: [
+                                  form_model.FormField(
+                                    id: 'name',
+                                    label: 'Your Name',
+                                    type: 'text',
+                                    required: true,
+                                  ),
+                                  form_model.FormField(
+                                    id: 'email',
+                                    label: 'Your Email',
+                                    type: 'text',
+                                    required: true,
+                                  ),
+                                ],
+                                createdBy: 'test-user',
+                                isPublic: true,
+                                status: 'active',
+                              );
+
+                              final formId =
+                                  await FirebaseService.createForm(testForm);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Test form created with ID: $formId'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error creating test form: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text('Create Test Form'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
             // Add debug route to show current routing state
             case '/debug-routing':
               print('🔍 Debug route accessed');
@@ -264,6 +329,22 @@ class FormFlowApp extends StatelessWidget {
                               .pushNamed('/form/sample-form-1?view=true'),
                           child: const Text('Test Form Preview'),
                         ),
+                        const SizedBox(height: 20),
+                        const Text('Form Access Testing:',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/create-test-form'),
+                          child: const Text('Create Test Form'),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                            'After creating a test form, copy the link and test it in another browser/incognito window.'),
+                        const SizedBox(height: 10),
+                        const Text(
+                            'The form should be accessible without authentication if isPublic is true.'),
                       ],
                     ),
                   ),
