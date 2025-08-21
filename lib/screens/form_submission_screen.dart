@@ -130,6 +130,9 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         print('🔍 Form email field is null: ${loadedForm.emailField == null}');
         print(
             '🔍 Form email field is empty: ${loadedForm.emailField?.isEmpty}');
+        print('🔍 Form isPublic: ${loadedForm.isPublic}');
+        print('🔍 Form createdBy: ${loadedForm.createdBy}');
+        print('🔍 Form ID: ${loadedForm.id}');
       } else {
         // Provide more specific error messages based on the access check
         String specificErrorMessage;
@@ -302,6 +305,49 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
 
       // Save to Firebase
       if (await FirebaseService.ensureInitialized()) {
+        print('🔍 About to create submission for form: ${widget.formId}');
+        print('🔍 Form data: ${form!.toMap()}');
+        print('🔍 Form isPublic: ${form!.isPublic}');
+        print('🔍 Form status: ${form!.status}');
+        print('🔍 Form createdBy: ${form!.createdBy}');
+        print('🔍 Current user: ${FirebaseService.currentUser?.uid}');
+        print('🔍 Form ID: ${form!.id}');
+        print('🔍 Form fields count: ${form!.fields.length}');
+        print('🔍 Form email field: ${form!.emailField}');
+        print('🔍 Form owner email: ${form!.formOwnerEmail}');
+
+        // Check if form has required fields
+        print('🔍 Checking form required fields...');
+        print('🔍 Form title: ${form!.title}');
+        print('🔍 Form description: ${form!.description}');
+        print('🔍 Form requiresApproval: ${form!.requiresApproval}');
+        print('🔍 Form colorTheme: ${form!.colorTheme}');
+
+        // Check submission data
+        print('🔍 Submission data: ${submission.toMap()}');
+        print('🔍 Submission formId: ${submission.formId}');
+        print('🔍 Submission status: ${submission.status}');
+        print('🔍 Submission submitterName: ${submission.submitterName}');
+        print('🔍 Submission submitterEmail: ${submission.submitterEmail}');
+
+        // Test Firestore connection
+        print('🔍 Testing Firestore connection...');
+        bool connectionTest = false;
+        try {
+          connectionTest = await FirebaseService.testFirestoreConnection();
+          print('🔍 Firestore connection test result: $connectionTest');
+        } catch (e) {
+          print('🔍 Firestore connection test failed with error: $e');
+          connectionTest = false;
+        }
+
+        // For now, let's skip the connection test requirement to see if the actual submission works
+        if (!connectionTest) {
+          print(
+              '🔍 Connection test failed, but continuing with submission attempt...');
+          // Don't throw exception, just log the warning
+        }
+
         final submissionId = await FirebaseService.createSubmission(submission);
         print('🔍 Submission created with ID: $submissionId');
 

@@ -598,19 +598,112 @@ class FirebaseService {
     }
   }
 
+  // Test Firestore connectivity and permissions
+  static Future<bool> testFirestoreConnection() async {
+    if (_firestore == null) {
+      print('🔍 Firestore not initialized');
+      return false;
+    }
+
+    try {
+      print('🔍 Testing Firestore connection...');
+
+      // Try to read a document to test basic connectivity
+      final testDoc = await _firestore!.collection('forms').limit(1).get();
+      print(
+          '🔍 Firestore read test successful: ${testDoc.docs.length} documents');
+
+      // Try to write a test document to test write permissions
+      // Use a more specific collection name and avoid potential conflicts
+      final testWriteRef =
+          await _firestore!.collection('_test_connection').add({
+        'test': true,
+        'timestamp': FieldValue.serverTimestamp(),
+        'testId': DateTime.now().millisecondsSinceEpoch.toString(),
+      });
+      print('🔍 Firestore write test successful: ${testWriteRef.id}');
+
+      // Clean up test document
+      await testWriteRef.delete();
+      print('🔍 Firestore delete test successful');
+
+      return true;
+    } catch (e) {
+      print('🔍 Firestore connection test failed: $e');
+      print('🔍 Error type: ${e.runtimeType}');
+
+      // If the test collection write fails, try a different approach
+      try {
+        print('🔍 Trying alternative connection test...');
+
+        // Just test reading from forms collection
+        final testDoc = await _firestore!.collection('forms').limit(1).get();
+        print(
+            '🔍 Alternative read test successful: ${testDoc.docs.length} documents');
+
+        // If we can read, assume basic connectivity is working
+        return true;
+      } catch (e2) {
+        print('🔍 Alternative connection test also failed: $e2');
+        return false;
+      }
+    }
+  }
+
   // Submission operations
   static Future<String> createSubmission(SubmissionModel submission) async {
     if (_firestore == null) throw Exception('Firestore not initialized');
 
     print('🔍 Creating submission in Firebase: ${submission.toMap()}');
+    print('🔍 Firestore instance: ${_firestore != null}');
+    print('🔍 Current user: ${currentUser?.uid}');
+    print('🔍 Submission formId: ${submission.formId}');
+    print('🔍 Submission data keys: ${submission.data.keys.toList()}');
+    print('🔍 Submission questionLabels: ${submission.questionLabels}');
+    print('🔍 Submission questionAnswers: ${submission.questionAnswers}');
 
-    final docRef = await _firestore!.collection('submissions').add({
-      ...submission.toMap(),
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      print('🔍 Attempting to add document to submissions collection...');
 
-    print('🔍 Submission created with ID: ${docRef.id}');
-    return docRef.id;
+      final docRef = await _firestore!.collection('submissions').add({
+        ...submission.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      print('🔍 Submission created with ID: ${docRef.id}');
+      return docRef.id;
+    } catch (e) {
+      print('🔍 Error creating submission: $e');
+      print('🔍 Error type: ${e.runtimeType}');
+      print('🔍 Error details: $e');
+
+      // Check if it's a permission error
+      if (e.toString().contains('permission-denied')) {
+        print('🔍 This is a permission denied error. Check Firestore rules.');
+        print('🔍 Current user: ${currentUser?.uid ?? 'No user'}');
+        print('🔍 Form ID: ${submission.formId}');
+
+        // Try to get the form to check its status
+        try {
+          final formDoc = await _firestore!
+              .collection('forms')
+              .doc(submission.formId)
+              .get();
+          if (formDoc.exists) {
+            final formData = formDoc.data();
+            print('🔍 Form data: $formData');
+            print('🔍 Form isPublic: ${formData?['isPublic']}');
+            print('🔍 Form status: ${formData?['status']}');
+          } else {
+            print('🔍 Form document does not exist');
+          }
+        } catch (formError) {
+          print('🔍 Could not check form data: $formError');
+        }
+      }
+
+      rethrow;
+    }
   }
 
   static Future<List<SubmissionModel>> getSubmissionsForForm(
