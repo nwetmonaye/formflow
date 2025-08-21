@@ -29,11 +29,20 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _showSuccessCard = false;
   bool _isSubmitting = false; // Track submit button state
+  late TextEditingController _emailController; // Add email controller
+  String? _emailError; // Add email error state
 
   @override
   void initState() {
     super.initState();
+    _emailController = TextEditingController(); // Initialize email controller
     _loadForm();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose(); // Dispose email controller
+    super.dispose();
   }
 
   Future<void> _loadForm() async {
@@ -216,13 +225,22 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     }
 
     // Also validate email field
-    if (_responses['email'] == null || _responses['email'].toString().isEmpty) {
-      fieldErrors['email'] = 'Email is required';
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        _emailError = 'Email is required';
+      });
       hasErrors = true;
-    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-        .hasMatch(_responses['email'].toString())) {
-      fieldErrors['email'] = 'Please enter a valid email';
-      hasErrors = true;
+    } else {
+      // Validate email format
+      final emailRegex = RegExp(
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+      );
+      if (!emailRegex.hasMatch(_emailController.text.trim())) {
+        setState(() {
+          _emailError = 'Please enter a valid email address';
+        });
+        hasErrors = true;
+      }
     }
 
     if (hasErrors) {
@@ -234,7 +252,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
       // Show snackbar with error count
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fix ${fieldErrors.length} validation error(s)'),
+          content: Text('Please fill all required fields'),
           backgroundColor: Colors.red,
         ),
       );
@@ -272,7 +290,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         status: 'pending',
         createdAt: DateTime.now(),
         submitterName: _responses['name'] ?? 'Anonymous',
-        submitterEmail: _responses['email'] ?? 'anonymous@example.com',
+        submitterEmail: _emailController.text.trim(),
       );
 
       print('🔍 Creating submission for form: ${widget.formId}');
@@ -298,7 +316,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                 <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
                   <h3 style="color: #1e293b; margin-top: 0;">Submitter Details:</h3>
                   <p><strong>Name:</strong> ${submission.submitterName}</p>
-                  <p><strong>Email:</strong> ${submission.submitterEmail}</p>
+                  <p><strong>Email:</strong> ${_emailController.text.trim()}</p>
                   <p><strong>Submitted:</strong> ${DateTime.now().toString()}</p>
                 </div>
                 
@@ -336,6 +354,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
         setState(() {
           _showSuccessCard = true;
           _isSubmitting = false;
+          _emailError = null; // Clear email error on success
         });
         return;
       } else {
@@ -359,8 +378,18 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
     setState(() {
       _responses.clear();
       _isSubmitting = false;
+      _emailError = null; // Clear email error
     });
+    _emailController.clear(); // Clear email controller
     _formKey.currentState?.reset();
+  }
+
+  // Sync email controller with responses map
+  void _syncEmailController() {
+    final emailValue = _responses['email'] ?? '';
+    if (_emailController.text != emailValue) {
+      _emailController.text = emailValue;
+    }
   }
 
   @override
@@ -672,7 +701,7 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
-                            initialValue: _responses['email'] ?? '',
+                            controller: _emailController, // Use the controller
                             decoration: InputDecoration(
                               hintText: 'Valid Email',
                               border: OutlineInputBorder(
@@ -713,20 +742,42 @@ class _FormSubmissionScreenState extends State<FormSubmissionScreen> {
                             onChanged: (value) {
                               _responses['email'] = value;
                               // Clear validation error when user starts typing
-                              setState(() {});
+                              if (_emailError != null) {
+                                setState(() {
+                                  _emailError = null;
+                                });
+                              }
                             },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Email is required';
                               }
-                              // Fix the regex pattern for email validation
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                  .hasMatch(value)) {
-                                return 'Please enter a valid email';
+                              // Improved email validation regex
+                              final emailRegex = RegExp(
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              );
+                              if (!emailRegex.hasMatch(value.trim())) {
+                                return 'Please enter a valid email address';
                               }
                               return null;
                             },
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autocorrect: false,
+                            enableSuggestions: false,
                           ),
+                          // Display email validation error if exists
+                          if (_emailError != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                _emailError!,
+                                style: KStyle.labelSmRegularTextStyle.copyWith(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
