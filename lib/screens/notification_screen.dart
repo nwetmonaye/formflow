@@ -26,10 +26,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Container(
             width: 280,
             decoration: BoxDecoration(
-              color: KStyle.cWhiteColor,
+              color: KStyle.cPrimaryColor,
               border: Border(
                 right: BorderSide(
-                  color: KStyle.cE3GreyColor.withOpacity(0.3),
+                  color: KStyle.cE3GreyColor,
                   width: 1,
                 ),
               ),
@@ -46,7 +46,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Text(
                         'form',
                         style: KStyle.heading2TextStyle.copyWith(
-                          color: KStyle.cBlackColor,
+                          color: KStyle.cWhiteColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -56,7 +56,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: KStyle.cPrimaryColor,
+                          color: KStyle.cWhiteColor,
                           borderRadius: BorderRadius.circular(50),
                         ),
                       ),
@@ -72,6 +72,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         icon: Icons.description_outlined,
                         title: 'My Forms',
                         isSelected: selectedNavItem == 0,
+                        notificationCount: null,
                         onTap: () {
                           setState(() {
                             selectedNavItem = 0;
@@ -87,6 +88,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         icon: Icons.group_outlined,
                         title: 'Cohorts',
                         isSelected: selectedNavItem == 1,
+                        notificationCount: null,
                         onTap: () {
                           setState(() {
                             selectedNavItem = 1;
@@ -124,7 +126,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: KStyle.cE3GreyColor.withOpacity(0.3),
+                        color: KStyle.cWhiteColor,
                         width: 1,
                       ),
                     ),
@@ -139,12 +141,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: KStyle.cPrimaryColor,
+                            color: KStyle.cWhiteColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Icon(
                             Icons.person,
-                            color: KStyle.cWhiteColor,
+                            color: KStyle.cPrimaryColor,
                             size: 20,
                           ),
                         ),
@@ -156,14 +158,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               Text(
                                 'Thomas Willy',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
+                                  color: KStyle.cWhiteColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               Text(
                                 'View Profile',
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
+                                  color: KStyle.cWhiteColor,
                                 ),
                               ),
                             ],
@@ -171,7 +173,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         Icon(
                           Icons.keyboard_arrow_down,
-                          color: KStyle.c72GreyColor,
+                          color: KStyle.cWhiteColor,
                           size: 20,
                         ),
                       ],
@@ -301,25 +303,260 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Image.asset(
-                                  'assets/images/no_form.png',
-                                  width: 120,
-                                  height: 120,
+                                // Custom notification cards illustration
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // Bottom card (largest)
+                                    Container(
+                                      width: 120,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        color: KStyle.cE3GreyColor
+                                            .withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 24,
+                                              height: 24,
+                                              decoration: BoxDecoration(
+                                                color: KStyle.cPrimaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Icon(
+                                                Icons.question_mark,
+                                                color: KStyle.cWhiteColor,
+                                                size: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Container(
+                                                    height: 8,
+                                                    width: double.infinity,
+                                                    decoration: BoxDecoration(
+                                                      color: KStyle.c72GreyColor
+                                                          .withOpacity(0.5),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Container(
+                                                    height: 6,
+                                                    width: 60,
+                                                    decoration: BoxDecoration(
+                                                      color: KStyle.c72GreyColor
+                                                          .withOpacity(0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              3),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // Middle card
+                                    Positioned(
+                                      top: -15,
+                                      child: Container(
+                                        width: 100,
+                                        height: 65,
+                                        decoration: BoxDecoration(
+                                          color: KStyle.cE3GreyColor
+                                              .withOpacity(0.4),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.08),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 20,
+                                                height: 20,
+                                                decoration: BoxDecoration(
+                                                  color: KStyle.cPrimaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
+                                                ),
+                                                child: Icon(
+                                                  Icons.question_mark,
+                                                  color: KStyle.cWhiteColor,
+                                                  size: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      height: 6,
+                                                      width: double.infinity,
+                                                      decoration: BoxDecoration(
+                                                        color: KStyle
+                                                            .c72GreyColor
+                                                            .withOpacity(0.4),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(3),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Container(
+                                                      height: 5,
+                                                      width: 50,
+                                                      decoration: BoxDecoration(
+                                                        color: KStyle
+                                                            .c72GreyColor
+                                                            .withOpacity(0.3),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(2.5),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Top card (smallest)
+                                    Positioned(
+                                      top: -30,
+                                      child: Container(
+                                        width: 80,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          color: KStyle.cE3GreyColor
+                                              .withOpacity(0.5),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.06),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                width: 16,
+                                                height: 16,
+                                                decoration: BoxDecoration(
+                                                  color: KStyle.cPrimaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(2),
+                                                ),
+                                                child: Icon(
+                                                  Icons.question_mark,
+                                                  color: KStyle.cWhiteColor,
+                                                  size: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      height: 4,
+                                                      width: double.infinity,
+                                                      decoration: BoxDecoration(
+                                                        color: KStyle
+                                                            .c72GreyColor
+                                                            .withOpacity(0.4),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(2),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 3),
+                                                    Container(
+                                                      height: 4,
+                                                      width: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: KStyle
+                                                            .c72GreyColor
+                                                            .withOpacity(0.3),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(2),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 32),
                                 Text(
-                                  'No notifications yet',
-                                  style: KStyle.heading3TextStyle.copyWith(
+                                  'No notifications',
+                                  style: KStyle.heading2TextStyle.copyWith(
                                     color: KStyle.cBlackColor,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'You\'ll see notifications here when you receive them',
+                                  'You\'re all caught up. No notifications right now.',
                                   style:
                                       KStyle.labelMdRegularTextStyle.copyWith(
                                     color: KStyle.c72GreyColor,
+                                    height: 1.4,
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -433,17 +670,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
     int? notificationCount,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         print('Nav item tapped: $title'); // Debug print
         onTap();
       },
-      borderRadius: BorderRadius.circular(8),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? KStyle.cSelectedColor : Colors.transparent,
+          color: isSelected ? KStyle.cWhiteColor : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -454,7 +690,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 Icon(
                   icon,
                   size: 20,
-                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cBlackColor,
+                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
                 ),
                 if (notificationCount != null)
                   Positioned(
@@ -483,7 +719,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             Text(
               title,
               style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: isSelected ? KStyle.cPrimaryColor : KStyle.cBlackColor,
+                color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
