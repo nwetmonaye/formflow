@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/services/firebase_service.dart';
 
@@ -428,6 +430,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 24),
+
+                          Column(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  context
+                                      .read<AuthBloc>()
+                                      .add(SignOutRequested());
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFFFE5E5),
+                                  foregroundColor: KStyle.cDBRedColor,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Log Out',
+                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                    color: KStyle.cDBRedColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
 
                           // Update Profile Button
                           // Align(

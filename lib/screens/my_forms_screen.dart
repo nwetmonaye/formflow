@@ -5,6 +5,7 @@ import 'package:formflow/widgets/sidebar_navigation.dart';
 import 'package:formflow/widgets/empty_state_widget.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/services/auth_service.dart';
+import 'package:formflow/screens/profile_screen.dart';
 
 class MyFormsScreen extends StatefulWidget {
   const MyFormsScreen({super.key});
@@ -26,7 +27,11 @@ class _MyFormsScreenState extends State<MyFormsScreen> {
   }
 
   void _onProfileTap() {
-    // TODO: Navigate to profile screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ProfileScreen(),
+      ),
+    );
   }
 
   @override
