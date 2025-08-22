@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/services/firebase_service.dart';
+import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/screens/notification_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -114,7 +116,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() {
                             selectedNavItem = 0;
                           });
-                          Navigator.of(context).pushReplacementNamed('/home');
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const HomeScreen(),
+                            ),
+                          );
                         },
                       ),
                       _buildNavItem(
@@ -144,8 +150,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               setState(() {
                                 selectedNavItem = 2;
                               });
-                              Navigator.of(context)
-                                  .pushReplacementNamed('/notifications');
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NotificationScreen(),
+                                ),
+                              );
                             },
                           );
                         },

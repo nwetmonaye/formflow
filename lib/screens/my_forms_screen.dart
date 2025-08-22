@@ -6,6 +6,8 @@ import 'package:formflow/widgets/empty_state_widget.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/services/auth_service.dart';
 import 'package:formflow/screens/profile_screen.dart';
+import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/screens/notification_screen.dart';
 
 class MyFormsScreen extends StatefulWidget {
   const MyFormsScreen({super.key});
@@ -23,7 +25,22 @@ class _MyFormsScreenState extends State<MyFormsScreen> {
     setState(() {
       selectedNavItem = index;
     });
-    // TODO: Navigate to appropriate screen based on index
+
+    // Navigate to appropriate screen based on index
+    switch (index) {
+      case 0: // My Forms - stay on current screen
+        break;
+      case 1: // Cohorts
+        // TODO: Navigate to cohorts screen when implemented
+        break;
+      case 2: // Notifications
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const NotificationScreen(),
+          ),
+        );
+        break;
+    }
   }
 
   void _onProfileTap() {
