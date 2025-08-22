@@ -17,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   String? _userName;
   String? _userEmail;
+  String? _userPhotoURL;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _userName = currentUser.displayName ?? 'Thomas Willy';
           _userEmail = currentUser.email ?? 'thomaswilly@gmail.com';
+          _userPhotoURL = currentUser.photoURL;
           _nameController.text = _userName!;
           _emailController.text = _userEmail!;
         });
@@ -175,10 +177,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/profile.png',
-                              fit: BoxFit.cover,
-                            ),
+                            child: _userPhotoURL != null
+                                ? Image.network(
+                                    _userPhotoURL!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/images/profile.png',
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  )
+                                : Image.asset(
+                                    'assets/images/profile.png',
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -187,11 +200,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _userName ?? 'Thomas Willy',
+                                _userName ?? 'User',
                                 style: KStyle.labelMdRegularTextStyle.copyWith(
                                   color: KStyle.cWhiteColor,
                                   fontWeight: FontWeight.w500,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 'View Profile',
@@ -286,12 +301,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   child: ClipOval(
-                                    child: Image.asset(
-                                      'assets/images/profile.png',
-                                      width: 116,
-                                      height: 116,
-                                      fit: BoxFit.cover,
-                                    ),
+                                    child: _userPhotoURL != null
+                                        ? Image.network(
+                                            _userPhotoURL!,
+                                            width: 116,
+                                            height: 116,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                'assets/images/profile.png',
+                                                width: 116,
+                                                height: 116,
+                                                fit: BoxFit.cover,
+                                              );
+                                            },
+                                          )
+                                        : Image.asset(
+                                            'assets/images/profile.png',
+                                            width: 116,
+                                            height: 116,
+                                            fit: BoxFit.cover,
+                                          ),
                                   ),
                                 ),
                                 Positioned(

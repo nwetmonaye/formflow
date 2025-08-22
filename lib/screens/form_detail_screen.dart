@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/submission_model.dart';
 import 'package:formflow/services/firebase_service.dart';
@@ -16,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:typed_data';
 import 'package:formflow/screens/profile_screen.dart';
+import 'package:formflow/blocs/auth_bloc.dart';
 
 class FormDetailScreen extends StatefulWidget {
   final form_model.FormModel? form;
@@ -102,389 +104,442 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Show loading state while form is being loaded
-    if (_isLoading || _form == null) {
-      return Scaffold(
-        backgroundColor: KStyle.cBgColor,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: KStyle.cBgColor,
-      body: Row(
-        children: [
-          // Left Sidebar
-          Container(
-            width: 280,
-            decoration: BoxDecoration(
-              color: KStyle.cPrimaryColor,
-              border: Border(
-                right: BorderSide(
-                  color: KStyle.cE3GreyColor,
-                  width: 1,
-                ),
-              ),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        // Show loading state while form is being loaded
+        if (_isLoading || _form == null) {
+          return Scaffold(
+            backgroundColor: KStyle.cBgColor,
+            body: const Center(
+              child: CircularProgressIndicator(),
             ),
-            child: Column(
-              children: [
-                // Logo
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'form',
-                        style: KStyle.heading2TextStyle.copyWith(
-                          color: KStyle.cWhiteColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: KStyle.cWhiteColor,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          );
+        }
 
-                // Navigation Menu
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildNavItem(
-                        icon: Icons.description_outlined,
-                        title: 'My Forms',
-                        isSelected: selectedNavItem == 0,
-                        onTap: () {
-                          setState(() {
-                            selectedNavItem = 0;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      _buildNavItem(
-                        icon: Icons.group_outlined,
-                        title: 'Cohorts',
-                        isSelected: selectedNavItem == 1,
-                        onTap: () {
-                          setState(() {
-                            selectedNavItem = 1;
-                          });
-                        },
-                      ),
-                      StreamBuilder<int>(
-                        stream:
-                            FirebaseService.getUnreadNotificationsCountStream(),
-                        builder: (context, snapshot) {
-                          final notificationCount = snapshot.data ?? 0;
-                          return _buildNavItem(
-                            icon: Icons.notifications_outlined,
-                            title: 'Notifications',
-                            isSelected: selectedNavItem == 2,
-                            notificationCount: notificationCount > 0
-                                ? notificationCount
-                                : null,
-                            onTap: () {
-                              setState(() {
-                                selectedNavItem = 2;
-                              });
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const NotificationScreen(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                // User Profile
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: KStyle.cWhiteColor,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Image.asset(
-                            'assets/images/profile.png',
-                            fit: BoxFit.cover,
-                            // width: double.infinity,
-                            // height: 140,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'User Profile',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                'View Profile',
-                                style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: KStyle.cWhiteColor,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main Content Area
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: KStyle.cBackgroundColor,
-                border: Border(
-                  right: BorderSide(
-                    color: KStyle.cE3GreyColor,
-                    width: 1,
-                  ),
-                ),
-              ),
+        if (authState is! Authenticated) {
+          return Scaffold(
+            backgroundColor: KStyle.cBgColor,
+            body: Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: KStyle.cWhiteColor,
-                      // border: Border(
-                      //   bottom: BorderSide(
-                      //     color: KStyle.cE3GreyColor,
-                      //     width: 1,
-                      //   ),
-                      // ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Breadcrumbs
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                'My Forms',
-                                style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.c13BlackColor,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              ' / ',
-                              style: KStyle.labelSmRegularTextStyle.copyWith(
-                                color: KStyle.c72GreyColor,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(
-                                _form!.title,
-                                style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.c72GreyColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Title and Actions Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _form!.title,
-                                style: KStyle.heading2TextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            FormPreviewScreen(form: _form!),
-                                      ),
-                                    );
-                                  },
-                                  icon: SvgPicture.asset(
-                                    'assets/icons/eye.svg',
-                                    width: 20,
-                                    height: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  onPressed: _copyShareLink,
-                                  icon: SvgPicture.asset(
-                                    'assets/icons/copy.svg',
-                                    width: 20,
-                                    height: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    // Create a sample form if none exists
-                                    if (_form!.fields.isEmpty) {}
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            FormBuilderScreen(form: _form!),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: KStyle.cPrimaryColor,
-                                    foregroundColor: KStyle.cPrimaryColor,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 8,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    elevation: 0,
-                                    side:
-                                        BorderSide(color: KStyle.cPrimaryColor),
-                                  ),
-                                  // icon: const Icon(Icons.edit, size: 20,),
-                                  icon: IconButton(
-                                    onPressed: () {
-                                      // TODO: Implement preview
-                                    },
-                                    icon: SvgPicture.asset(
-                                      'assets/icons/edit.svg',
-                                      width: 18,
-                                      height: 18,
-                                      colorFilter: ColorFilter.mode(
-                                          KStyle.cWhiteColor, BlendMode.srcIn),
-                                    ),
-                                  ),
-                                  label: Text(
-                                    'Edit Form',
-                                    style: KStyle.labelTextStyle.copyWith(
-                                      color: KStyle.cWhiteColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  Icon(
+                    Icons.person_outline,
+                    size: 64,
+                    color: KStyle.c72GreyColor,
                   ),
-
-                  // Tab Bar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: KStyle.cWhiteColor,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: KStyle.cE3GreyColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      child: Row(
-                        children: [
-                          _buildTabItem('Submissions', 0),
-                          _buildTabItem('Share', 1),
-                          _buildTabItem('Settings', 2),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Tab Content
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildSubmissionsTab(),
-                        _buildShareTab(),
-                        _buildSettingsTab(),
-                      ],
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please sign in to view form details',
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
                     ),
                   ),
                 ],
               ),
             ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: KStyle.cBgColor,
+          body: Row(
+            children: [
+              // Left Sidebar
+              Container(
+                width: 280,
+                decoration: BoxDecoration(
+                  color: KStyle.cPrimaryColor,
+                  border: Border(
+                    right: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Logo
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            'form',
+                            style: KStyle.heading2TextStyle.copyWith(
+                              color: KStyle.cWhiteColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            margin: const EdgeInsets.only(top: 10),
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: KStyle.cWhiteColor,
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Navigation Menu
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildNavItem(
+                            icon: Icons.description_outlined,
+                            title: 'My Forms',
+                            isSelected: selectedNavItem == 0,
+                            onTap: () {
+                              setState(() {
+                                selectedNavItem = 0;
+                              });
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          _buildNavItem(
+                            icon: Icons.group_outlined,
+                            title: 'Cohorts',
+                            isSelected: selectedNavItem == 1,
+                            onTap: () {
+                              setState(() {
+                                selectedNavItem = 1;
+                              });
+                            },
+                          ),
+                          StreamBuilder<int>(
+                            stream: FirebaseService
+                                .getUnreadNotificationsCountStream(),
+                            builder: (context, snapshot) {
+                              final notificationCount = snapshot.data ?? 0;
+                              return _buildNavItem(
+                                icon: Icons.notifications_outlined,
+                                title: 'Notifications',
+                                isSelected: selectedNavItem == 2,
+                                notificationCount: notificationCount > 0
+                                    ? notificationCount
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    selectedNavItem = 2;
+                                  });
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NotificationScreen(),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // User Profile
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: KStyle.cWhiteColor,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: KStyle.cWhiteColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: ClipOval(
+                                child: authState.user.photoURL != null
+                                    ? Image.network(
+                                        authState.user.photoURL!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/profile.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                      )
+                                    : Image.asset(
+                                        'assets/images/profile.png',
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    authState.user.displayName ??
+                                        authState.user.email.split('@')[0] ??
+                                        'User',
+                                    style:
+                                        KStyle.labelMdRegularTextStyle.copyWith(
+                                      color: KStyle.cWhiteColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'View Profile',
+                                    style:
+                                        KStyle.labelSmRegularTextStyle.copyWith(
+                                      color: KStyle.cWhiteColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: KStyle.cWhiteColor,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Main Content Area
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: KStyle.cBackgroundColor,
+                    border: Border(
+                      right: BorderSide(
+                        color: KStyle.cE3GreyColor,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      // Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: KStyle.cWhiteColor,
+                          // border: Border(
+                          //   bottom: BorderSide(
+                          //     color: KStyle.cE3GreyColor,
+                          //     width: 1,
+                          //   ),
+                          // ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Breadcrumbs
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HomeScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'My Forms',
+                                    style:
+                                        KStyle.labelSmRegularTextStyle.copyWith(
+                                      color: KStyle.c13BlackColor,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  ' / ',
+                                  style:
+                                      KStyle.labelSmRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text(
+                                    _form!.title,
+                                    style:
+                                        KStyle.labelSmRegularTextStyle.copyWith(
+                                      color: KStyle.c72GreyColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Title and Actions Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _form!.title,
+                                    style: KStyle.heading2TextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FormPreviewScreen(form: _form!),
+                                          ),
+                                        );
+                                      },
+                                      icon: SvgPicture.asset(
+                                        'assets/icons/eye.svg',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      onPressed: _copyShareLink,
+                                      icon: SvgPicture.asset(
+                                        'assets/icons/copy.svg',
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        // Create a sample form if none exists
+                                        if (_form!.fields.isEmpty) {}
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FormBuilderScreen(form: _form!),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: KStyle.cPrimaryColor,
+                                        foregroundColor: KStyle.cPrimaryColor,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 8,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                        side: BorderSide(
+                                            color: KStyle.cPrimaryColor),
+                                      ),
+                                      // icon: const Icon(Icons.edit, size: 20,),
+                                      icon: IconButton(
+                                        onPressed: () {
+                                          // TODO: Implement preview
+                                        },
+                                        icon: SvgPicture.asset(
+                                          'assets/icons/edit.svg',
+                                          width: 18,
+                                          height: 18,
+                                          colorFilter: ColorFilter.mode(
+                                              KStyle.cWhiteColor,
+                                              BlendMode.srcIn),
+                                        ),
+                                      ),
+                                      label: Text(
+                                        'Edit Form',
+                                        style: KStyle.labelTextStyle.copyWith(
+                                          color: KStyle.cWhiteColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Tab Bar
+                      Container(
+                        decoration: BoxDecoration(
+                          color: KStyle.cWhiteColor,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: KStyle.cE3GreyColor,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          child: Row(
+                            children: [
+                              _buildTabItem('Submissions', 0),
+                              _buildTabItem('Share', 1),
+                              _buildTabItem('Settings', 2),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Tab Content
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildSubmissionsTab(),
+                            _buildShareTab(),
+                            _buildSettingsTab(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

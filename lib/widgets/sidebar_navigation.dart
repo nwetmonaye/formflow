@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:formflow/constants/style.dart';
+import 'package:formflow/models/user_model.dart';
 
 class SidebarNavigation extends StatelessWidget {
-  const SidebarNavigation({super.key});
+  final UserModel? user;
+  final int selectedIndex;
+  final Function(int) onNavItemTap;
+  final VoidCallback? onProfileTap;
+
+  const SidebarNavigation({
+    super.key,
+    this.user,
+    this.selectedIndex = 0,
+    required this.onNavItemTap,
+    this.onProfileTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +53,12 @@ class SidebarNavigation extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  // My Forms (Selected)
+                  // My Forms
                   _buildNavItem(
                     icon: Icons.folder,
                     label: 'My Forms',
-                    isSelected: true,
-                    onTap: () {},
+                    isSelected: selectedIndex == 0,
+                    onTap: () => onNavItemTap(0),
                   ),
 
                   const SizedBox(height: 8),
@@ -55,8 +67,8 @@ class SidebarNavigation extends StatelessWidget {
                   _buildNavItem(
                     icon: Icons.people,
                     label: 'Cohorts',
-                    isSelected: false,
-                    onTap: () {},
+                    isSelected: selectedIndex == 1,
+                    onTap: () => onNavItemTap(1),
                   ),
 
                   const SizedBox(height: 8),
@@ -65,8 +77,8 @@ class SidebarNavigation extends StatelessWidget {
                   _buildNavItem(
                     icon: Icons.notifications,
                     label: 'Notifications',
-                    isSelected: false,
-                    onTap: () {},
+                    isSelected: selectedIndex == 2,
+                    onTap: () => onNavItemTap(2),
                     badge: '5',
                   ),
                 ],
@@ -85,53 +97,74 @@ class SidebarNavigation extends StatelessWidget {
                 ),
               ),
             ),
-            child: Row(
-              children: [
-                // Profile Picture
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: KStyle.cPrimaryColor,
-                    shape: BoxShape.circle,
+            child: GestureDetector(
+              onTap: onProfileTap,
+              child: Row(
+                children: [
+                  // Profile Picture
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: KStyle.cPrimaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: user?.photoURL != null
+                        ? ClipOval(
+                            child: Image.network(
+                              user!.photoURL!,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  color: KStyle.cWhiteColor,
+                                  size: 20,
+                                );
+                              },
+                            ),
+                          )
+                        : Icon(
+                            Icons.person,
+                            color: KStyle.cWhiteColor,
+                            size: 20,
+                          ),
                   ),
-                  child: Icon(
-                    Icons.person,
-                    color: KStyle.cWhiteColor,
+
+                  const SizedBox(width: 12),
+
+                  // User Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.displayName ?? user?.email ?? 'User',
+                          style: KStyle.labelMdBoldTextStyle.copyWith(
+                            color: KStyle.cBlackColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'View Profile',
+                          style: KStyle.labelXsRegularTextStyle.copyWith(
+                            color: KStyle.c72GreyColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Dropdown Icon
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: KStyle.c72GreyColor,
                     size: 20,
                   ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // User Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Thomas Willy',
-                        style: KStyle.labelMdBoldTextStyle.copyWith(
-                          color: KStyle.cBlackColor,
-                        ),
-                      ),
-                      Text(
-                        'View Profile',
-                        style: KStyle.labelXsRegularTextStyle.copyWith(
-                          color: KStyle.c72GreyColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Dropdown Icon
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  color: KStyle.c72GreyColor,
-                  size: 20,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

@@ -255,12 +255,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color: KStyle.cWhiteColor,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: Image.asset(
-                                        'assets/images/profile.png',
-                                        fit: BoxFit.cover,
-                                        // width: double.infinity,
-                                        // height: 140,
-                                      ),
+                                      child: authState.user.photoURL != null
+                                          ? ClipOval(
+                                              child: Image.network(
+                                                authState.user.photoURL!,
+                                                width: 40,
+                                                height: 40,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
+                                                  return Image.asset(
+                                                    'assets/images/profile.png',
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          : Image.asset(
+                                              'assets/images/profile.png',
+                                              fit: BoxFit.cover,
+                                            ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
