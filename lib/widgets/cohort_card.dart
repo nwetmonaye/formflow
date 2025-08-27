@@ -457,13 +457,383 @@ class _CohortCardState extends State<CohortCard> {
   }
 
   void _editCohort(BuildContext context) {
-    // TODO: Implement edit cohort functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Edit ${widget.cohort.name} - Coming soon'),
-        backgroundColor: KStyle.cPrimaryColor,
-      ),
+    String cohortName = widget.cohort.name;
+    List<CohortRecipient> recipients = List.from(widget.cohort.recipients);
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      pageBuilder: (BuildContext context, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: KStyle.cWhiteColor,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Edit Cohort',
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: KStyle.c72GreyColor,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Cohort Name Section
+                  Text(
+                    'Cohort Name',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: TextEditingController(text: cohortName),
+                    onChanged: (value) {
+                      cohortName = value;
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Cohort Name',
+                      hintStyle: KStyle.labelTextStyle.copyWith(
+                        color: KStyle.c72GreyColor,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: KStyle.c72GreyColor.withOpacity(0.3),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: KStyle.c72GreyColor.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: KStyle.cPrimaryColor,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Recipients Section
+                  Text(
+                    'Recipients',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cBlackColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Recipients List
+                  ...recipients.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final recipient = entry.value;
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller:
+                                TextEditingController(text: recipient.name),
+                            onChanged: (value) {
+                              recipients[index] = CohortRecipient(
+                                name: value,
+                                email: recipient.email,
+                              );
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Name',
+                              hintStyle: KStyle.labelTextStyle.copyWith(
+                                color: KStyle.c72GreyColor,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.c72GreyColor.withOpacity(0.3),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.c72GreyColor.withOpacity(0.3),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.cPrimaryColor,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller:
+                                TextEditingController(text: recipient.email),
+                            onChanged: (value) {
+                              recipients[index] = CohortRecipient(
+                                name: recipient.name,
+                                email: value,
+                              );
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Email',
+                              hintStyle: KStyle.labelTextStyle.copyWith(
+                                color: KStyle.c72GreyColor,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.c72GreyColor.withOpacity(0.3),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.c72GreyColor.withOpacity(0.3),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: KStyle.cPrimaryColor,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (recipients.length > 1) ...[
+                          const SizedBox(width: 16),
+                          IconButton(
+                            onPressed: () {
+                              setDialogState(() {
+                                recipients.removeAt(index);
+                              });
+                            },
+                            icon: Icon(
+                              Icons.delete_outline,
+                              color: KStyle.cDBRedColor,
+                              size: 20,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ],
+                    );
+                  }).toList(),
+
+                  const SizedBox(height: 16),
+
+                  // Add Recipient Button
+                  TextButton.icon(
+                    onPressed: () {
+                      setDialogState(() {
+                        recipients.add(CohortRecipient(
+                          name: '',
+                          email: '',
+                        ));
+                      });
+                    },
+                    icon: Icon(
+                      Icons.add,
+                      size: 18,
+                      color: KStyle.cPrimaryColor,
+                    ),
+                    label: Text(
+                      '+ Add Recipient',
+                      style: KStyle.labelTextStyle.copyWith(
+                        color: KStyle.cPrimaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: KStyle.cPrimaryColor,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // Validate inputs
+                    if (cohortName.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please enter a cohort name'),
+                          backgroundColor: KStyle.cDBRedColor,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Validate recipients
+                    for (int i = 0; i < recipients.length; i++) {
+                      final recipient = recipients[i];
+                      if (recipient.name.trim().isEmpty ||
+                          recipient.email.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Please fill in all recipient fields'),
+                            backgroundColor: KStyle.cDBRedColor,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Basic email validation
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(recipient.email.trim())) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Please enter a valid email for recipient ${i + 1}'),
+                            backgroundColor: KStyle.cDBRedColor,
+                          ),
+                        );
+                        return;
+                      }
+                    }
+
+                    Navigator.pop(context);
+                    await _updateCohort(cohortName.trim(), recipients);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KStyle.cPrimaryColor,
+                    foregroundColor: KStyle.cWhiteColor,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Save',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cWhiteColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+  }
+
+  Future<void> _updateCohort(
+      String newName, List<CohortRecipient> newRecipients) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('Updating ${widget.cohort.name}...'),
+            ],
+          ),
+          backgroundColor: KStyle.cPrimaryColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Create updated cohort model
+      final updatedCohort = CohortModel(
+        id: widget.cohort.id,
+        name: newName,
+        recipients: newRecipients,
+        createdBy: widget.cohort.createdBy,
+        createdAt: widget.cohort.createdAt,
+        updatedAt: DateTime.now(),
+      );
+
+      // Update the cohort in Firebase
+      await FirebaseService.updateCohort(widget.cohort.id!, updatedCohort);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Cohort "${newName}" updated successfully!',
+          ),
+          backgroundColor: KStyle.cE8GreenColor,
+        ),
+      );
+
+      // Refresh the parent widget to show updated data
+      widget.onRefresh();
+    } catch (e) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error updating cohort: $e',
+          ),
+          backgroundColor: KStyle.cDBRedColor,
+        ),
+      );
+    }
   }
 
   void _deleteCohort(BuildContext context) {
