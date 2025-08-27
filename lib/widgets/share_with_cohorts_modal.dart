@@ -255,12 +255,13 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Container(
         width: 500,
         padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: KStyle.cWhiteColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +394,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
           child: ElevatedButton.icon(
             onPressed: () => _copyFormLink(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: KStyle.cEDBlueColor,
+              backgroundColor: KStyle.cSelectedColor,
               foregroundColor: KStyle.cPrimaryColor,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
