@@ -429,20 +429,20 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
         const SizedBox(height: 16),
 
         // Debug button to test getting all cohorts
-        if (cohorts.isEmpty)
-          Column(
-            children: [
-              ElevatedButton(
-                onPressed: _debugLoadAllCohorts,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text('Debug: Load All Cohorts'),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
+        // if (cohorts.isEmpty)
+        //   Column(
+        //     children: [
+        //       ElevatedButton(
+        //         onPressed: _debugLoadAllCohorts,
+        //         style: ElevatedButton.styleFrom(
+        //           backgroundColor: Colors.orange,
+        //           foregroundColor: Colors.white,
+        //         ),
+        //         child: Text('Debug: Load All Cohorts'),
+        //       ),
+        //       const SizedBox(height: 16),
+        //     ],
+        //   ),
 
         if (isLoading)
           Center(
