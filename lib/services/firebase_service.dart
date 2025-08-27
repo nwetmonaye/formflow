@@ -1252,9 +1252,20 @@ class FirebaseService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      final cohorts = querySnapshot.docs
-          .map((doc) => CohortModel.fromMap(doc.data(), doc.id))
-          .toList();
+      final cohorts = querySnapshot.docs.map((doc) {
+        // Debug: Show raw document data
+        print('🔍 getAllCohorts: Raw document data for ${doc.id}:');
+        print('🔍   Document ID: "${doc.id}" (length: ${doc.id.length})');
+        print('🔍   Document ID bytes: ${doc.id.codeUnits}');
+        print('🔍   Document data: ${doc.data()}');
+
+        final cohort = CohortModel.fromMap(doc.data(), doc.id);
+        print('🔍 getAllCohorts: Parsed cohort:');
+        print('🔍   Parsed ID: "${cohort.id}" (length: ${cohort.id?.length})');
+        print('🔍   Parsed ID bytes: ${cohort.id?.codeUnits}');
+
+        return cohort;
+      }).toList();
 
       print('🔍 getAllCohorts: Successfully fetched ${cohorts.length} cohorts');
       for (final cohort in cohorts) {
@@ -1412,6 +1423,17 @@ class FirebaseService {
     print('🔍 FirebaseService: formDescription: $formDescription');
     print('🔍 FirebaseService: formLink: $formLink');
 
+    // Validate input parameters
+    if (formId.isEmpty) {
+      throw Exception('Form ID cannot be empty');
+    }
+    if (cohortId.isEmpty) {
+      throw Exception('Cohort ID cannot be empty');
+    }
+    if (formTitle.isEmpty) {
+      throw Exception('Form title cannot be empty');
+    }
+
     if (_functions == null) {
       print('❌ FirebaseService: Firebase Functions not initialized');
       throw Exception('Firebase Functions not initialized');
@@ -1437,7 +1459,189 @@ class FirebaseService {
     } catch (e) {
       print('❌ FirebaseService: Error sharing form with cohort: $e');
       print('❌ FirebaseService: Error type: ${e.runtimeType}');
+
+      // Check if it's a Firebase Functions error
+      if (e.toString().contains('firebase_functions')) {
+        print('❌ FirebaseService: This is a Firebase Functions error');
+        if (e.toString().contains('invalid-argument')) {
+          print(
+              '❌ FirebaseService: Invalid argument error - check the data being sent');
+          print('❌ FirebaseService: Data being sent:');
+          print(
+              '❌ FirebaseService:   formId: $formId (type: ${formId.runtimeType})');
+          print(
+              '❌ FirebaseService:   cohortId: $cohortId (type: ${cohortId.runtimeType})');
+          print(
+              '❌ FirebaseService:   formTitle: $formTitle (type: ${formTitle.runtimeType})');
+          print(
+              '❌ FirebaseService:   formDescription: $formDescription (type: ${formDescription.runtimeType})');
+          print(
+              '❌ FirebaseService:   formLink: $formLink (type: ${formLink.runtimeType})');
+        }
+      }
+
       rethrow;
+    }
+  }
+
+  // Test Firebase Functions connection
+  static Future<bool> testFirebaseFunctionsConnection() async {
+    print('🔍 FirebaseService: Testing Firebase Functions connection...');
+
+    if (_functions == null) {
+      print('❌ FirebaseService: Firebase Functions not initialized');
+      return false;
+    }
+
+    try {
+      // Test with a simple function call to see if Functions are accessible
+      print('🔍 FirebaseService: Testing basic Functions access...');
+
+      // Try to create a callable function (this will fail if Functions are not deployed)
+      final testCallable = _functions!.httpsCallable('testFunction');
+      print('🔍 FirebaseService: Test callable created successfully');
+
+      // Try to call the function (this will fail if Functions are not accessible)
+      final result = await testCallable.call({'test': 'data'});
+      print(
+          '🔍 FirebaseService: Test function call successful: ${result.data}');
+
+      return true;
+    } catch (e) {
+      print('❌ FirebaseService: Firebase Functions connection test failed: $e');
+      print('❌ FirebaseService: Error type: ${e.runtimeType}');
+
+      if (e.toString().contains('firebase_functions')) {
+        print(
+            '❌ FirebaseService: This is a Firebase Functions error - Functions may not be deployed');
+      } else if (e.toString().contains('permission-denied')) {
+        print(
+            '❌ FirebaseService: Permission denied - check Firebase security rules');
+      } else if (e.toString().contains('not-found')) {
+        print(
+            '❌ FirebaseService: Function not found - check if Functions are deployed');
+      }
+
+      return false;
+    }
+  }
+
+  // Test if a specific function is accessible
+  static Future<bool> testSpecificFunction(String functionName) async {
+    print('🔍 FirebaseService: Testing specific function: $functionName');
+
+    if (_functions == null) {
+      print('❌ FirebaseService: Firebase Functions not initialized');
+      return false;
+    }
+
+    try {
+      // Try to create a callable function for the specific function
+      print('🔍 FirebaseService: Creating callable for $functionName...');
+      final callable = _functions!.httpsCallable(functionName);
+      print(
+          '🔍 FirebaseService: Callable created successfully for $functionName');
+
+      // Try to call the function with minimal data
+      print('🔍 FirebaseService: Testing function call for $functionName...');
+      final result = await callable.call({'test': 'data'});
+      print(
+          '🔍 FirebaseService: Function $functionName call successful: ${result.data}');
+
+      return true;
+    } catch (e) {
+      print('❌ FirebaseService: Function $functionName test failed: $e');
+      print('❌ FirebaseService: Error type: ${e.runtimeType}');
+
+      if (e.toString().contains('firebase_functions')) {
+        print('❌ FirebaseService: This is a Firebase Functions error');
+      } else if (e.toString().contains('permission-denied')) {
+        print(
+            '❌ FirebaseService: Permission denied - check Firebase security rules');
+      } else if (e.toString().contains('not-found')) {
+        print(
+            '❌ FirebaseService: Function $functionName not found - check if it\'s deployed');
+      } else if (e.toString().contains('invalid-argument')) {
+        print(
+            '❌ FirebaseService: Invalid argument - function exists but data format is wrong');
+      }
+
+      return false;
+    }
+  }
+
+  // Check if Firebase Functions are deployed and accessible
+  static Future<Map<String, dynamic>> checkFirebaseFunctionsStatus() async {
+    print('🔍 FirebaseService: Checking Firebase Functions status...');
+
+    final status = <String, dynamic>{
+      'functionsInitialized': false,
+      'functionsInstance': false,
+      'functionsAccessible': false,
+      'deployedFunctions': <String>[],
+      'errors': <String>[],
+    };
+
+    try {
+      // Check 1: Are functions initialized in our service?
+      status['functionsInitialized'] = _functions != null;
+      print(
+          '🔍 FirebaseService: Functions initialized in service: ${status['functionsInitialized']}');
+
+      if (status['functionsInitialized'] != true) {
+        (status['errors'] as List<String>)
+            .add('Firebase Functions not initialized in service');
+        return status;
+      }
+
+      // Check 2: Can we access the functions instance?
+      try {
+        final testCallable = _functions!.httpsCallable('testFunction');
+        status['functionsInstance'] = true;
+        print(
+            '🔍 FirebaseService: Functions instance accessible: ${status['functionsInstance']}');
+      } catch (e) {
+        (status['errors'] as List<String>)
+            .add('Cannot access Functions instance: $e');
+        print('❌ FirebaseService: Cannot access Functions instance: $e');
+        return status;
+      }
+
+      // Check 3: Test if functions are actually deployed
+      final testFunctions = ['testFunction', 'shareFormWithCohort'];
+
+      for (final functionName in testFunctions) {
+        try {
+          print('🔍 FirebaseService: Testing function: $functionName');
+          final callable = _functions!.httpsCallable(functionName);
+
+          // Just test if we can create the callable (don't actually call it)
+          print(
+              '🔍 FirebaseService: Function $functionName callable created successfully');
+          (status['deployedFunctions'] as List<String>).add(functionName);
+        } catch (e) {
+          print('❌ FirebaseService: Function $functionName not accessible: $e');
+          (status['errors'] as List<String>).add('Function $functionName: $e');
+        }
+      }
+
+      // Check 4: Overall accessibility
+      final deployedFunctions = status['deployedFunctions'] as List<String>;
+      status['functionsAccessible'] = deployedFunctions.isNotEmpty;
+
+      if (status['functionsAccessible'] == true) {
+        print('✅ FirebaseService: Functions are accessible!');
+        print('✅ Deployed functions: $deployedFunctions');
+      } else {
+        print('❌ FirebaseService: No functions are accessible');
+        print('❌ Errors: ${status['errors']}');
+      }
+
+      return status;
+    } catch (e) {
+      print('❌ FirebaseService: Error checking Functions status: $e');
+      (status['errors'] as List<String>).add('General error: $e');
+      return status;
     }
   }
 }

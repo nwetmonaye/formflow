@@ -1,4 +1,4 @@
-import { onRequest } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 
@@ -97,47 +97,24 @@ const createTransporter = () => {
 };
 
 // Main function for sharing forms with cohorts
-export const shareFormWithCohort = onRequest(
+export const shareFormWithCohort = onCall(
     {
         maxInstances: 10,
         timeoutSeconds: 300, // 5 minutes
         memory: '256MiB',
         region: 'us-central1'
     },
-    async (req, res) => {
-        // Enable CORS
-        res.set('Access-Control-Allow-Origin', '*');
-        res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
-
-        if (req.method !== 'POST') {
-            res.status(405).json({
-                error: 'Method not allowed. Use POST.',
-                method: req.method
-            });
-            return;
-        }
-
+    async (request) => {
         try {
-            const { formId, cohortId, formTitle, formDescription, formLink } = req.body;
+            const { formId, cohortId, formTitle, formDescription, formLink } = request.data;
 
             console.log('🔍 shareFormWithCohort: Function called');
-            console.log('🔍 shareFormWithCohort: Request data:', req.body);
+            console.log('🔍 shareFormWithCohort: Request data:', request.data);
 
             // Validate required fields
             if (!formId || !cohortId || !formTitle) {
                 console.error('❌ Missing required fields:', { formId, cohortId, formTitle });
-                res.status(400).json({
-                    error: 'Missing required fields',
-                    required: ['formId', 'cohortId', 'formTitle'],
-                    received: { formId, cohortId, formTitle }
-                });
-                return;
+                throw new Error('Missing required fields: formId, cohortId, formTitle');
             }
 
             // Validate field types
@@ -147,16 +124,7 @@ export const shareFormWithCohort = onRequest(
                     cohortId: typeof cohortId,
                     formTitle: typeof formTitle
                 });
-                res.status(400).json({
-                    error: 'Invalid field types',
-                    expected: { formId: 'string', cohortId: 'string', formTitle: 'string' },
-                    received: {
-                        formId: typeof formId,
-                        cohortId: typeof cohortId,
-                        formTitle: typeof formTitle
-                    }
-                });
-                return;
+                throw new Error('Invalid field types: formId, cohortId, and formTitle must be strings');
             }
 
             console.log('🔍 shareFormWithCohort: Field validation passed');
@@ -165,11 +133,7 @@ export const shareFormWithCohort = onRequest(
             const cohortDoc = await db.collection('cohorts').doc(cohortId).get();
             if (!cohortDoc.exists) {
                 console.error('❌ Cohort not found:', cohortId);
-                res.status(404).json({
-                    error: 'Cohort not found',
-                    cohortId: cohortId
-                });
-                return;
+                throw new Error(`Cohort not found: ${cohortId}`);
             }
 
             const cohortData = cohortDoc.data()!;
@@ -181,12 +145,11 @@ export const shareFormWithCohort = onRequest(
 
             if (recipients.length === 0) {
                 console.log('🔍 Cohort has no recipients');
-                res.status(200).json({
+                return {
                     success: true,
                     message: 'Cohort has no recipients to share with',
                     recipientsCount: 0
-                });
-                return;
+                };
             }
 
             console.log('🔍 shareFormWithCohort: Recipients data:', recipients);
@@ -201,11 +164,7 @@ export const shareFormWithCohort = onRequest(
             } catch (verifyError) {
                 console.error('❌ Email transporter verification failed:', verifyError);
                 const errorMessage = verifyError instanceof Error ? verifyError.message : 'Unknown verification error';
-                res.status(500).json({
-                    error: 'Email service not available',
-                    details: errorMessage
-                });
-                return;
+                throw new Error(`Email service not available: ${errorMessage}`);
             }
 
             // Send emails to all recipients
@@ -319,14 +278,14 @@ export const shareFormWithCohort = onRequest(
 
             console.log('✅ Form sharing completed. Success:', successCount, 'Failures:', failureCount);
 
-            res.status(200).json({
+            return {
                 success: true,
                 message: 'Form shared with cohort successfully',
                 recipientsCount: recipients.length,
                 successCount: successCount,
                 failureCount: failureCount,
                 cohortName: cohortData.name
-            });
+            };
 
         } catch (error) {
             console.error('❌ shareFormWithCohort: Error occurred:', error);
@@ -348,10 +307,7 @@ export const shareFormWithCohort = onRequest(
             }
 
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            res.status(500).json({
-                error: 'Failed to share form with cohort',
-                details: errorMessage
-            });
+            throw new Error(`Failed to share form with cohort: ${errorMessage}`);
         }
     }
 );
