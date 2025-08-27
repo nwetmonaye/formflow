@@ -534,18 +534,91 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                       return _buildCohortsGrid(_cachedCohorts);
                                     }
 
-                                    // If no cached data and still loading, show loading with debug info
+                                    // If no cached data and still loading, show single skeleton loader
                                     return Container(
-                                      padding: const EdgeInsets.all(48),
-                                      child: Center(
-                                        child: Column(
-                                          children: [
-                                            CircularProgressIndicator(
-                                              color: KStyle.cPrimaryColor,
-                                              strokeWidth: 3,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Single skeleton cohort card
+                                          Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: KStyle.cWhiteColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.08),
+                                                  blurRadius: 20,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
                                             ),
-                                            const SizedBox(height: 16),
-                                            Text(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Skeleton title
+                                                Container(
+                                                  height: 20,
+                                                  width: 120,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[300],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 80),
+                                                // Skeleton team members section
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 24,
+                                                      height: 24,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[300],
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Container(
+                                                      width: 40,
+                                                      height: 20,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[300],
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const Spacer(),
+                                                // Skeleton button
+                                                Container(
+                                                  width: double.infinity,
+                                                  height: 48,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[300],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          // Loading text
+                                          Center(
+                                            child: Text(
                                               'Loading cohorts...',
                                               style: KStyle
                                                   .labelMdRegularTextStyle
@@ -553,50 +626,8 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                                 color: KStyle.c72GreyColor,
                                               ),
                                             ),
-                                            const SizedBox(height: 16),
-                                            // Debug information
-                                            // Container(
-                                            //   padding: const EdgeInsets.all(16),
-                                            //   decoration: BoxDecoration(
-                                            //     color: Colors.grey
-                                            //         .withOpacity(0.1),
-                                            //     borderRadius:
-                                            //         BorderRadius.circular(8),
-                                            //   ),
-                                            //   child: Column(
-                                            //     children: [
-                                            //       Text(
-                                            //         'Debug Info:',
-                                            //         style: TextStyle(
-                                            //           fontWeight:
-                                            //               FontWeight.bold,
-                                            //           color: Colors.grey[700],
-                                            //         ),
-                                            //       ),
-                                            //       const SizedBox(height: 8),
-                                            //       Text(
-                                            //         'Has Cached Data: $_hasCachedData',
-                                            //         style: TextStyle(
-                                            //             color:
-                                            //                 Colors.grey[600]),
-                                            //       ),
-                                            //       Text(
-                                            //         'Cached Count: ${_cachedCohorts.length}',
-                                            //         style: TextStyle(
-                                            //             color:
-                                            //                 Colors.grey[600]),
-                                            //       ),
-                                            //       Text(
-                                            //         'Firebase Init: ${FirebaseService.isInitialized}',
-                                            //         style: TextStyle(
-                                            //             color:
-                                            //                 Colors.grey[600]),
-                                            //       ),
-                                            //     ],
-                                            //   ),
-                                            // ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     );
                                   }
@@ -688,7 +719,7 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                           ElevatedButton(
                                             onPressed: () {
                                               // Trigger a refresh by rebuilding the stream
-                                              _refreshCohorts();
+                                              // _refreshCohorts();
                                             },
                                             child: const Text('Retry'),
                                           ),
@@ -805,13 +836,7 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                     return _buildEmptyState();
                                   }
 
-                                  return RefreshIndicator(
-                                    onRefresh: () async {
-                                      // Trigger a refresh by rebuilding the stream
-                                      _refreshCohorts();
-                                    },
-                                    child: _buildCohortsGrid(cohorts),
-                                  );
+                                  return _buildCohortsGrid(cohorts);
                                 },
                               );
                             },
@@ -1124,7 +1149,7 @@ class _CohortsScreenState extends State<CohortsScreen> {
       );
 
       // Refresh the data
-      _refreshCohorts();
+      // _refreshCohorts();
     } catch (e) {
       print('🔍 CohortsScreen: Error creating test cohort: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1356,8 +1381,7 @@ class _CohortsScreenState extends State<CohortsScreen> {
               return CohortCard(
                 cohort: cohorts[index],
                 onRefresh: () {
-                  // Trigger a refresh by rebuilding the stream
-                  _refreshCohorts();
+                  // _refreshCohorts();
                 },
               );
             },

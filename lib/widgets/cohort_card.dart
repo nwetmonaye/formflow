@@ -19,123 +19,145 @@ class CohortCard extends StatefulWidget {
 }
 
 class _CohortCardState extends State<CohortCard> {
+  bool _isLoading = false; // Add loading state
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: KStyle.cWhiteColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top Section - Title and Options
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Title
-              Expanded(
-                child: Text(
-                  widget.cohort.name,
-                  style: KStyle.heading2TextStyle.copyWith(
-                    color: KStyle.cBlackColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: KStyle.cWhiteColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
-              // Options Button
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: KStyle.cEDBlueColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: IconButton(
-                  onPressed: () => _showOptionsMenu(context),
-                  icon: Icon(
-                    Icons.more_horiz,
-                    size: 20,
-                    color: KStyle.cPrimaryColor,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Section - Title and Options
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Title
+                  Expanded(
+                    child: Text(
+                      widget.cohort.name,
+                      style: KStyle.heading2TextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  // Options Button
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: KStyle.cEDBlueColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      onPressed:
+                          _isLoading ? null : () => _showOptionsMenu(context),
+                      icon: Icon(
+                        Icons.more_horiz,
+                        size: 20,
+                        color: KStyle.cPrimaryColor,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Middle Section - Team Members and Count
+              // const Spacer(),
+              SizedBox(
+                height: 80,
+              ),
+              Row(
+                children: [
+                  // Team Members Icon
+                  Icon(
+                    Icons.group_outlined,
+                    size: 24,
+                    color: KStyle.c72GreyColor,
+                  ),
+                  const SizedBox(width: 12),
+                  // Member Count Badge
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: KStyle.cDBRedColor,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: Text(
+                      '${widget.cohort.recipients.length}',
+                      style: KStyle.labelXsRegularTextStyle.copyWith(
+                        color: KStyle.cWhiteColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const Spacer(),
+
+              // Bottom Section - Share Form Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed:
+                      _isLoading ? null : () => _showShareFormDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KStyle.cSelectedColor,
+                    foregroundColor: KStyle.cPrimaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Share Form',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-
-          // Middle Section - Team Members and Count
-          // const Spacer(),
-          SizedBox(
-            height: 80,
-          ),
-          Row(
-            children: [
-              // Team Members Icon
-              Icon(
-                Icons.group_outlined,
-                size: 24,
-                color: KStyle.c72GreyColor,
-              ),
-              const SizedBox(width: 12),
-              // Member Count Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: KStyle.cDBRedColor,
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Text(
-                  '${widget.cohort.recipients.length}',
-                  style: KStyle.labelXsRegularTextStyle.copyWith(
-                    color: KStyle.cWhiteColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const Spacer(),
-
-          // Bottom Section - Share Form Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _showShareFormDialog(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: KStyle.cSelectedColor,
-                foregroundColor: KStyle.cPrimaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Share Form',
-                style: KStyle.labelTextStyle.copyWith(
-                  color: KStyle.cPrimaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
+        ),
+        // Loading overlay
+        if (_isLoading)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
               ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -400,6 +422,10 @@ class _CohortCardState extends State<CohortCard> {
 
   Future<void> _shareFormWithCohort(FormModel form) async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -440,9 +466,6 @@ class _CohortCardState extends State<CohortCard> {
           backgroundColor: KStyle.cApproveColor,
         ),
       );
-
-      // Reset selection
-      // _selectedFormId = null; // This line is removed as per the edit hint
     } catch (e) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -453,6 +476,10 @@ class _CohortCardState extends State<CohortCard> {
           backgroundColor: KStyle.cDBRedColor,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -776,6 +803,10 @@ class _CohortCardState extends State<CohortCard> {
   Future<void> _updateCohort(
       String newName, List<CohortRecipient> newRecipients) async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -820,9 +851,6 @@ class _CohortCardState extends State<CohortCard> {
           backgroundColor: KStyle.cE8GreenColor,
         ),
       );
-
-      // Refresh the parent widget to show updated data
-      widget.onRefresh();
     } catch (e) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -833,6 +861,10 @@ class _CohortCardState extends State<CohortCard> {
           backgroundColor: KStyle.cDBRedColor,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -887,6 +919,10 @@ class _CohortCardState extends State<CohortCard> {
 
   Future<void> _confirmDeleteCohort(BuildContext context) async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       if (widget.cohort.id != null && widget.cohort.id!.isNotEmpty) {
         await FirebaseService.deleteCohort(widget.cohort.id!);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -895,7 +931,6 @@ class _CohortCardState extends State<CohortCard> {
             backgroundColor: KStyle.cE8GreenColor,
           ),
         );
-        widget.onRefresh();
       } else {
         throw Exception('Cohort ID is empty or null');
       }
@@ -906,6 +941,10 @@ class _CohortCardState extends State<CohortCard> {
           backgroundColor: KStyle.cDBRedColor,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
