@@ -140,6 +140,27 @@ export const shareFormWithCohort = onRequest(
                 return;
             }
 
+            // Validate field types
+            if (typeof formId !== 'string' || typeof cohortId !== 'string' || typeof formTitle !== 'string') {
+                console.error('❌ Invalid field types:', {
+                    formId: typeof formId,
+                    cohortId: typeof cohortId,
+                    formTitle: typeof formTitle
+                });
+                res.status(400).json({
+                    error: 'Invalid field types',
+                    expected: { formId: 'string', cohortId: 'string', formTitle: 'string' },
+                    received: {
+                        formId: typeof formId,
+                        cohortId: typeof cohortId,
+                        formTitle: typeof formTitle
+                    }
+                });
+                return;
+            }
+
+            console.log('🔍 shareFormWithCohort: Field validation passed');
+
             // Get cohort data
             const cohortDoc = await db.collection('cohorts').doc(cohortId).get();
             if (!cohortDoc.exists) {
@@ -154,6 +175,10 @@ export const shareFormWithCohort = onRequest(
             const cohortData = cohortDoc.data()!;
             const recipients = cohortData.recipients || [];
 
+            console.log('🔍 shareFormWithCohort: Cohort data retrieved');
+            console.log('🔍 shareFormWithCohort: Cohort name:', cohortData.name);
+            console.log('🔍 shareFormWithCohort: Recipients count:', recipients.length);
+
             if (recipients.length === 0) {
                 console.log('🔍 Cohort has no recipients');
                 res.status(200).json({
@@ -163,6 +188,8 @@ export const shareFormWithCohort = onRequest(
                 });
                 return;
             }
+
+            console.log('🔍 shareFormWithCohort: Recipients data:', recipients);
 
             // Create transporter
             const transporter = createTransporter();

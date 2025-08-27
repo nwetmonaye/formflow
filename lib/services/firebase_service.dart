@@ -1230,6 +1230,45 @@ class FirebaseService {
     }
   }
 
+  // Method to get all cohorts (for debugging and admin purposes)
+  static Future<List<CohortModel>> getAllCohorts() async {
+    print('🔍 getAllCohorts: Starting to fetch all cohorts...');
+
+    try {
+      // Check if our service is initialized
+      if (_firestore == null) {
+        print(
+            '🔍 getAllCohorts: Firestore not initialized, attempting to initialize...');
+        final initialized = await ensureInitialized();
+        if (!initialized || _firestore == null) {
+          print('🔍 getAllCohorts: Failed to initialize Firebase');
+          return [];
+        }
+      }
+
+      print('🔍 getAllCohorts: Querying Firestore for all cohorts...');
+      final querySnapshot = await _firestore!
+          .collection('cohorts')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      final cohorts = querySnapshot.docs
+          .map((doc) => CohortModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      print('🔍 getAllCohorts: Successfully fetched ${cohorts.length} cohorts');
+      for (final cohort in cohorts) {
+        print(
+            '🔍 getAllCohorts: Cohort: ${cohort.name} (ID: ${cohort.id}, CreatedBy: ${cohort.createdBy})');
+      }
+      return cohorts;
+    } catch (e) {
+      print('🔍 getAllCohorts: Error getting all cohorts: $e');
+      // Return empty list instead of throwing to prevent UI from breaking
+      return [];
+    }
+  }
+
   // Stream method for real-time cohort updates
   static Stream<List<CohortModel>> getCohortsStream() {
     print('🔍 getCohortsStream: Starting cohort stream...');
@@ -1366,11 +1405,23 @@ class FirebaseService {
     String? formDescription,
     String? formLink,
   }) async {
-    if (_functions == null)
+    print('🔍 FirebaseService: shareFormWithCohort called');
+    print('🔍 FirebaseService: formId: $formId');
+    print('🔍 FirebaseService: cohortId: $cohortId');
+    print('🔍 FirebaseService: formTitle: $formTitle');
+    print('🔍 FirebaseService: formDescription: $formDescription');
+    print('🔍 FirebaseService: formLink: $formLink');
+
+    if (_functions == null) {
+      print('❌ FirebaseService: Firebase Functions not initialized');
       throw Exception('Firebase Functions not initialized');
+    }
 
     try {
+      print('🔍 FirebaseService: Creating callable function');
       final callable = _functions!.httpsCallable('shareFormWithCohort');
+
+      print('🔍 FirebaseService: Calling function with data');
       final result = await callable.call({
         'formId': formId,
         'cohortId': cohortId,
@@ -1379,9 +1430,13 @@ class FirebaseService {
         'formLink': formLink,
       });
 
+      print('🔍 FirebaseService: Function call successful');
+      print('🔍 FirebaseService: Result data: ${result.data}');
+
       return Map<String, dynamic>.from(result.data);
     } catch (e) {
-      print('🔍 Error sharing form with cohort: $e');
+      print('❌ FirebaseService: Error sharing form with cohort: $e');
+      print('❌ FirebaseService: Error type: ${e.runtimeType}');
       rethrow;
     }
   }
