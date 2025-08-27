@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/submission_model.dart';
+import 'package:formflow/screens/cohorts_screen.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/screens/form_builder_screen.dart';
 import 'package:formflow/screens/notification_screen.dart';
@@ -210,6 +211,11 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               setState(() {
                                 selectedNavItem = 1;
                               });
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const CohortsScreen(),
+                                ),
+                              );
                             },
                           ),
                           StreamBuilder<int>(
@@ -267,26 +273,26 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: KStyle.cWhiteColor,
+                                color: KStyle.cEDBlueColor,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: ClipOval(
-                                child: authState.user.photoURL != null
-                                    ? Image.network(
-                                        authState.user.photoURL!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Image.asset(
-                                            'assets/images/profile.png',
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
-                                      )
-                                    : Image.asset(
-                                        'assets/images/profile.png',
-                                        fit: BoxFit.cover,
-                                      ),
+                              child: Center(
+                                child: Text(
+                                  (authState.user.displayName?.isNotEmpty ==
+                                          true)
+                                      ? authState.user.displayName![0]
+                                          .toUpperCase()
+                                      : (authState.user.email?.isNotEmpty ==
+                                              true)
+                                          ? authState.user.email![0]
+                                              .toUpperCase()
+                                          : 'U',
+                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                    color: KStyle.cPrimaryColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),

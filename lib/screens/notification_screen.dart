@@ -180,26 +180,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: KStyle.cWhiteColor,
+                                color: KStyle.cEDBlueColor,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: ClipOval(
-                                child: authState.user.photoURL != null
-                                    ? Image.network(
-                                        authState.user.photoURL!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Image.asset(
-                                            'assets/images/profile.png',
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
-                                      )
-                                    : Image.asset(
-                                        'assets/images/profile.png',
-                                        fit: BoxFit.cover,
-                                      ),
+                              child: Center(
+                                child: Text(
+                                  (authState.user.displayName?.isNotEmpty ==
+                                          true)
+                                      ? authState.user.displayName![0]
+                                          .toUpperCase()
+                                      : (authState.user.email?.isNotEmpty ==
+                                              true)
+                                          ? authState.user.email![0]
+                                              .toUpperCase()
+                                          : 'U',
+                                  style: KStyle.labelMdBoldTextStyle.copyWith(
+                                    color: KStyle.cPrimaryColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),

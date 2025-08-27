@@ -304,13 +304,21 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: KStyle.cWhiteColor,
+                                  color: KStyle.cEDBlueColor,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    'assets/images/profile.png',
-                                    fit: BoxFit.cover,
+                                child: Center(
+                                  child: Text(
+                                    (authState.user.displayName?.isNotEmpty ==
+                                            true)
+                                        ? authState.user.displayName![0]
+                                            .toUpperCase()
+                                        : 'U',
+                                    style: KStyle.labelMdBoldTextStyle.copyWith(
+                                      color: KStyle.cPrimaryColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
                               ),

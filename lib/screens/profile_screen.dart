@@ -183,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      _showUserMenu(context);
+                      // _showUserMenu(context);
                     },
                     child: Row(
                       children: [
@@ -191,25 +191,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
+                            color: KStyle.cEDBlueColor,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: ClipOval(
-                            child: _userPhotoURL != null
-                                ? Image.network(
-                                    _userPhotoURL!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        'assets/images/profile.png',
-                                        fit: BoxFit.cover,
-                                      );
-                                    },
-                                  )
-                                : Image.asset(
-                                    'assets/images/profile.png',
-                                    fit: BoxFit.cover,
-                                  ),
+                          child: Center(
+                            child: Text(
+                              (_userName?.isNotEmpty == true)
+                                  ? _userName![0].toUpperCase()
+                                  : 'U',
+                              style: KStyle.labelMdBoldTextStyle.copyWith(
+                                color: KStyle.cPrimaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -344,36 +339,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         width: 120,
                                         height: 120,
                                         decoration: BoxDecoration(
-                                          color: KStyle.cWhiteColor,
+                                          color: KStyle.cEDBlueColor,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: KStyle.cE3GreyColor,
+                                            color: KStyle.cF7Color,
                                             width: 2,
                                           ),
                                         ),
-                                        child: ClipOval(
-                                          child: _userPhotoURL != null
-                                              ? Image.network(
-                                                  _userPhotoURL!,
-                                                  width: 116,
-                                                  height: 116,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return Image.asset(
-                                                      'assets/images/profile.png',
-                                                      width: 116,
-                                                      height: 116,
-                                                      fit: BoxFit.cover,
-                                                    );
-                                                  },
-                                                )
-                                              : Image.asset(
-                                                  'assets/images/profile.png',
-                                                  width: 116,
-                                                  height: 116,
-                                                  fit: BoxFit.cover,
-                                                ),
+                                        child: Center(
+                                          child: Text(
+                                            (_userName?.isNotEmpty == true)
+                                                ? _userName![0].toUpperCase()
+                                                : 'U',
+                                            style: KStyle.headingTextStyle
+                                                .copyWith(
+                                              color: KStyle.cPrimaryColor,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 48,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       Positioned(
@@ -665,23 +649,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // User menu
-  void _showUserMenu(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('User Menu'),
-          content: const Text('User menu options will be implemented here.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showUserMenu(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('User Menu'),
+  //         content: const Text('User menu options will be implemented here.'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('Close'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   Future<void> _updateProfile() async {
     setState(() {
