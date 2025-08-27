@@ -134,12 +134,17 @@ class CohortCard extends StatelessWidget {
   }
 
   void _showOptionsMenu(BuildContext context) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        return AlertDialog(
+          title: Text(
+            'Cohort Options',
+            style: KStyle.heading3TextStyle.copyWith(
+              color: KStyle.cBlackColor,
+            ),
+          ),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Edit Option
@@ -187,6 +192,17 @@ class CohortCard extends StatelessWidget {
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: KStyle.labelTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -350,7 +366,7 @@ class CohortCard extends StatelessWidget {
             ),
           ),
           content: SizedBox(
-            width: double.maxFinite,
+            width: 300, // Reduced width for better appearance
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: cohort.recipients.length,
