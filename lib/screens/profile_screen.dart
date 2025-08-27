@@ -260,107 +260,326 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Text(
-                      'Account Settings',
-                      style: KStyle.heading2TextStyle.copyWith(
-                        color: KStyle.cBlackColor,
-                        fontWeight: FontWeight.w700,
+              child: Column(
+                children: [
+                  // Header Section
+                  Container(
+                    decoration: BoxDecoration(
+                      color: KStyle.cWhiteColor,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: KStyle.cE3GreyColor,
+                          width: 1,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-                    // Profile Section
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: KStyle.cWhiteColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+                    height: 150,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Account Settings',
+                                    style: KStyle.headingTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Main Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Profile',
-                            style: KStyle.heading3TextStyle.copyWith(
-                              color: KStyle.cBlackColor,
-                              fontWeight: FontWeight.w600,
+                          // Profile Section
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: KStyle.cWhiteColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Profile',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Profile Avatar
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          color: KStyle.cWhiteColor,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: KStyle.cE3GreyColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: _userPhotoURL != null
+                                              ? Image.network(
+                                                  _userPhotoURL!,
+                                                  width: 116,
+                                                  height: 116,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return Image.asset(
+                                                      'assets/images/profile.png',
+                                                      width: 116,
+                                                      height: 116,
+                                                      fit: BoxFit.cover,
+                                                    );
+                                                  },
+                                                )
+                                              : Image.asset(
+                                                  'assets/images/profile.png',
+                                                  width: 116,
+                                                  height: 116,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                            color: KStyle.cSelectedColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: KStyle.cWhiteColor,
+                                              width: 3,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.edit,
+                                            color: KStyle.cPrimaryColor,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Name Field
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Name',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cBlackColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: _nameController,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: KStyle.cWhiteColor,
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide(
+                                            color: KStyle.cE3GreyColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide(
+                                            color: KStyle.cE3GreyColor,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide(
+                                            color: KStyle.cPrimaryColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+
+                                // Email Field
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Email',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        color: KStyle.cBlackColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller: _emailController,
+                                      enabled: false,
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: KStyle.cBgColor,
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide(
+                                            color: KStyle.cE3GreyColor,
+                                          ),
+                                        ),
+                                        disabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide(
+                                            color: KStyle.cE3GreyColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Log Out Button
+                                Column(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        Navigator.of(context).pop();
+                                        context
+                                            .read<AuthBloc>()
+                                            .add(SignOutRequested());
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xFFFFE5E5),
+                                        foregroundColor: KStyle.cDBRedColor,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Text(
+                                        'Log Out',
+                                        style: KStyle.labelMdBoldTextStyle
+                                            .copyWith(
+                                          color: KStyle.cDBRedColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 24),
 
-                          // Profile Avatar
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Stack(
+                          // Change Password Section
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: KStyle.cWhiteColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: KStyle.cWhiteColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: KStyle.cE3GreyColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: ClipOval(
-                                    child: _userPhotoURL != null
-                                        ? Image.network(
-                                            _userPhotoURL!,
-                                            width: 116,
-                                            height: 116,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Image.asset(
-                                                'assets/images/profile.png',
-                                                width: 116,
-                                                height: 116,
-                                                fit: BoxFit.cover,
-                                              );
-                                            },
-                                          )
-                                        : Image.asset(
-                                            'assets/images/profile.png',
-                                            width: 116,
-                                            height: 116,
-                                            fit: BoxFit.cover,
-                                          ),
+                                Text(
+                                  'Change Password',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: KStyle.cSelectedColor,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: KStyle.cWhiteColor,
-                                        width: 3,
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Update your password to keep your account secure.',
+                                  style:
+                                      KStyle.labelMdRegularTextStyle.copyWith(
+                                    color: KStyle.c72GreyColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Change Password Button
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: ElevatedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: KStyle.cPrimaryColor,
+                                      foregroundColor: KStyle.cWhiteColor,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 20,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    child: Icon(
-                                      Icons.edit,
-                                      color: KStyle.cPrimaryColor,
-                                      size: 18,
+                                    child: Text(
+                                      'Change Password',
+                                      style: KStyle.labelMdRegularTextStyle
+                                          .copyWith(
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -368,217 +587,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-
-                          // Name Field
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Name',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: _nameController,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: KStyle.cWhiteColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: KStyle.cE3GreyColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: KStyle.cE3GreyColor,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: KStyle.cPrimaryColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Email Field
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Email',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: _emailController,
-                                enabled: false,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: KStyle.cBgColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: KStyle.cE3GreyColor,
-                                    ),
-                                  ),
-                                  disabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: KStyle.cE3GreyColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          Column(
-                            children: [
-                              ElevatedButton(
-                                onPressed: () async {
-                                  Navigator.of(context).pop();
-                                  context
-                                      .read<AuthBloc>()
-                                      .add(SignOutRequested());
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFFFFE5E5),
-                                  foregroundColor: KStyle.cDBRedColor,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Log Out',
-                                  style: KStyle.labelMdBoldTextStyle.copyWith(
-                                    color: KStyle.cDBRedColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Update Profile Button
-                          // Align(
-                          //   alignment: Alignment.centerRight,
-                          //   child: ElevatedButton(
-                          //     onPressed: _isLoading ? null : _updateProfile,
-                          //     style: ElevatedButton.styleFrom(
-                          //       backgroundColor: KStyle.cBgColor,
-                          //       foregroundColor: KStyle.cBlackColor,
-                          //       padding: const EdgeInsets.symmetric(
-                          //         horizontal: 24,
-                          //         vertical: 12,
-                          //       ),
-                          //       shape: RoundedRectangleBorder(
-                          //         borderRadius: BorderRadius.circular(8),
-                          //       ),
-                          //     ),
-                          //     child: _isLoading
-                          //         ? SizedBox(
-                          //             width: 20,
-                          //             height: 20,
-                          //             child: CircularProgressIndicator(
-                          //               strokeWidth: 2,
-                          //               color: KStyle.cBlackColor,
-                          //             ),
-                          //           )
-                          //         : Text(
-                          //             'Update Profile',
-                          //             style: KStyle.labelMdRegularTextStyle
-                          //                 .copyWith(
-                          //               fontWeight: FontWeight.w500,
-                          //             ),
-                          //           ),
-                          //   ),
-                          // ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Change Password Section
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: KStyle.cWhiteColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Change Password',
-                            style: KStyle.heading3TextStyle.copyWith(
-                              color: KStyle.cBlackColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Update your password to keep your account secure.',
-                            style: KStyle.labelMdRegularTextStyle.copyWith(
-                              color: KStyle.c72GreyColor,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Change Password Button
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: ElevatedButton(
-                              // onPressed: _changePassword,
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: KStyle.cPrimaryColor,
-                                foregroundColor: KStyle.cWhiteColor,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 20,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                'Change Password',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
