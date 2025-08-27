@@ -89,7 +89,7 @@ class CohortCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: KStyle.cDBRedColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
                   '${cohort.recipients.length}',

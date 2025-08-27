@@ -555,46 +555,46 @@ class _CohortsScreenState extends State<CohortsScreen> {
                                             ),
                                             const SizedBox(height: 16),
                                             // Debug information
-                                            Container(
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey
-                                                    .withOpacity(0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    'Debug Info:',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Text(
-                                                    'Has Cached Data: $_hasCachedData',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                  Text(
-                                                    'Cached Count: ${_cachedCohorts.length}',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                  Text(
-                                                    'Firebase Init: ${FirebaseService.isInitialized}',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                            // Container(
+                                            //   padding: const EdgeInsets.all(16),
+                                            //   decoration: BoxDecoration(
+                                            //     color: Colors.grey
+                                            //         .withOpacity(0.1),
+                                            //     borderRadius:
+                                            //         BorderRadius.circular(8),
+                                            //   ),
+                                            //   child: Column(
+                                            //     children: [
+                                            //       Text(
+                                            //         'Debug Info:',
+                                            //         style: TextStyle(
+                                            //           fontWeight:
+                                            //               FontWeight.bold,
+                                            //           color: Colors.grey[700],
+                                            //         ),
+                                            //       ),
+                                            //       const SizedBox(height: 8),
+                                            //       Text(
+                                            //         'Has Cached Data: $_hasCachedData',
+                                            //         style: TextStyle(
+                                            //             color:
+                                            //                 Colors.grey[600]),
+                                            //       ),
+                                            //       Text(
+                                            //         'Cached Count: ${_cachedCohorts.length}',
+                                            //         style: TextStyle(
+                                            //             color:
+                                            //                 Colors.grey[600]),
+                                            //       ),
+                                            //       Text(
+                                            //         'Firebase Init: ${FirebaseService.isInitialized}',
+                                            //         style: TextStyle(
+                                            //             color:
+                                            //                 Colors.grey[600]),
+                                            //       ),
+                                            //     ],
+                                            //   ),
+                                            // ),
                                           ],
                                         ),
                                       ),
@@ -1342,7 +1342,9 @@ class _CohortsScreenState extends State<CohortsScreen> {
         // Cohorts Grid
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+            ),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               crossAxisSpacing: 20,
