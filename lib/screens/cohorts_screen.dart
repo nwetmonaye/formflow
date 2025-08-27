@@ -872,7 +872,11 @@ class _CohortsScreenState extends State<CohortsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Cohort "${cohort.name}" created successfully'),
-                backgroundColor: KStyle.cE8GreenColor,
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             );
           },
@@ -1043,6 +1047,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
                               content: Text(
                                   'This is sample data. Connect to Firebase to see your real cohorts.'),
                               backgroundColor: Colors.orange,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           );
                         },
@@ -1094,6 +1102,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
           content: Text(
               'Firebase test: User=${user?.uid != null}, Firestore=${testQuery.docs.length} docs'),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } catch (e) {
@@ -1102,6 +1114,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
         SnackBar(
           content: Text('Firebase test failed: $e'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }
@@ -1115,9 +1131,13 @@ class _CohortsScreenState extends State<CohortsScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('No user authenticated'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
         return;
@@ -1152,6 +1172,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
           content:
               Text('Test cohort created successfully with ID: ${docRef.id}'),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
 
@@ -1163,6 +1187,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
         SnackBar(
           content: Text('Error creating test cohort: $e'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }
@@ -1191,6 +1219,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
           content: Text(
               'Found ${allCohortsQuery.docs.length} cohorts in the database.'),
           backgroundColor: Colors.blue,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } catch (e) {
@@ -1199,6 +1231,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
         SnackBar(
           content: Text('Error checking all cohorts: $e'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }
@@ -1240,6 +1276,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
                         SnackBar(
                           content: Text('Found ${cohorts.length} cohorts'),
                           backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       );
                     } catch (e) {
@@ -1247,6 +1287,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
                         SnackBar(
                           content: Text('Error getting cohorts: $e'),
                           backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       );
                     }
@@ -1262,9 +1306,13 @@ class _CohortsScreenState extends State<CohortsScreen> {
                     });
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text('Cache cleared'),
                         backgroundColor: Colors.blue,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     );
                   },
@@ -1286,6 +1334,10 @@ class _CohortsScreenState extends State<CohortsScreen> {
         SnackBar(
           content: Text('Debug error: $e'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }
