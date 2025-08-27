@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/notification_model.dart';
+import 'package:formflow/screens/cohorts_screen.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/screens/profile_screen.dart';
@@ -118,11 +119,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             icon: Icons.group_outlined,
                             title: 'Cohorts',
                             isSelected: selectedNavItem == 1,
-                            notificationCount: null,
                             onTap: () {
                               setState(() {
                                 selectedNavItem = 1;
                               });
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const CohortsScreen(),
+                                ),
+                              );
                             },
                           ),
                           StreamBuilder<int>(
@@ -257,50 +262,60 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             horizontal: 24, vertical: 16),
                         decoration: BoxDecoration(
                           color: KStyle.cWhiteColor,
-                          // border: Border(
-                          //   bottom: BorderSide(
-                          //     color: KStyle.cE3GreyColor.withOpacity(0.5),
-                          //     width: 1,
-                          //   ),
-                          // ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Notifications',
-                                style: KStyle.heading3TextStyle.copyWith(
-                                  color: KStyle.cBlackColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: KStyle.cE3GreyColor.withOpacity(0.5),
+                              width: 1,
                             ),
-                            StreamBuilder<int>(
-                              stream: FirebaseService
-                                  .getUnreadNotificationsCountStream(),
-                              builder: (context, snapshot) {
-                                final unreadCount = snapshot.data ?? 0;
-                                if (unreadCount == 0)
-                                  return const SizedBox.shrink();
-
-                                return Container(
-                                  margin: const EdgeInsets.only(right: 16),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: KStyle.cPrimaryColor,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    unreadCount.toString(),
-                                    style:
-                                        KStyle.labelXsRegularTextStyle.copyWith(
-                                      color: KStyle.cWhiteColor,
-                                      fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        height: 150,
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Notifications',
+                                      style: KStyle.headingTextStyle.copyWith(
+                                        color: KStyle.cBlackColor,
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
+                                  StreamBuilder<int>(
+                                    stream: FirebaseService
+                                        .getUnreadNotificationsCountStream(),
+                                    builder: (context, snapshot) {
+                                      final unreadCount = snapshot.data ?? 0;
+                                      if (unreadCount == 0)
+                                        return const SizedBox.shrink();
+
+                                      return Container(
+                                        margin:
+                                            const EdgeInsets.only(right: 16),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: KStyle.cPrimaryColor,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          unreadCount.toString(),
+                                          style: KStyle.labelXsRegularTextStyle
+                                              .copyWith(
+                                            color: KStyle.cWhiteColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
