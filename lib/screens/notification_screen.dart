@@ -155,7 +155,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                     ),
 
-                    // User Profile
+                    // Profile Card
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -168,11 +168,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const ProfileScreen(),
-                            ),
-                          );
+                          _showProfileMenu(context, authState);
                         },
                         child: Row(
                           children: [
@@ -223,14 +219,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     'View Profile',
                                     style:
                                         KStyle.labelSmRegularTextStyle.copyWith(
-                                      color: KStyle.cWhiteColor,
+                                      color:
+                                          KStyle.cWhiteColor.withOpacity(0.7),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                             Icon(
-                              Icons.keyboard_arrow_down,
+                              Icons.keyboard_arrow_up,
                               color: KStyle.cWhiteColor,
                               size: 20,
                             ),
@@ -1276,4 +1275,125 @@ class _NotificationScreenState extends State<NotificationScreen> {
 //       );
 //     }
 //   }
+
+  void _showProfileMenu(BuildContext context, AuthState authState) {
+    // Create a custom overlay entry for the profile dropdown
+    final OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            // Semi-transparent overlay to capture clicks outside
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  overlayEntry.remove();
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+            // Profile dropdown card positioned near the profile tab
+            Positioned(
+              bottom: 100, // Position above the profile section
+              left: 16, // Align with sidebar padding
+              child: Container(
+                width: 240,
+                decoration: BoxDecoration(
+                  color: KStyle.cWhiteColor,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // View Profile option
+                    InkWell(
+                      onTap: () {
+                        overlayEntry.remove();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              color: KStyle.cPrimaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'View Profile',
+                              style: KStyle.labelTextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Divider
+                    Container(
+                      height: 1,
+                      color: KStyle.cE3GreyColor,
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    // Log Out option
+                    InkWell(
+                      onTap: () {
+                        overlayEntry.remove();
+                        context.read<AuthBloc>().add(SignOutRequested());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.logout,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Log Out',
+                              style: KStyle.labelTextStyle.copyWith(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
 }

@@ -37,6 +37,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  void _showProfileMenu(BuildContext context, AuthState authState) {
+    // Create a custom overlay entry for the profile dropdown
+    final OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            // Semi-transparent overlay to capture clicks outside
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  overlayEntry.remove();
+                },
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+            // Profile dropdown card positioned near the profile tab
+            Positioned(
+              bottom: 100, // Position above the profile section
+              left: 16, // Align with sidebar padding
+              child: Container(
+                width: 240,
+                decoration: BoxDecoration(
+                  color: KStyle.cWhiteColor,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // View Profile option
+                    InkWell(
+                      onTap: () {
+                        overlayEntry.remove();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              color: KStyle.cPrimaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Account Settings',
+                              style: KStyle.labelTextStyle.copyWith(
+                                color: KStyle.cBlackColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Divider
+                    Container(
+                      height: 1,
+                      color: KStyle.cE3GreyColor,
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    // Log Out option
+                    InkWell(
+                      onTap: () {
+                        overlayEntry.remove();
+                        context.read<AuthBloc>().add(SignOutRequested());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.logout,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Log Out',
+                              style: KStyle.labelTextStyle.copyWith(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
+
   Future<void> _loadUserData() async {
     try {
       final currentUser = FirebaseService.currentUser;
@@ -170,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // User Profile
+                // Profile Card
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -183,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      // _showUserMenu(context);
+                      _showProfileMenu(context, context.read<AuthBloc>().state);
                     },
                     child: Row(
                       children: [
@@ -224,14 +345,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Text(
                                 'View Profile',
                                 style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
+                                  color: KStyle.cWhiteColor.withOpacity(0.7),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
                         Icon(
-                          Icons.keyboard_arrow_down,
+                          Icons.keyboard_arrow_up,
                           color: KStyle.cWhiteColor,
                           size: 20,
                         ),
@@ -472,36 +595,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 const SizedBox(height: 24),
 
                                 // Log Out Button
-                                Column(
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        Navigator.of(context).pop();
-                                        context
-                                            .read<AuthBloc>()
-                                            .add(SignOutRequested());
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFFFE5E5),
-                                        foregroundColor: KStyle.cDBRedColor,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Text(
-                                        'Log Out',
-                                        style: KStyle.labelMdBoldTextStyle
-                                            .copyWith(
-                                          color: KStyle.cDBRedColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                // Column(
+                                //   children: [
+                                //     ElevatedButton(
+                                //       onPressed: () async {
+                                //         Navigator.of(context).pop();
+                                //         context
+                                //             .read<AuthBloc>()
+                                //             .add(SignOutRequested());
+                                //       },
+                                //       style: ElevatedButton.styleFrom(
+                                //         backgroundColor: Color(0xFFFFE5E5),
+                                //         foregroundColor: KStyle.cDBRedColor,
+                                //         padding: const EdgeInsets.symmetric(
+                                //             horizontal: 16, vertical: 16),
+                                //         shape: RoundedRectangleBorder(
+                                //           borderRadius:
+                                //               BorderRadius.circular(8),
+                                //         ),
+                                //         elevation: 0,
+                                //       ),
+                                //       child: Text(
+                                //         'Log Out',
+                                //         style: KStyle.labelMdBoldTextStyle
+                                //             .copyWith(
+                                //           color: KStyle.cDBRedColor,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                               ],
                             ),
                           ),
