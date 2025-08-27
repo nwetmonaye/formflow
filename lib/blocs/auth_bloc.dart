@@ -88,6 +88,8 @@ class PasswordResetSent extends AuthState {}
 
 // BLoC
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  bool _isCheckingAuth = false;
+
   AuthBloc() : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<SignInRequested>(_onSignInRequested);
@@ -100,17 +102,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    // Prevent multiple simultaneous auth checks
+    if (_isCheckingAuth) {
+      print('🔍 AuthBloc: Auth check already in progress, skipping...');
+      return;
+    }
+
+    _isCheckingAuth = true;
+    print('🔍 AuthBloc: AuthCheckRequested event received');
 
     try {
+      emit(AuthLoading());
+
       final user = AuthService.currentUser;
+      print(
+          '🔍 AuthBloc: Current user from AuthService: ${user?.uid ?? 'null'}');
+
       if (user != null) {
+        print(
+            '🔍 AuthBloc: Emitting Authenticated state for user: ${user.uid}');
         emit(Authenticated(user));
       } else {
+        print('🔍 AuthBloc: Emitting Unauthenticated state');
         emit(Unauthenticated());
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      print('🔍 AuthBloc: Error during auth check: $e');
+      // Don't emit error state on auth check failure, keep current state
+      // This prevents the cohort list from disappearing due to auth errors
+      print('🔍 AuthBloc: Keeping current state due to auth check error');
+    } finally {
+      _isCheckingAuth = false;
     }
   }
 

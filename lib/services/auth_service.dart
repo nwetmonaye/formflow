@@ -7,9 +7,13 @@ class AuthService {
   // Get current user
   static UserModel? get currentUser {
     final user = _auth.currentUser;
+    print('🔍 AuthService: Getting current user: ${user?.uid ?? 'null'}');
     if (user != null) {
-      return UserModel.fromFirebaseUser(user);
+      final userModel = UserModel.fromFirebaseUser(user);
+      print('🔍 AuthService: Returning user model: ${userModel.uid}');
+      return userModel;
     }
+    print('🔍 AuthService: No current user found');
     return null;
   }
 

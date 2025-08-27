@@ -24,6 +24,9 @@ export { sendEmailHttp } from "./send-email";
 // Export submissions functionality
 export { exportSubmissions } from "./export-submissions";
 
+// Share form with cohort functionality
+export { shareFormWithCohort } from "./share-form-cohort";
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/get-started
 

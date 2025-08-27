@@ -7,6 +7,7 @@ import 'package:formflow/models/submission_model.dart';
 import 'dart:convert'; // Added for jsonEncode and jsonDecode
 import 'package:http/http.dart' as http; // Added for http.post
 import 'package:formflow/models/notification_model.dart'; // Added for NotificationModel
+import 'package:formflow/models/cohort_model.dart'; // Added for CohortModel
 
 class FirebaseService {
   static bool _isInitialized = false;
@@ -96,11 +97,72 @@ class FirebaseService {
 
   // Ensure Firebase is initialized
   static Future<bool> ensureInitialized() async {
-    if (!_isInitialized) {
-      print('Firebase not initialized, attempting to initialize...');
-      await initializeFirebase();
+    print(
+        '🔍 FirebaseService: ensureInitialized called, _isInitialized: $_isInitialized');
+
+    if (_isInitialized) {
+      print('🔍 FirebaseService: Firebase already initialized, returning true');
+      return true;
     }
-    return _isInitialized;
+
+    try {
+      print(
+          '🔍 FirebaseService: Firebase not initialized, attempting to initialize...');
+      await initializeFirebase();
+
+      // Double-check that initialization was successful
+      if (_isInitialized && _firestore != null && _auth != null) {
+        print('🔍 FirebaseService: Firebase initialization successful');
+        return true;
+      } else {
+        print(
+            '🔍 FirebaseService: Firebase initialization failed - services not available');
+        return false;
+      }
+    } catch (e) {
+      print('🔍 FirebaseService: Error during Firebase initialization: $e');
+      return false;
+    }
+  }
+
+  // Check if current user is authenticated
+  static Future<bool> isCurrentUserAuthenticated() async {
+    try {
+      print('🔍 FirebaseService: Checking if current user is authenticated...');
+
+      // Try to get current user directly from Firebase Auth first
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          print(
+              '🔍 FirebaseService: Current user found via Firebase Auth: ${user.uid}');
+          return true;
+        }
+      } catch (e) {
+        print('🔍 FirebaseService: Error getting user from Firebase Auth: $e');
+      }
+
+      // Fallback to checking our service state
+      if (!_isInitialized) {
+        print('🔍 FirebaseService: Firebase not initialized');
+        return false;
+      }
+
+      if (_auth == null) {
+        print('🔍 FirebaseService: Firebase Auth not initialized');
+        return false;
+      }
+
+      final user = _auth!.currentUser;
+      final isAuthenticated = user != null;
+      print(
+          '🔍 FirebaseService: Current user: ${user?.uid ?? 'null'}, Authenticated: $isAuthenticated');
+
+      return isAuthenticated;
+    } catch (e) {
+      print('🔍 FirebaseService: Error checking authentication: $e');
+      return false;
+    }
   }
 
   // Debug method to test basic Firebase connectivity
@@ -1120,6 +1182,207 @@ class FirebaseService {
     } catch (e) {
       print('❌ Error creating form status notification: $e');
       // Don't rethrow - notification failure shouldn't break form status update
+    }
+  }
+
+  // Cohort methods
+  static Future<List<CohortModel>> getCohorts() async {
+    print('🔍 getCohorts: Starting to fetch cohorts...');
+
+    try {
+      // First try to get current user directly from Firebase Auth
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('🔍 getCohorts: No current user found via Firebase Auth');
+        return [];
+      }
+
+      print('🔍 getCohorts: User authenticated: ${user.uid}');
+
+      // Check if our service is initialized
+      if (_firestore == null) {
+        print(
+            '🔍 getCohorts: Firestore not initialized, attempting to initialize...');
+        final initialized = await ensureInitialized();
+        if (!initialized || _firestore == null) {
+          print('🔍 getCohorts: Failed to initialize Firebase');
+          return [];
+        }
+      }
+
+      print('🔍 getCohorts: Querying Firestore for cohorts...');
+      final querySnapshot = await _firestore!
+          .collection('cohorts')
+          .where('createdBy', isEqualTo: user.uid)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      final cohorts = querySnapshot.docs
+          .map((doc) => CohortModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      print('🔍 getCohorts: Successfully fetched ${cohorts.length} cohorts');
+      return cohorts;
+    } catch (e) {
+      print('🔍 getCohorts: Error getting cohorts: $e');
+      // Return empty list instead of throwing to prevent UI from breaking
+      return [];
+    }
+  }
+
+  // Stream method for real-time cohort updates
+  static Stream<List<CohortModel>> getCohortsStream() {
+    print('🔍 getCohortsStream: Starting cohort stream...');
+
+    try {
+      // First try to get current user directly from Firebase Auth
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('🔍 getCohortsStream: No current user found via Firebase Auth');
+        return Stream.value([]);
+      }
+
+      print('🔍 getCohortsStream: User authenticated: ${user.uid}');
+
+      // Check if our service is initialized
+      if (_firestore == null) {
+        print(
+            '🔍 getCohortsStream: Firestore not initialized, attempting to initialize...');
+        // Try to initialize Firebase
+        return Stream.fromFuture(ensureInitialized())
+            .asyncExpand((initialized) {
+          if (initialized && _firestore != null) {
+            return _createCohortsStream(user.uid);
+          } else {
+            print(
+                '🔍 getCohortsStream: Failed to initialize Firebase, returning empty stream');
+            return Stream.value([]);
+          }
+        });
+      }
+
+      return _createCohortsStream(user.uid);
+    } catch (e) {
+      print('🔍 getCohortsStream: Error in stream creation: $e');
+      return Stream.value([]);
+    }
+  }
+
+  // Helper method to create the actual cohort stream
+  static Stream<List<CohortModel>> _createCohortsStream(String userId) {
+    try {
+      return _firestore!
+          .collection('cohorts')
+          .where('createdBy', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        print(
+            '🔍 _createCohortsStream: Received snapshot with ${snapshot.docs.length} docs');
+        return snapshot.docs
+            .map((doc) => CohortModel.fromMap(doc.data(), doc.id))
+            .toList();
+      }).handleError((error) {
+        print('🔍 _createCohortsStream: Error in stream: $error');
+        // Return empty list on error instead of throwing
+        return <CohortModel>[];
+      });
+    } catch (e) {
+      print('🔍 _createCohortsStream: Exception in stream creation: $e');
+      return Stream.value([]);
+    }
+  }
+
+  static Future<CohortModel> createCohort(CohortModel cohort) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      final cohortData = cohort.toMap();
+      cohortData['createdAt'] = FieldValue.serverTimestamp();
+      cohortData['updatedAt'] = FieldValue.serverTimestamp();
+
+      final docRef = await _firestore!.collection('cohorts').add(cohortData);
+
+      return cohort.copyWith(
+        id: docRef.id,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    } catch (e) {
+      print('🔍 Error creating cohort: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> updateCohort(String cohortId, CohortModel cohort) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      final cohortData = cohort.toMap();
+      cohortData['updatedAt'] = FieldValue.serverTimestamp();
+
+      await _firestore!.collection('cohorts').doc(cohortId).update(cohortData);
+    } catch (e) {
+      print('🔍 Error updating cohort: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> deleteCohort(String cohortId) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      await _firestore!.collection('cohorts').doc(cohortId).delete();
+    } catch (e) {
+      print('🔍 Error deleting cohort: $e');
+      rethrow;
+    }
+  }
+
+  static Future<CohortModel?> getCohortById(String cohortId) async {
+    if (_firestore == null) throw Exception('Firestore not initialized');
+    if (currentUser == null) throw Exception('User not authenticated');
+
+    try {
+      final doc = await _firestore!.collection('cohorts').doc(cohortId).get();
+
+      if (doc.exists) {
+        return CohortModel.fromMap(doc.data()!, doc.id);
+      }
+      return null;
+    } catch (e) {
+      print('🔍 Error getting cohort by ID: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> shareFormWithCohort({
+    required String formId,
+    required String cohortId,
+    required String formTitle,
+    String? formDescription,
+    String? formLink,
+  }) async {
+    if (_functions == null)
+      throw Exception('Firebase Functions not initialized');
+
+    try {
+      final callable = _functions!.httpsCallable('shareFormWithCohort');
+      final result = await callable.call({
+        'formId': formId,
+        'cohortId': cohortId,
+        'formTitle': formTitle,
+        'formDescription': formDescription,
+        'formLink': formLink,
+      });
+
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      print('🔍 Error sharing form with cohort: $e');
+      rethrow;
     }
   }
 }

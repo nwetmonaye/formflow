@@ -15,6 +15,8 @@ import 'package:formflow/screens/form_preview_screen.dart';
 import 'package:formflow/models/submission_model.dart';
 import 'package:formflow/screens/login_screen.dart';
 import 'package:formflow/screens/profile_screen.dart';
+import 'package:formflow/screens/cohorts_screen.dart';
+import 'package:formflow/widgets/share_with_cohorts_modal.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -193,6 +195,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       setState(() {
                                         selectedNavItem = 1;
                                       });
+                                      Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CohortsScreen(),
+                                        ),
+                                      );
                                     },
                                   ),
                                   StreamBuilder<int>(
@@ -334,70 +342,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               // Header
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 16),
-                                decoration: BoxDecoration(
-                                  color: KStyle.cWhiteColor,
-                                  // border: Border(
-                                  //   bottom: BorderSide(
-                                  //     color: KStyle.cE3GreyColor,
-                                  //     width: 1,
-                                  //   ),
-                                  // ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'My Forms',
-                                          style:
-                                              KStyle.headingTextStyle.copyWith(
-                                            color: KStyle.cBlackColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const FormBuilderScreen(),
-                                          ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: KStyle.cPrimaryColor,
-                                        foregroundColor: KStyle.cWhiteColor,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 16,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      icon: const Icon(Icons.add, size: 20),
-                                      label: Text(
-                                        'New Form',
-                                        style: KStyle.labelTextStyle.copyWith(
-                                          color: KStyle.cWhiteColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Filters
-                              Container(
                                 decoration: BoxDecoration(
                                   color: KStyle.cWhiteColor,
                                   border: Border(
@@ -407,51 +351,121 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 16),
-                                child: Row(
-                                  children: filters.map((filter) {
-                                    bool isSelected = selectedFilter == filter;
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          selectedFilter = filter;
-                                        });
-                                      },
-                                      child: Container(
-                                        margin:
-                                            const EdgeInsets.only(right: 32),
-                                        child: Column(
-                                          children: [
-                                            Text(
-                                              filter,
-                                              style: KStyle
-                                                  .labelMdRegularTextStyle
-                                                  .copyWith(
-                                                color: isSelected
-                                                    ? KStyle.cPrimaryColor
-                                                    : KStyle.c72GreyColor,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w400,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            if (isSelected)
-                                              Container(
-                                                width: 20,
-                                                height: 2,
-                                                decoration: BoxDecoration(
-                                                  color: KStyle.cPrimaryColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(1),
+                                height: 150,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'My Forms',
+                                                style: KStyle.headingTextStyle
+                                                    .copyWith(
+                                                  color: KStyle.cBlackColor,
                                                 ),
                                               ),
-                                          ],
-                                        ),
+                                            ],
+                                          ),
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const FormBuilderScreen(),
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  KStyle.cPrimaryColor,
+                                              foregroundColor:
+                                                  KStyle.cWhiteColor,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 20,
+                                                vertical: 16,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              elevation: 0,
+                                            ),
+                                            icon:
+                                                const Icon(Icons.add, size: 20),
+                                            label: Text(
+                                              'New Form',
+                                              style: KStyle.labelTextStyle
+                                                  .copyWith(
+                                                color: KStyle.cWhiteColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  }).toList(),
+                                    ),
+
+                                    // Filters
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 16),
+                                      child: Row(
+                                        children: filters.map((filter) {
+                                          bool isSelected =
+                                              selectedFilter == filter;
+                                          return GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                selectedFilter = filter;
+                                              });
+                                            },
+                                            child: Container(
+                                              margin: const EdgeInsets.only(
+                                                  right: 32),
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    filter,
+                                                    style: KStyle
+                                                        .labelMdRegularTextStyle
+                                                        .copyWith(
+                                                      color: isSelected
+                                                          ? KStyle.cPrimaryColor
+                                                          : KStyle.c72GreyColor,
+                                                      fontWeight: isSelected
+                                                          ? FontWeight.w600
+                                                          : FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  if (isSelected)
+                                                    Container(
+                                                      width: 20,
+                                                      height: 2,
+                                                      decoration: BoxDecoration(
+                                                        color: KStyle
+                                                            .cPrimaryColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(1),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
 
@@ -914,7 +928,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
                 _buildMenuItem('Share with cohorts', Icons.share_outlined, () {
                   Navigator.of(context).pop();
-                  // TODO: Implement share with cohorts
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return ShareWithCohortsModal(
+                        form: form,
+                        onShared: () {
+                          // Optionally refresh the forms list or show success message
+                        },
+                      );
+                    },
+                  );
                 }),
                 _buildMenuItem('Close form', Icons.close, () async {
                   Navigator.of(context).pop();

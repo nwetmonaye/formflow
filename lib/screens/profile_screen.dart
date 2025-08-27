@@ -5,6 +5,7 @@ import 'package:formflow/constants/style.dart';
 import 'package:formflow/services/firebase_service.dart';
 import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/screens/notification_screen.dart';
+import 'package:formflow/screens/cohorts_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -132,6 +133,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() {
                             selectedNavItem = 1;
                           });
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const CohortsScreen(),
+                            ),
+                          );
                         },
                       ),
                       StreamBuilder<int>(
