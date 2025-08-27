@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/models/cohort_model.dart';
 import 'package:formflow/services/firebase_service.dart';
+import 'package:formflow/models/form_model.dart'; // Added import for FormModel
 
-class CohortCard extends StatelessWidget {
+class CohortCard extends StatefulWidget {
   final CohortModel cohort;
   final VoidCallback onRefresh;
 
@@ -13,6 +14,11 @@ class CohortCard extends StatelessWidget {
     required this.onRefresh,
   });
 
+  @override
+  State<CohortCard> createState() => _CohortCardState();
+}
+
+class _CohortCardState extends State<CohortCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,7 +44,7 @@ class CohortCard extends StatelessWidget {
               // Title
               Expanded(
                 child: Text(
-                  cohort.name,
+                  widget.cohort.name,
                   style: KStyle.heading2TextStyle.copyWith(
                     color: KStyle.cBlackColor,
                     fontSize: 16,
@@ -92,7 +98,7 @@ class CohortCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
-                  '${cohort.recipients.length}',
+                  '${widget.cohort.recipients.length}',
                   style: KStyle.labelXsRegularTextStyle.copyWith(
                     color: KStyle.cWhiteColor,
                     fontWeight: FontWeight.w600,
@@ -209,73 +215,252 @@ class CohortCard extends StatelessWidget {
   }
 
   void _showShareFormDialog(BuildContext context) {
+    String? selectedFormId; // Local variable for form selection
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Share Form with ${cohort.name}',
-            style: KStyle.heading3TextStyle.copyWith(
-              color: KStyle.cBlackColor,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'This will share a form with all ${cohort.recipients.length} members of the ${cohort.name} cohort.',
-                style: KStyle.labelMdRegularTextStyle.copyWith(
-                  color: KStyle.c72GreyColor,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'Share Form with ${widget.cohort.name}',
+                style: KStyle.heading3TextStyle.copyWith(
+                  color: KStyle.cBlackColor,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Note: You need to select a form to share first.',
-                style: KStyle.labelSmRegularTextStyle.copyWith(
-                  color: KStyle.c72GreyColor,
-                  fontStyle: FontStyle.italic,
+              content: SizedBox(
+                width: 400,
+                child: StreamBuilder<List<FormModel>>(
+                  stream: FirebaseService.getFormsStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Text(
+                        'Error loading forms: ${snapshot.error}',
+                        style: KStyle.labelTextStyle.copyWith(
+                          color: KStyle.cDBRedColor,
+                        ),
+                      );
+                    }
+
+                    final allForms = snapshot.data ?? [];
+                    // Filter only forms with 'active' status
+                    final liveForms = allForms
+                        .where((form) => form.status == 'active')
+                        .toList();
+
+                    if (liveForms.isEmpty) {
+                      return Text(
+                        'No live forms available to share.',
+                        style: KStyle.labelTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Select a live form to share with ${widget.cohort.recipients.length} members:',
+                          style: KStyle.labelMdRegularTextStyle.copyWith(
+                            color: KStyle.c72GreyColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...liveForms
+                            .map((form) => RadioListTile<String>(
+                                  title: Text(
+                                    form.title,
+                                    style: KStyle.labelTextStyle.copyWith(
+                                      color: KStyle.cBlackColor,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    form.description ?? 'No description',
+                                    style: KStyle.labelTextStyle.copyWith(
+                                      color: KStyle.c72GreyColor,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  value: form.id!,
+                                  groupValue: selectedFormId,
+                                  onChanged: (String? value) {
+                                    setDialogState(() {
+                                      selectedFormId = value;
+                                    });
+                                  },
+                                  activeColor: KStyle.cPrimaryColor,
+                                ))
+                            .toList(),
+                      ],
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Cancel',
-                style: KStyle.labelTextStyle.copyWith(
-                  color: KStyle.c72GreyColor,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _navigateToFormSelection(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: KStyle.cPrimaryColor,
-                foregroundColor: KStyle.cWhiteColor,
-              ),
-              child: Text(
-                'Select Form',
-                style: KStyle.labelTextStyle.copyWith(
-                  color: KStyle.cWhiteColor,
+                ElevatedButton(
+                  onPressed: selectedFormId != null
+                      ? () {
+                          Navigator.pop(context);
+                          _showShareConfirmation(context, selectedFormId!);
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KStyle.cPrimaryColor,
+                    foregroundColor: KStyle.cWhiteColor,
+                  ),
+                  child: Text(
+                    'Share',
+                    style: KStyle.labelTextStyle.copyWith(
+                      color: KStyle.cWhiteColor,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
     );
+  }
+
+  void _showShareConfirmation(BuildContext context, String formId) {
+    // Get the selected form from the current user's forms
+    FirebaseService.getFormsStream().first.then((forms) {
+      final selectedForm = forms.firstWhere(
+        (form) => form.id == formId,
+        orElse: () => throw Exception('Form not found'),
+      );
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              'Confirm Share',
+              style: KStyle.heading3TextStyle.copyWith(
+                color: KStyle.cBlackColor,
+              ),
+            ),
+            content: Text(
+              'Are you sure to share "${selectedForm.title}" with "${widget.cohort.name}"?\n\nThis will send an email to all ${widget.cohort.recipients.length} members of the cohort.',
+              style: KStyle.labelMdRegularTextStyle.copyWith(
+                color: KStyle.cBlackColor,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: KStyle.labelTextStyle.copyWith(
+                    color: KStyle.c72GreyColor,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _shareFormWithCohort(selectedForm);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: KStyle.cPrimaryColor,
+                  foregroundColor: KStyle.cWhiteColor,
+                ),
+                child: Text(
+                  'Yes, Share',
+                  style: KStyle.labelTextStyle.copyWith(
+                    color: KStyle.cWhiteColor,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    });
+  }
+
+  Future<void> _shareFormWithCohort(FormModel form) async {
+    try {
+      // Show loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text('Sharing form with ${widget.cohort.name}...'),
+            ],
+          ),
+          backgroundColor: KStyle.cPrimaryColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Share the form with the cohort
+      final result = await FirebaseService.shareFormWithCohort(
+        formId: form.id!,
+        cohortId: widget.cohort.id!,
+        formTitle: form.title,
+        formDescription: form.description,
+        formLink: form.shareLink,
+      );
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Form "${form.title}" shared with "${widget.cohort.name}" successfully!',
+          ),
+          backgroundColor: KStyle.cApproveColor,
+        ),
+      );
+
+      // Reset selection
+      // _selectedFormId = null; // This line is removed as per the edit hint
+    } catch (e) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error sharing form: $e',
+          ),
+          backgroundColor: KStyle.cDBRedColor,
+        ),
+      );
+    }
   }
 
   void _editCohort(BuildContext context) {
     // TODO: Implement edit cohort functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Edit ${cohort.name} - Coming soon'),
+        content: Text('Edit ${widget.cohort.name} - Coming soon'),
         backgroundColor: KStyle.cPrimaryColor,
       ),
     );
@@ -293,7 +478,7 @@ class CohortCard extends StatelessWidget {
             ),
           ),
           content: Text(
-            'Are you sure you want to delete "${cohort.name}"? This action cannot be undone.',
+            'Are you sure you want to delete "${widget.cohort.name}"? This action cannot be undone.',
             style: KStyle.labelMdRegularTextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
@@ -332,15 +517,15 @@ class CohortCard extends StatelessWidget {
 
   Future<void> _confirmDeleteCohort(BuildContext context) async {
     try {
-      if (cohort.id != null && cohort.id!.isNotEmpty) {
-        await FirebaseService.deleteCohort(cohort.id!);
+      if (widget.cohort.id != null && widget.cohort.id!.isNotEmpty) {
+        await FirebaseService.deleteCohort(widget.cohort.id!);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${cohort.name} deleted successfully'),
+            content: Text('${widget.cohort.name} deleted successfully'),
             backgroundColor: KStyle.cE8GreenColor,
           ),
         );
-        onRefresh();
+        widget.onRefresh();
       } else {
         throw Exception('Cohort ID is empty or null');
       }
@@ -360,7 +545,7 @@ class CohortCard extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            '${cohort.name} Members',
+            '${widget.cohort.name} Members',
             style: KStyle.heading3TextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
@@ -369,9 +554,9 @@ class CohortCard extends StatelessWidget {
             width: 300, // Reduced width for better appearance
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: cohort.recipients.length,
+              itemCount: widget.cohort.recipients.length,
               itemBuilder: (context, index) {
-                final recipient = cohort.recipients[index];
+                final recipient = widget.cohort.recipients[index];
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: KStyle.cPrimaryColor.withOpacity(0.1),
@@ -414,16 +599,6 @@ class CohortCard extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  void _navigateToFormSelection(BuildContext context) {
-    // TODO: Navigate to form selection screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Form selection - Coming soon'),
-        backgroundColor: KStyle.cPrimaryColor,
-      ),
     );
   }
 }
