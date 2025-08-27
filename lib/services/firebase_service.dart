@@ -1411,7 +1411,8 @@ class FirebaseService {
 
   static Future<Map<String, dynamic>> shareFormWithCohort({
     required String formId,
-    required String cohortId,
+    String? cohortId,
+    List<String>? cohortIds,
     required String formTitle,
     String? formDescription,
     String? formLink,
@@ -1419,6 +1420,7 @@ class FirebaseService {
     print('🔍 FirebaseService: shareFormWithCohort called');
     print('🔍 FirebaseService: formId: $formId');
     print('🔍 FirebaseService: cohortId: $cohortId');
+    print('🔍 FirebaseService: cohortIds: $cohortIds');
     print('🔍 FirebaseService: formTitle: $formTitle');
     print('🔍 FirebaseService: formDescription: $formDescription');
     print('🔍 FirebaseService: formLink: $formLink');
@@ -1427,9 +1429,13 @@ class FirebaseService {
     if (formId.isEmpty) {
       throw Exception('Form ID cannot be empty');
     }
-    if (cohortId.isEmpty) {
-      throw Exception('Cohort ID cannot be empty');
+
+    // Check if we have either cohortId or cohortIds
+    if ((cohortId == null || cohortId.isEmpty) &&
+        (cohortIds == null || cohortIds!.isEmpty)) {
+      throw Exception('Either cohortId or cohortIds must be provided');
     }
+
     if (formTitle.isEmpty) {
       throw Exception('Form title cannot be empty');
     }
@@ -1443,14 +1449,23 @@ class FirebaseService {
       print('🔍 FirebaseService: Creating callable function');
       final callable = _functions!.httpsCallable('shareFormWithCohort');
 
-      print('🔍 FirebaseService: Calling function with data');
-      final result = await callable.call({
+      // Prepare data for the function call
+      final functionData = <String, dynamic>{
         'formId': formId,
-        'cohortId': cohortId,
         'formTitle': formTitle,
         'formDescription': formDescription,
         'formLink': formLink,
-      });
+      };
+
+      // Add either single cohortId or multiple cohortIds
+      if (cohortIds != null && cohortIds.isNotEmpty) {
+        functionData['cohortIds'] = cohortIds;
+      } else {
+        functionData['cohortId'] = cohortId;
+      }
+
+      print('🔍 FirebaseService: Calling function with data');
+      final result = await callable.call(functionData);
 
       print('🔍 FirebaseService: Function call successful');
       print('🔍 FirebaseService: Result data: ${result.data}');
@@ -1471,6 +1486,8 @@ class FirebaseService {
               '❌ FirebaseService:   formId: $formId (type: ${formId.runtimeType})');
           print(
               '❌ FirebaseService:   cohortId: $cohortId (type: ${cohortId.runtimeType})');
+          print(
+              '❌ FirebaseService:   cohortIds: $cohortIds (type: ${cohortIds.runtimeType})');
           print(
               '❌ FirebaseService:   formTitle: $formTitle (type: ${formTitle.runtimeType})');
           print(

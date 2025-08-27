@@ -21,10 +21,12 @@ class ShareWithCohortsModal extends StatefulWidget {
 }
 
 class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
-  List<CohortModel> cohorts = [];
-  CohortModel? selectedCohort;
-  bool isLoading = true;
-  bool isSharing = false;
+  List<CohortModel> _cohorts = [];
+  bool _isLoading = true;
+  String? _error;
+  Set<String> _selectedCohortIds =
+      {}; // Changed from single selection to multiple
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
     try {
       print('🔍 ShareWithCohortsModal: Starting to load cohorts...');
       setState(() {
-        isLoading = true;
+        _isLoading = true;
       });
 
       // First try to get user-specific cohorts
@@ -62,13 +64,13 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       }
 
       setState(() {
-        cohorts = loadedCohorts;
-        isLoading = false;
+        _cohorts = loadedCohorts;
+        _isLoading = false;
       });
     } catch (e) {
       print('🔍 ShareWithCohortsModal: Error loading cohorts: $e');
       setState(() {
-        isLoading = false;
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -81,33 +83,39 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
 
   void _selectCohort(CohortModel cohort) {
     setState(() {
-      selectedCohort = selectedCohort?.id == cohort.id ? null : cohort;
+      if (_selectedCohortIds.contains(cohort.id!)) {
+        _selectedCohortIds.remove(cohort.id!);
+      } else {
+        _selectedCohortIds.add(cohort.id!);
+      }
     });
   }
 
   Future<void> _shareFormWithCohort() async {
-    if (selectedCohort == null) return;
+    if (_selectedCohortIds.isEmpty) return;
 
     setState(() {
-      isSharing = true;
+      _isSharing = true;
     });
 
     try {
       print('🔍 ShareWithCohortsModal: Starting to share form with cohort');
       print('🔍 ShareWithCohortsModal: Form ID: ${widget.form.id}');
-      print('🔍 ShareWithCohortsModal: Cohort ID: ${selectedCohort!.id}');
-      print('🔍 ShareWithCohortsModal: Form Title: ${widget.form.title}');
-      print('🔍 ShareWithCohortsModal: Cohort Name: ${selectedCohort!.name}');
       print(
-          '🔍 ShareWithCohortsModal: Recipients count: ${selectedCohort!.recipients.length}');
+          '🔍 ShareWithCohortsModal: Cohort IDs: ${_selectedCohortIds.join(', ')}');
+      print('🔍 ShareWithCohortsModal: Form Title: ${widget.form.title}');
+      print(
+          '🔍 ShareWithCohortsModal: Cohort Names: ${_selectedCohortIds.map((id) => _cohorts.firstWhere((c) => c.id == id).name).join(', ')}');
+      print(
+          '🔍 ShareWithCohortsModal: Recipients count: ${_selectedCohortIds.length}');
 
       // Validate required fields before calling Firebase function
       if (widget.form.id == null || widget.form.id!.isEmpty) {
         throw Exception('Form ID is null or empty');
       }
 
-      if (selectedCohort!.id == null || selectedCohort!.id!.isEmpty) {
-        throw Exception('Cohort ID is null or empty');
+      if (_selectedCohortIds.isEmpty) {
+        throw Exception('No cohorts selected for sharing');
       }
 
       if (widget.form.title == null || widget.form.title.isEmpty) {
@@ -125,7 +133,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
 
       final response = await FirebaseService.shareFormWithCohort(
         formId: widget.form.id!,
-        cohortId: selectedCohort!.id!,
+        cohortIds: _selectedCohortIds.toList(),
         formTitle: widget.form.title,
         formDescription: widget.form.description,
         formLink: formLink,
@@ -137,7 +145,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Form "${widget.form.title}" shared with "${selectedCohort!.name}" successfully'),
+              'Form "${widget.form.title}" shared with "${_selectedCohortIds.length} cohorts" successfully'),
           backgroundColor: KStyle.cApproveColor,
         ),
       );
@@ -157,16 +165,16 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       );
     } finally {
       setState(() {
-        isSharing = false;
+        _isSharing = false;
       });
     }
   }
 
   Future<void> _shareForm() async {
-    if (selectedCohort == null) return;
+    if (_selectedCohortIds.isEmpty) return;
 
     setState(() {
-      isSharing = true;
+      _isSharing = true;
     });
 
     try {
@@ -176,7 +184,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
 
       final response = await FirebaseService.shareFormWithCohort(
         formId: widget.form.id!,
-        cohortId: selectedCohort!.id!,
+        cohortIds: _selectedCohortIds.toList(),
         formTitle: widget.form.title,
         formDescription: widget.form.description,
         formLink: formLink,
@@ -186,7 +194,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Form "${widget.form.title}" shared with "${selectedCohort!.name}" successfully'),
+              'Form "${widget.form.title}" shared with "${_selectedCohortIds.length} cohorts" successfully'),
           backgroundColor: KStyle.cE8GreenColor,
         ),
       );
@@ -203,13 +211,13 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       );
     } finally {
       setState(() {
-        isSharing = false;
+        _isSharing = false;
       });
     }
   }
 
   void _showConfirmationDialog() {
-    if (selectedCohort == null) return;
+    if (_selectedCohortIds.isEmpty) return;
 
     showDialog(
       context: context,
@@ -223,7 +231,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
             ),
           ),
           content: Text(
-            'Are you sure to share "${widget.form.title}" with "${selectedCohort!.name}"?',
+            'Are you sure to share "${widget.form.title}" with ${_selectedCohortIds.length} cohort${_selectedCohortIds.length == 1 ? '' : 's'}?\n\n${_selectedCohortIds.map((id) => _cohorts.firstWhere((c) => c.id == id).name).join(', ')}',
             style: KStyle.labelMdRegularTextStyle.copyWith(
               color: KStyle.cBlackColor,
             ),
@@ -341,11 +349,11 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  onPressed: (selectedCohort != null && !isSharing)
+                  onPressed: (_selectedCohortIds.isNotEmpty && !_isSharing)
                       ? _showConfirmationDialog
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedCohort != null
+                    backgroundColor: _selectedCohortIds.isNotEmpty
                         ? KStyle.cPrimaryColor
                         : Colors.grey,
                     foregroundColor: KStyle.cWhiteColor,
@@ -357,7 +365,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: isSharing
+                  child: _isSharing
                       ? SizedBox(
                           width: 20,
                           height: 20,
@@ -539,13 +547,13 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
         //     ],
         //   ),
 
-        if (isLoading)
+        if (_isLoading)
           Center(
             child: CircularProgressIndicator(
               color: KStyle.cPrimaryColor,
             ),
           )
-        else if (cohorts.isEmpty)
+        else if (_cohorts.isEmpty)
           _buildEmptyState()
         else
           _buildCohortsList(),
@@ -842,7 +850,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...cohorts
+        ..._cohorts
             .map((cohort) => Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: InkWell(
@@ -851,12 +859,12 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: selectedCohort?.id == cohort.id
+                        color: _selectedCohortIds.contains(cohort.id!)
                             ? KStyle.cEDBlueColor
                             : KStyle.cWhiteColor,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: selectedCohort?.id == cohort.id
+                          color: _selectedCohortIds.contains(cohort.id!)
                               ? KStyle.cPrimaryColor
                               : KStyle.cE3GreyColor,
                           width: 1,
@@ -865,10 +873,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
                       child: Row(
                         children: [
                           Icon(
-                            selectedCohort?.id == cohort.id
+                            _selectedCohortIds.contains(cohort.id!)
                                 ? Icons.check_box
                                 : Icons.check_box_outline_blank,
-                            color: selectedCohort?.id == cohort.id
+                            color: _selectedCohortIds.contains(cohort.id!)
                                 ? KStyle.cPrimaryColor
                                 : KStyle.c72GreyColor,
                             size: 24,
@@ -878,7 +886,7 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
                             child: Text(
                               cohort.name,
                               style: KStyle.labelMdRegularTextStyle.copyWith(
-                                color: selectedCohort?.id == cohort.id
+                                color: _selectedCohortIds.contains(cohort.id!)
                                     ? KStyle.cPrimaryColor
                                     : KStyle.cBlackColor,
                                 fontWeight: FontWeight.w500,

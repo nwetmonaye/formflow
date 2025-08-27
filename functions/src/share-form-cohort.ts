@@ -106,53 +106,45 @@ export const shareFormWithCohort = onCall(
     },
     async (request) => {
         try {
-            const { formId, cohortId, formTitle, formDescription, formLink } = request.data;
+            const { formId, cohortId, cohortIds, formTitle, formDescription, formLink } = request.data;
 
             console.log('🔍 shareFormWithCohort: Function called');
             console.log('🔍 shareFormWithCohort: Request data:', request.data);
 
             // Validate required fields
-            if (!formId || !cohortId || !formTitle) {
-                console.error('❌ Missing required fields:', { formId, cohortId, formTitle });
-                throw new Error('Missing required fields: formId, cohortId, formTitle');
+            if (!formId || !formTitle) {
+                console.error('❌ Missing required fields:', { formId, formTitle });
+                throw new Error('Missing required fields: formId, formTitle');
+            }
+
+            // Check if we have either cohortId or cohortIds
+            if (!cohortId && (!cohortIds || cohortIds.length === 0)) {
+                console.error('❌ Missing cohort information:', { cohortId, cohortIds });
+                throw new Error('Missing cohort information: either cohortId or cohortIds must be provided');
             }
 
             // Validate field types
-            if (typeof formId !== 'string' || typeof cohortId !== 'string' || typeof formTitle !== 'string') {
+            if (typeof formId !== 'string' || typeof formTitle !== 'string') {
                 console.error('❌ Invalid field types:', {
                     formId: typeof formId,
-                    cohortId: typeof cohortId,
                     formTitle: typeof formTitle
                 });
-                throw new Error('Invalid field types: formId, cohortId, and formTitle must be strings');
+                throw new Error('Invalid field types: formId and formTitle must be strings');
+            }
+
+            // Validate cohort data
+            if (cohortId && typeof cohortId !== 'string') {
+                throw new Error('Invalid field type: cohortId must be a string');
+            }
+            if (cohortIds && !Array.isArray(cohortIds)) {
+                throw new Error('Invalid field type: cohortIds must be an array');
             }
 
             console.log('🔍 shareFormWithCohort: Field validation passed');
 
-            // Get cohort data
-            const cohortDoc = await db.collection('cohorts').doc(cohortId).get();
-            if (!cohortDoc.exists) {
-                console.error('❌ Cohort not found:', cohortId);
-                throw new Error(`Cohort not found: ${cohortId}`);
-            }
-
-            const cohortData = cohortDoc.data()!;
-            const recipients = cohortData.recipients || [];
-
-            console.log('🔍 shareFormWithCohort: Cohort data retrieved');
-            console.log('🔍 shareFormWithCohort: Cohort name:', cohortData.name);
-            console.log('🔍 shareFormWithCohort: Recipients count:', recipients.length);
-
-            if (recipients.length === 0) {
-                console.log('🔍 Cohort has no recipients');
-                return {
-                    success: true,
-                    message: 'Cohort has no recipients to share with',
-                    recipientsCount: 0
-                };
-            }
-
-            console.log('🔍 shareFormWithCohort: Recipients data:', recipients);
+            // Determine which cohorts to process
+            const cohortIdsToProcess = cohortIds || [cohortId!];
+            console.log('🔍 shareFormWithCohort: Processing cohort IDs:', cohortIdsToProcess);
 
             // Create transporter
             const transporter = createTransporter();
@@ -167,124 +159,170 @@ export const shareFormWithCohort = onCall(
                 throw new Error(`Email service not available: ${errorMessage}`);
             }
 
-            // Send emails to all recipients
-            let successCount = 0;
-            let failureCount = 0;
+            let totalRecipients = 0;
+            let totalSuccessCount = 0;
+            let totalFailureCount = 0;
+            const processedCohorts: string[] = [];
 
-            for (const recipient of recipients) {
+            // Process each cohort
+            for (const currentCohortId of cohortIdsToProcess) {
                 try {
-                    const emailHtml = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="utf-8">
-                            <title>FormFlow - New Form Shared</title>
-                        </head>
-                        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-                            <div style="background: linear-gradient(135deg, #356BF8 0%, #4F7973 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
-                                <h1 style="color: white; margin: 0; font-size: 28px; text-align: center;">
-                                    form<span style="background: white; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 8px;"></span>flow
-                                </h1>
-                            </div>
-                            
-                            <h2 style="color: #356BF8; margin-bottom: 20px;">Hello ${recipient.name}!</h2>
-                            
-                            <p style="font-size: 16px; margin-bottom: 20px;">
-                                A new form has been shared with you via FormFlow.
-                            </p>
-                            
-                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #356BF8; margin-bottom: 30px;">
-                                <h3 style="margin-top: 0; color: #333;">${formTitle}</h3>
-                                <p style="margin-bottom: 20px; color: #666;">${formDescription || 'No description provided'}</p>
-                                <a href="${formLink || `https://formflow.com/form/${formId}`}" style="background: #356BF8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
-                                    Fill Out Form
-                                </a>
-                            </div>
-                            
-                            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
-                                If you have any questions, please contact the form creator.
-                            </p>
-                            
-                            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-                            <p style="text-align: center; color: #999; font-size: 12px;">
-                                This email was sent from FormFlow. Please do not reply to this email.
-                            </p>
-                        </body>
-                        </html>
-                    `;
+                    console.log('🔍 shareFormWithCohort: Processing cohort:', currentCohortId);
 
-                    const mailOptions = {
-                        from: emailConfig.fromEmail,
-                        to: recipient.email,
-                        subject: `FormFlow: New Form Shared - ${formTitle}`,
-                        html: emailHtml,
-                        headers: {
-                            'X-FormFlow-Type': 'form_shared',
-                            'X-FormFlow-Form': formTitle,
-                            'X-FormFlow-Cohort': cohortData.name
+                    // Get cohort data
+                    const cohortDoc = await db.collection('cohorts').doc(currentCohortId).get();
+                    if (!cohortDoc.exists) {
+                        console.error('❌ Cohort not found:', currentCohortId);
+                        throw new Error(`Cohort not found: ${currentCohortId}`);
+                    }
+
+                    const cohortData = cohortDoc.data()!;
+                    const recipients = cohortData.recipients || [];
+
+                    console.log('🔍 shareFormWithCohort: Cohort data retrieved');
+                    console.log('🔍 shareFormWithCohort: Cohort name:', cohortData.name);
+                    console.log('🔍 shareFormWithCohort: Recipients count:', recipients.length);
+
+                    if (recipients.length === 0) {
+                        console.log('🔍 Cohort has no recipients, skipping');
+                        continue;
+                    }
+
+                    totalRecipients += recipients.length;
+                    processedCohorts.push(cohortData.name);
+
+                    // Send emails to all recipients in this cohort
+                    let cohortSuccessCount = 0;
+                    let cohortFailureCount = 0;
+
+                    for (const recipient of recipients) {
+                        try {
+                            const emailHtml = `
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <meta charset="utf-8">
+                                    <title>FormFlow - New Form Shared</title>
+                                </head>
+                                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                                    <div style="background: linear-gradient(135deg, #356BF8 0%, #4F7973 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+                                        <h1 style="color: white; margin: 0; font-size: 28px; text-align: center;">
+                                            form<span style="background: white; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: 8px;"></span>flow
+                                        </h1>
+                                    </div>
+                                    
+                                    <h2 style="color: #356BF8; margin-bottom: 20px;">Hello ${recipient.name}!</h2>
+                                    
+                                    <p style="font-size: 16px; margin-bottom: 20px;">
+                                        A new form has been shared with you via FormFlow.
+                                    </p>
+                                    
+                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #356BF8; margin-bottom: 30px;">
+                                        <h3 style="margin-top: 0; color: #333;">${formTitle}</h3>
+                                        <p style="margin-bottom: 20px; color: #666;">${formDescription || 'No description provided'}</p>
+                                        <a href="${formLink || `https://formflow.com/form/${formId}`}" style="background: #356BF8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
+                                            Fill Out Form
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+                                        If you have any questions, please contact the form creator.
+                                    </p>
+                                    
+                                    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                                    <p style="text-align: center; color: #999; font-size: 12px;">
+                                        This email was sent from FormFlow. Please do not reply to this email.
+                                    </p>
+                                </body>
+                                </html>
+                            `;
+
+                            const mailOptions = {
+                                from: emailConfig.fromEmail,
+                                to: recipient.email,
+                                subject: `FormFlow: New Form Shared - ${formTitle}`,
+                                html: emailHtml,
+                                headers: {
+                                    'X-FormFlow-Type': 'form_shared',
+                                    'X-FormFlow-Form': formTitle,
+                                    'X-FormFlow-Cohort': cohortData.name
+                                }
+                            };
+
+                            console.log('🔍 Sending email to:', recipient.email);
+                            const info = await transporter.sendMail(mailOptions);
+                            console.log('✅ Email sent successfully to:', recipient.email);
+                            cohortSuccessCount++;
+
+                            // Log email to Firestore for tracking
+                            try {
+                                await db.collection('emailLogs').add({
+                                    to: recipient.email,
+                                    subject: mailOptions.subject,
+                                    type: 'form_shared',
+                                    formTitle: formTitle,
+                                    formId: formId,
+                                    cohortId: currentCohortId,
+                                    cohortName: cohortData.name,
+                                    recipientName: recipient.name,
+                                    sentAt: new Date(),
+                                    success: true,
+                                    service: emailConfig.service,
+                                    fromEmail: emailConfig.fromEmail,
+                                    messageId: info.messageId
+                                });
+                            } catch (logError) {
+                                console.error('⚠️ Failed to log email to Firestore:', logError);
+                            }
+
+                        } catch (emailError) {
+                            console.error('❌ Failed to send email to:', recipient.email, emailError);
+                            cohortFailureCount++;
+
+                            // Log error to Firestore
+                            try {
+                                await db.collection('emailLogs').add({
+                                    to: recipient.email,
+                                    subject: `FormFlow: New Form Shared - ${formTitle}`,
+                                    type: 'form_shared',
+                                    formTitle: formTitle,
+                                    formId: formId,
+                                    cohortId: currentCohortId,
+                                    cohortName: cohortData.name,
+                                    recipientName: recipient.name,
+                                    error: emailError instanceof Error ? emailError.message : 'Unknown error',
+                                    failedAt: new Date(),
+                                    success: false
+                                });
+                            } catch (logError) {
+                                console.warn('⚠️ Failed to log error to Firestore:', logError);
+                            }
                         }
-                    };
-
-                    console.log('🔍 Sending email to:', recipient.email);
-                    const info = await transporter.sendMail(mailOptions);
-                    console.log('✅ Email sent successfully to:', recipient.email);
-                    successCount++;
-
-                    // Log email to Firestore for tracking
-                    try {
-                        await db.collection('emailLogs').add({
-                            to: recipient.email,
-                            subject: mailOptions.subject,
-                            type: 'form_shared',
-                            formTitle: formTitle,
-                            formId: formId,
-                            cohortId: cohortId,
-                            cohortName: cohortData.name,
-                            recipientName: recipient.name,
-                            sentAt: new Date(),
-                            success: true,
-                            service: emailConfig.service,
-                            fromEmail: emailConfig.fromEmail,
-                            messageId: info.messageId
-                        });
-                    } catch (logError) {
-                        console.error('⚠️ Failed to log email to Firestore:', logError);
                     }
 
-                } catch (emailError) {
-                    console.error('❌ Failed to send email to:', recipient.email, emailError);
-                    failureCount++;
+                    totalSuccessCount += cohortSuccessCount;
+                    totalFailureCount += cohortFailureCount;
 
-                    // Log error to Firestore
-                    try {
-                        await db.collection('emailLogs').add({
-                            to: recipient.email,
-                            subject: `FormFlow: New Form Shared - ${formTitle}`,
-                            type: 'form_shared',
-                            formTitle: formTitle,
-                            formId: formId,
-                            cohortId: cohortId,
-                            cohortName: cohortData.name,
-                            recipientName: recipient.name,
-                            error: emailError instanceof Error ? emailError.message : 'Unknown error',
-                            failedAt: new Date(),
-                            success: false
-                        });
-                    } catch (logError) {
-                        console.warn('⚠️ Failed to log error to Firestore:', logError);
-                    }
+                    console.log(`✅ Cohort ${cohortData.name} processed. Success: ${cohortSuccessCount}, Failures: ${cohortFailureCount}`);
+
+                } catch (cohortError) {
+                    console.error('❌ Error processing cohort:', currentCohortId, cohortError);
+                    totalFailureCount++;
                 }
             }
 
-            console.log('✅ Form sharing completed. Success:', successCount, 'Failures:', failureCount);
+            console.log('✅ Multi-cohort form sharing completed.');
+            console.log('✅ Total Success:', totalSuccessCount, 'Total Failures:', totalFailureCount);
+            console.log('✅ Processed cohorts:', processedCohorts);
 
             return {
                 success: true,
-                message: 'Form shared with cohort successfully',
-                recipientsCount: recipients.length,
-                successCount: successCount,
-                failureCount: failureCount,
-                cohortName: cohortData.name
+                message: 'Form shared with cohorts successfully',
+                recipientsCount: totalRecipients,
+                successCount: totalSuccessCount,
+                failureCount: totalFailureCount,
+                processedCohorts: processedCohorts,
+                totalCohorts: cohortIdsToProcess.length
             };
 
         } catch (error) {
