@@ -21,11 +21,14 @@ class CohortsScreen extends StatefulWidget {
   State<CohortsScreen> createState() => _CohortsScreenState();
 }
 
-class _CohortsScreenState extends State<CohortsScreen> {
-  int selectedNavItem = 1; // 1 = Cohorts
+class _CohortsScreenState extends State<CohortsScreen>
+    with AutomaticKeepAliveClientMixin {
   List<CohortModel> _cachedCohorts = [];
   bool _hasCachedData = false;
   bool _showMockData = false; // Control when to show mock data
+
+  @override
+  bool get wantKeepAlive => true; // Keep the screen alive when switching tabs
 
   @override
   void initState() {
@@ -128,737 +131,196 @@ class _CohortsScreenState extends State<CohortsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is Unauthenticated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('You have been signed out successfully.'),
-              backgroundColor: Colors.blue,
-            ),
-          );
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-          );
-        }
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          if (authState is! Authenticated) {
-            return Scaffold(
-              backgroundColor: KStyle.cBgColor,
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.person_outline,
-                      size: 64,
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return Scaffold(
+            backgroundColor: KStyle.cBackgroundColor,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    size: 64,
+                    color: KStyle.c72GreyColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please sign in to view your cohorts',
+                    style: KStyle.heading3TextStyle.copyWith(
                       color: KStyle.c72GreyColor,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Please sign in to view your cohorts',
-                      style: KStyle.heading3TextStyle.copyWith(
-                        color: KStyle.c72GreyColor,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
-          return Scaffold(
-            backgroundColor: KStyle.cBgColor,
-            body: Row(
-              children: [
-                // Left Sidebar
-                Container(
-                  width: 280,
+        return Scaffold(
+          backgroundColor: KStyle.cBackgroundColor,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header - Fixed height to prevent jumping
+              RepaintBoundary(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: KStyle.cPrimaryColor,
+                    color: KStyle.cWhiteColor,
                     border: Border(
-                      right: BorderSide(
+                      bottom: BorderSide(
                         color: KStyle.cE3GreyColor,
                         width: 1,
                       ),
                     ),
                   ),
+                  height: 150,
                   child: Column(
                     children: [
-                      // Logo
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'form',
-                              style: KStyle.heading2TextStyle.copyWith(
-                                color: KStyle.cWhiteColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              margin: const EdgeInsets.only(top: 10),
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: KStyle.cWhiteColor,
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Navigation Menu
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildNavItem(
-                              icon: Icons.description_outlined,
-                              title: 'My Forms',
-                              isSelected: selectedNavItem == 0,
-                              notificationCount: null,
-                              onTap: () {
-                                setState(() {
-                                  selectedNavItem = 0;
-                                });
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildNavItem(
-                              icon: Icons.group_outlined,
-                              title: 'Cohorts',
-                              isSelected: selectedNavItem == 1,
-                              notificationCount: null,
-                              onTap: () {
-                                setState(() {
-                                  selectedNavItem = 1;
-                                });
-                              },
-                            ),
-                            StreamBuilder<int>(
-                              stream: FirebaseService
-                                  .getUnreadNotificationsCountStream(),
-                              builder: (context, snapshot) {
-                                final notificationCount = snapshot.data ?? 0;
-                                return _buildNavItem(
-                                  icon: Icons.notifications_outlined,
-                                  title: 'Notifications',
-                                  isSelected: selectedNavItem == 2,
-                                  notificationCount: notificationCount > 0
-                                      ? notificationCount
-                                      : null,
-                                  onTap: () {
-                                    setState(() {
-                                      selectedNavItem = 2;
-                                    });
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const NotificationScreen(),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Profile Card
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: KStyle.cWhiteColor,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            _showProfileMenu(context, authState);
-                          },
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: KStyle.cEDBlueColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    (authState.user.displayName?.isNotEmpty ==
-                                            true)
-                                        ? authState.user.displayName![0]
-                                            .toUpperCase()
-                                        : 'U',
-                                    style: KStyle.labelMdBoldTextStyle.copyWith(
-                                      color: KStyle.cPrimaryColor,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                    ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Cohorts',
+                                  style: KStyle.headingTextStyle.copyWith(
+                                    color: KStyle.cBlackColor,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      authState.user.displayName ?? 'User',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.cWhiteColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      'View Profile',
-                                      style: KStyle.labelSmRegularTextStyle
-                                          .copyWith(
-                                        color:
-                                            KStyle.cWhiteColor.withOpacity(0.7),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                              ],
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _showCreateCohortModal();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: KStyle.cPrimaryColor,
+                                foregroundColor: KStyle.cWhiteColor,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
                                 ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
                               ),
-                              Icon(
-                                Icons.keyboard_arrow_up,
-                                color: KStyle.cWhiteColor,
-                                size: 20,
-                              ),
-                            ],
-                          ),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Create Cohort'),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
+              ),
+              // Content - Animated container to prevent jumping
+              Expanded(
+                child: RepaintBoundary(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.all(24),
+                    child: FutureBuilder<bool>(
+                      future: FirebaseService.ensureInitialized(),
+                      builder: (context, initSnapshot) {
+                        if (initSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
 
-                // Main Content Area
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: KStyle.cBackgroundColor,
-                      border: Border(
-                        right: BorderSide(
-                          color: KStyle.cE3GreyColor,
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header Section
-
-                        Container(
-                          decoration: BoxDecoration(
-                            color: KStyle.cWhiteColor,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: KStyle.cE3GreyColor,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          height: 150,
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 16),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Cohorts',
-                                          style:
-                                              KStyle.headingTextStyle.copyWith(
-                                            color: KStyle.cBlackColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Spacer(),
-                                    ElevatedButton.icon(
-                                      onPressed: _showCreateCohortModal,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: KStyle.cPrimaryColor,
-                                        foregroundColor: KStyle.cWhiteColor,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 16,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      icon: const Icon(Icons.add, size: 20),
-                                      label: Text(
-                                        'New Cohort',
-                                        style: KStyle.labelTextStyle.copyWith(
-                                          color: KStyle.cWhiteColor,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    // Manual refresh button
-                                    // ElevatedButton.icon(
-                                    //   onPressed: _refreshCohorts,
-                                    //   style: ElevatedButton.styleFrom(
-                                    //     backgroundColor: Colors.blue,
-                                    //     foregroundColor: Colors.white,
-                                    //     padding: const EdgeInsets.symmetric(
-                                    //       horizontal: 16,
-                                    //       vertical: 16,
-                                    //     ),
-                                    //     shape: RoundedRectangleBorder(
-                                    //       borderRadius:
-                                    //           BorderRadius.circular(8),
-                                    //     ),
-                                    //     elevation: 0,
-                                    //   ),
-                                    //   icon: const Icon(Icons.refresh, size: 20),
-                                    //   label: const Text('Refresh'),
-                                    // ),
-                                    // const SizedBox(width: 12),
-                                    // // Test Firebase button
-                                    // ElevatedButton.icon(
-                                    //   onPressed: _testFirebaseConnection,
-                                    //   style: ElevatedButton.styleFrom(
-                                    //     backgroundColor: Colors.orange,
-                                    //     foregroundColor: Colors.white,
-                                    //     padding: const EdgeInsets.symmetric(
-                                    //       horizontal: 16,
-                                    //       vertical: 16,
-                                    //     ),
-                                    //     shape: RoundedRectangleBorder(
-                                    //       borderRadius:
-                                    //           BorderRadius.circular(8),
-                                    //     ),
-                                    //     elevation: 0,
-                                    //   ),
-                                    //   icon: const Icon(Icons.bug_report,
-                                    //       size: 20),
-                                    //   label: const Text('Test'),
-                                    // ),
-                                  ],
+                        if (initSnapshot.hasError ||
+                            initSnapshot.data != true) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.red,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Content Section - Use StreamBuilder for real-time updates
-                        Expanded(
-                          child: FutureBuilder<bool>(
-                            future: FirebaseService.ensureInitialized(),
-                            builder: (context, initSnapshot) {
-                              if (initSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-
-                              if (initSnapshot.hasError ||
-                                  initSnapshot.data != true) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error_outline,
-                                        size: 64,
-                                        color: Colors.red,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Failed to initialize Firebase',
-                                        style:
-                                            KStyle.heading3TextStyle.copyWith(
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Please check your internet connection and try again',
-                                        style: KStyle.labelMdRegularTextStyle
-                                            .copyWith(
-                                          color: KStyle.c72GreyColor,
-                                        ),
-                                      ),
-                                    ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Failed to initialize Firebase',
+                                  style: KStyle.heading3TextStyle.copyWith(
+                                    color: Colors.red,
                                   ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return StreamBuilder<List<CohortModel>>(
+                          stream: FirebaseService.getCohortsStream(),
+                          builder: (context, snapshot) {
+                            // Use AnimatedSwitcher for smooth content transitions
+                            return AnimatedSwitcher(
+                              key: ValueKey(
+                                  '${snapshot.connectionState}_${snapshot.hasData}_${snapshot.data?.length ?? 0}'),
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
                                 );
-                              }
-
-                              return StreamBuilder<List<CohortModel>>(
-                                stream: FirebaseService.getCohortsStream(),
-                                builder: (context, snapshot) {
-                                  print(
-                                      '🔍 CohortsScreen: StreamBuilder state: ${snapshot.connectionState}, hasData: ${snapshot.hasData}, hasError: ${snapshot.hasError}, error: ${snapshot.error}');
-
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    // Show cached data if available while loading
-                                    if (_hasCachedData &&
-                                        _cachedCohorts.isNotEmpty) {
-                                      print(
-                                          '🔍 CohortsScreen: Stream loading, showing cached data');
-                                      return _buildCohortsGrid(_cachedCohorts);
-                                    }
-
-                                    // If no cached data and still loading, show single skeleton loader
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Single skeleton cohort card
-                                          Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              color: KStyle.cWhiteColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.08),
-                                                  blurRadius: 20,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                // Skeleton title
-                                                Container(
-                                                  height: 20,
-                                                  width: 120,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[300],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4),
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 80),
-                                                // Skeleton team members section
-                                                Row(
-                                                  children: [
-                                                    Container(
-                                                      width: 24,
-                                                      height: 24,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.grey[300],
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Container(
-                                                      width: 40,
-                                                      height: 20,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.grey[300],
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const Spacer(),
-                                                // Skeleton button
-                                                Container(
-                                                  width: double.infinity,
-                                                  height: 48,
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey[300],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          // Loading text
-                                          Center(
-                                            child: Text(
-                                              'Loading cohorts...',
-                                              style: KStyle
-                                                  .labelMdRegularTextStyle
-                                                  .copyWith(
-                                                color: KStyle.c72GreyColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  if (snapshot.hasError) {
-                                    print(
-                                        '🔍 CohortsScreen: Stream error: ${snapshot.error}');
-
-                                    // If user wants to see mock data, show it
-                                    if (_showMockData) {
-                                      return _buildMockDataFallback();
-                                    }
-
-                                    // Show cached data if available, otherwise show error
-                                    if (_hasCachedData &&
-                                        _cachedCohorts.isNotEmpty) {
-                                      print(
-                                          '🔍 CohortsScreen: Stream error, showing cached data');
-                                      return Column(
-                                        children: [
-                                          // Show warning about using cached data
-                                          Container(
-                                            margin: const EdgeInsets.all(16),
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange
-                                                  .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                  color: Colors.orange
-                                                      .withOpacity(0.3)),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                    Icons
-                                                        .warning_amber_outlined,
-                                                    color: Colors.orange),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Text(
-                                                    'Showing cached data due to connection issues. Pull to refresh.',
-                                                    style: TextStyle(
-                                                        color:
-                                                            Colors.orange[700]),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(
-                                              child: _buildCohortsGrid(
-                                                  _cachedCohorts)),
-                                        ],
-                                      );
-                                    }
-
-                                    // If no cached data, show error with retry option
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.error_outline,
-                                            size: 64,
-                                            color: Colors.red,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'Error loading cohorts',
-                                            style: KStyle.heading3TextStyle
-                                                .copyWith(
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Error: ${snapshot.error}',
-                                            style: KStyle
-                                                .labelMdRegularTextStyle
-                                                .copyWith(
-                                              color: KStyle.c72GreyColor,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // Trigger a refresh by rebuilding the stream
-                                              // _refreshCohorts();
-                                            },
-                                            child: const Text('Retry'),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              // Show mock data as fallback
-                                              setState(() {
-                                                _showMockData = true;
-                                              });
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.orange,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child:
-                                                const Text('Show Sample Data'),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              // Create a test cohort
-                                              await _createTestCohort();
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: const Text(
-                                                'Create Test Cohort'),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              // Check all cohorts in database
-                                              await _checkAllCohorts();
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.purple,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child:
-                                                const Text('Check All Cohorts'),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          // Show debug info
-                                          Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.grey.withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Text(
-                                                  'Debug Info:',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  'Has Cached Data: $_hasCachedData',
-                                                  style: TextStyle(
-                                                      color: Colors.grey[600]),
-                                                ),
-                                                Text(
-                                                  'Cached Count: ${_cachedCohorts.length}',
-                                                  style: TextStyle(
-                                                      color: Colors.grey[600]),
-                                                ),
-                                                Text(
-                                                  'Firebase Init: ${FirebaseService.isInitialized}',
-                                                  style: TextStyle(
-                                                      color: Colors.grey[600]),
-                                                ),
-                                                Text(
-                                                  'Error Type: ${snapshot.error.runtimeType}',
-                                                  style: TextStyle(
-                                                      color: Colors.grey[600]),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-
-                                  final cohorts = snapshot.data ?? [];
-
-                                  // Update cached data when stream provides new data
-                                  if (cohorts.isNotEmpty && !_hasCachedData) {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      setState(() {
-                                        _cachedCohorts = cohorts;
-                                        _hasCachedData = true;
-                                      });
-                                    });
-                                  }
-
-                                  if (cohorts.isEmpty) {
-                                    // If stream is empty but we have cached data, show cached
-                                    if (_hasCachedData &&
-                                        _cachedCohorts.isNotEmpty) {
-                                      print(
-                                          '🔍 CohortsScreen: Stream empty, showing cached data');
-                                      return _buildCohortsGrid(_cachedCohorts);
-                                    }
-                                    return _buildEmptyState();
-                                  }
-
-                                  return _buildCohortsGrid(cohorts);
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                              },
+                              child: _buildContentForSnapshot(snapshot),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  // Helper method to build content based on snapshot state
+  Widget _buildContentForSnapshot(AsyncSnapshot<List<CohortModel>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      if (_hasCachedData && _cachedCohorts.isNotEmpty) {
+        return _buildCohortsGrid(_cachedCohorts);
+      }
+      return const Center(
+        key: ValueKey('loading'),
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (snapshot.hasError) {
+      if (_hasCachedData && _cachedCohorts.isNotEmpty) {
+        return _buildCohortsGrid(_cachedCohorts);
+      }
+      return _buildEmptyState();
+    }
+
+    final cohorts = snapshot.data ?? [];
+    if (cohorts.isEmpty) {
+      if (_hasCachedData && _cachedCohorts.isNotEmpty) {
+        return _buildCohortsGrid(_cachedCohorts);
+      }
+      return _buildEmptyState();
+    }
+
+    return _buildCohortsGrid(cohorts);
   }
 
   void _showCreateCohortModal() {
@@ -1344,109 +806,115 @@ class _CohortsScreenState extends State<CohortsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      // padding: const EdgeInsets.all(48),
-      decoration: BoxDecoration(
-        color: KStyle.cWhiteColor,
-        // borderRadius: BorderRadius.circular(20),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withOpacity(0.04),
-        //     blurRadius: 20,
-        //     offset: const Offset(0, 4),
-        //   ),
-        // ],
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/cohort.png',
-              fit: BoxFit.contain,
-              width: 150,
-              height: 150,
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'No cohorts yet',
-              style: KStyle.heading3TextStyle.copyWith(
-                color: KStyle.c72GreyColor,
+    return RepaintBoundary(
+      key: const ValueKey('empty_state'),
+      child: Container(
+        // padding: const EdgeInsets.all(48),
+        decoration: BoxDecoration(
+          color: KStyle.cWhiteColor,
+          // borderRadius: BorderRadius.circular(20),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.black.withOpacity(0.04),
+          //     blurRadius: 20,
+          //     offset: const Offset(0, 4),
+          //   ),
+          // ],
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/cohort.png',
+                fit: BoxFit.contain,
+                width: 150,
+                height: 150,
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Create your first cohort to start sharing forms with groups of recipients',
-              style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: KStyle.c72GreyColor,
+              const SizedBox(height: 32),
+              Text(
+                'No cohorts yet',
+                style: KStyle.heading3TextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Create your first cohort to start sharing forms with groups of recipients',
+                style: KStyle.labelMdRegularTextStyle.copyWith(
+                  color: KStyle.c72GreyColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildCohortsGrid(List<CohortModel> cohorts) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Stats Section
-        // Container(
-        //   padding: const EdgeInsets.all(20),
-        //   decoration: BoxDecoration(
-        //     color: KStyle.cEDBlueColor,
-        //     borderRadius: BorderRadius.circular(16),
-        //     border: Border.all(
-        //       color: KStyle.cPrimaryColor.withOpacity(0.1),
-        //       width: 1,
-        //     ),
-        //   ),
-        //   child: Row(
-        //     children: [
-        //       Icon(
-        //         Icons.insights_outlined,
-        //         color: KStyle.cPrimaryColor,
-        //         size: 24,
-        //       ),
-        //       const SizedBox(height: 12),
-        //       Text(
-        //         '${cohorts.length} cohort${cohorts.length == 1 ? '' : 's'} • ${cohorts.fold(0, (sum, cohort) => sum + cohort.recipients.length)} total recipients',
-        //         style: KStyle.labelMdRegularTextStyle.copyWith(
-        //           color: KStyle.cPrimaryColor,
-        //           fontWeight: FontWeight.w600,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        // const SizedBox(height: 24),
+    return RepaintBoundary(
+      key: ValueKey('cohorts_grid_${cohorts.length}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Stats Section
+          // Container(
+          //   padding: const EdgeInsets.all(20),
+          //   decoration: BoxDecoration(
+          //     color: KStyle.cEDBlueColor,
+          //     borderRadius: BorderRadius.circular(16),
+          //     border: Border.all(
+          //       color: KStyle.cPrimaryColor.withOpacity(0.1),
+          //       width: 1,
+          //     ),
+          //   ),
+          //   child: Row(
+          //     children: [
+          //       Icon(
+          //         Icons.insights_outlined,
+          //         color: KStyle.cPrimaryColor,
+          //         size: 24,
+          //       ),
+          //       const SizedBox(height: 12),
+          //       Text(
+          //         '${cohorts.length} cohort${cohorts.length == 1 ? '' : 's'} • ${cohorts.fold(0, (sum, cohort) => sum + cohort.recipients.length)} total recipients',
+          //         style: KStyle.labelMdRegularTextStyle.copyWith(
+          //           color: KStyle.cPrimaryColor,
+          //           fontWeight: FontWeight.w600,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          // const SizedBox(height: 24),
 
-        // Cohorts Grid
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
+          // Cohorts Grid
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 30,
+                childAspectRatio: 1.8,
+              ),
+              itemCount: cohorts.length,
+              itemBuilder: (context, index) {
+                return CohortCard(
+                  cohort: cohorts[index],
+                  onRefresh: () {
+                    // _refreshCohorts();
+                  },
+                );
+              },
             ),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 30,
-              childAspectRatio: 1.8,
-            ),
-            itemCount: cohorts.length,
-            itemBuilder: (context, index) {
-              return CohortCard(
-                cohort: cohorts[index],
-                onRefresh: () {
-                  // _refreshCohorts();
-                },
-              );
-            },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -1512,126 +980,5 @@ class _CohortsScreenState extends State<CohortsScreen> {
         ),
       ),
     );
-  }
-
-  void _showProfileMenu(BuildContext context, AuthState authState) {
-    // Create a custom overlay entry for the profile dropdown
-    final OverlayState overlayState = Overlay.of(context);
-    late OverlayEntry overlayEntry;
-
-    overlayEntry = OverlayEntry(
-      builder: (context) => Material(
-        color: Colors.transparent,
-        child: Stack(
-          children: [
-            // Semi-transparent overlay to capture clicks outside
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  overlayEntry.remove();
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-            // Profile dropdown card positioned near the profile tab
-            Positioned(
-              bottom: 100, // Position above the profile section
-              left: 16, // Align with sidebar padding
-              child: Container(
-                width: 240,
-                decoration: BoxDecoration(
-                  color: KStyle.cWhiteColor,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // View Profile option
-                    InkWell(
-                      onTap: () {
-                        overlayEntry.remove();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ProfileScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person_outline,
-                              color: KStyle.cPrimaryColor,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'View Profile',
-                              style: KStyle.labelTextStyle.copyWith(
-                                color: KStyle.cBlackColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Divider
-                    Container(
-                      height: 1,
-                      color: KStyle.cE3GreyColor,
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    // Log Out option
-                    InkWell(
-                      onTap: () {
-                        overlayEntry.remove();
-                        context.read<AuthBloc>().add(SignOutRequested());
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.logout,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Log Out',
-                              style: KStyle.labelTextStyle.copyWith(
-                                color: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    overlayState.insert(overlayEntry);
   }
 }

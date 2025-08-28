@@ -72,9 +72,13 @@ class _FormDetailScreenState extends State<FormDetailScreen>
           // Show error or navigate back
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Form not found'),
                 backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             );
             Navigator.of(context).pop();
@@ -89,6 +93,10 @@ class _FormDetailScreenState extends State<FormDetailScreen>
             SnackBar(
               content: Text('Error loading form: $e'),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           );
           Navigator.of(context).pop();
@@ -231,7 +239,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         // Show loading state while form is being loaded
         if (_isLoading || _form == null) {
           return Scaffold(
-            backgroundColor: KStyle.cBgColor,
+            backgroundColor: KStyle.cBackgroundColor,
             body: const Center(
               child: CircularProgressIndicator(),
             ),
@@ -240,7 +248,7 @@ class _FormDetailScreenState extends State<FormDetailScreen>
 
         if (authState is! Authenticated) {
           return Scaffold(
-            backgroundColor: KStyle.cBgColor,
+            backgroundColor: KStyle.cBackgroundColor,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -264,196 +272,196 @@ class _FormDetailScreenState extends State<FormDetailScreen>
         }
 
         return Scaffold(
-          backgroundColor: KStyle.cBgColor,
+          backgroundColor: KStyle.cBackgroundColor,
           body: Row(
             children: [
               // Left Sidebar
-              Container(
-                width: 280,
-                decoration: BoxDecoration(
-                  color: KStyle.cPrimaryColor,
-                  border: Border(
-                    right: BorderSide(
-                      color: KStyle.cE3GreyColor,
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    // Logo
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            'form',
-                            style: KStyle.heading2TextStyle.copyWith(
-                              color: KStyle.cWhiteColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            margin: const EdgeInsets.only(top: 10),
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: KStyle.cWhiteColor,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+              // Container(
+              //   width: 280,
+              //   decoration: BoxDecoration(
+              //     color: KStyle.cPrimaryColor,
+              //     border: Border(
+              //       right: BorderSide(
+              //         color: KStyle.cE3GreyColor,
+              //         width: 1,
+              //       ),
+              //     ),
+              //   ),
+              //   child: Column(
+              //     children: [
+              //       // Logo
+              //       Container(
+              //         padding: const EdgeInsets.all(24),
+              //         child: Row(
+              //           crossAxisAlignment: CrossAxisAlignment.center,
+              //           mainAxisAlignment: MainAxisAlignment.start,
+              //           children: [
+              //             Text(
+              //               'form',
+              //               style: KStyle.heading2TextStyle.copyWith(
+              //                 color: KStyle.cWhiteColor,
+              //                 fontWeight: FontWeight.w600,
+              //               ),
+              //             ),
+              //             const SizedBox(width: 8),
+              //             Container(
+              //               margin: const EdgeInsets.only(top: 10),
+              //               width: 10,
+              //               height: 10,
+              //               decoration: BoxDecoration(
+              //                 color: KStyle.cWhiteColor,
+              //                 borderRadius: BorderRadius.circular(50),
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //       ),
 
-                    // Navigation Menu
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildNavItem(
-                            icon: Icons.description_outlined,
-                            title: 'My Forms',
-                            isSelected: selectedNavItem == 0,
-                            onTap: () {
-                              setState(() {
-                                selectedNavItem = 0;
-                              });
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          _buildNavItem(
-                            icon: Icons.group_outlined,
-                            title: 'Cohorts',
-                            isSelected: selectedNavItem == 1,
-                            onTap: () {
-                              setState(() {
-                                selectedNavItem = 1;
-                              });
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const CohortsScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                          StreamBuilder<int>(
-                            stream: FirebaseService
-                                .getUnreadNotificationsCountStream(),
-                            builder: (context, snapshot) {
-                              final notificationCount = snapshot.data ?? 0;
-                              return _buildNavItem(
-                                icon: Icons.notifications_outlined,
-                                title: 'Notifications',
-                                isSelected: selectedNavItem == 2,
-                                notificationCount: notificationCount > 0
-                                    ? notificationCount
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    selectedNavItem = 2;
-                                  });
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NotificationScreen(),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+              //       // Navigation Menu
+              //       Expanded(
+              //         child: Column(
+              //           children: [
+              //             _buildNavItem(
+              //               icon: Icons.description_outlined,
+              //               title: 'My Forms',
+              //               isSelected: selectedNavItem == 0,
+              //               onTap: () {
+              //                 setState(() {
+              //                   selectedNavItem = 0;
+              //                 });
+              //                 Navigator.of(context).pop();
+              //               },
+              //             ),
+              //             _buildNavItem(
+              //               icon: Icons.group_outlined,
+              //               title: 'Cohorts',
+              //               isSelected: selectedNavItem == 1,
+              //               onTap: () {
+              //                 setState(() {
+              //                   selectedNavItem = 1;
+              //                 });
+              //                 Navigator.of(context).pushReplacement(
+              //                   MaterialPageRoute(
+              //                     builder: (context) => const CohortsScreen(),
+              //                   ),
+              //                 );
+              //               },
+              //             ),
+              //             StreamBuilder<int>(
+              //               stream: FirebaseService
+              //                   .getUnreadNotificationsCountStream(),
+              //               builder: (context, snapshot) {
+              //                 final notificationCount = snapshot.data ?? 0;
+              //                 return _buildNavItem(
+              //                   icon: Icons.notifications_outlined,
+              //                   title: 'Notifications',
+              //                   isSelected: selectedNavItem == 2,
+              //                   notificationCount: notificationCount > 0
+              //                       ? notificationCount
+              //                       : null,
+              //                   onTap: () {
+              //                     setState(() {
+              //                       selectedNavItem = 2;
+              //                     });
+              //                     Navigator.of(context).push(
+              //                       MaterialPageRoute(
+              //                         builder: (context) =>
+              //                             const NotificationScreen(),
+              //                       ),
+              //                     );
+              //                   },
+              //                 );
+              //               },
+              //             ),
+              //           ],
+              //         ),
+              //       ),
 
-                    // Profile Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: KStyle.cWhiteColor,
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: GestureDetector(
-                        onTap: () {
-                          _showProfileMenu(context, authState);
-                        },
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: KStyle.cEDBlueColor,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  (authState.user.displayName?.isNotEmpty ==
-                                          true)
-                                      ? authState.user.displayName![0]
-                                          .toUpperCase()
-                                      : (authState.user.email?.isNotEmpty ==
-                                              true)
-                                          ? authState.user.email![0]
-                                              .toUpperCase()
-                                          : 'U',
-                                  style: KStyle.labelMdBoldTextStyle.copyWith(
-                                    color: KStyle.cPrimaryColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    authState.user.displayName ??
-                                        authState.user.email.split('@')[0] ??
-                                        'User',
-                                    style:
-                                        KStyle.labelMdRegularTextStyle.copyWith(
-                                      color: KStyle.cWhiteColor,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    'View Profile',
-                                    style:
-                                        KStyle.labelSmRegularTextStyle.copyWith(
-                                      color:
-                                          KStyle.cWhiteColor.withOpacity(0.7),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_up,
-                              color: KStyle.cWhiteColor,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              //       // Profile Card
+              //       Container(
+              //         padding: const EdgeInsets.all(16),
+              //         decoration: BoxDecoration(
+              //           border: Border(
+              //             top: BorderSide(
+              //               color: KStyle.cWhiteColor,
+              //               width: 1,
+              //             ),
+              //           ),
+              //         ),
+              //         child: GestureDetector(
+              //           onTap: () {
+              //             _showProfileMenu(context, authState);
+              //           },
+              //           child: Row(
+              //             children: [
+              //               Container(
+              //                 width: 40,
+              //                 height: 40,
+              //                 decoration: BoxDecoration(
+              //                   color: KStyle.cEDBlueColor,
+              //                   borderRadius: BorderRadius.circular(20),
+              //                 ),
+              //                 child: Center(
+              //                   child: Text(
+              //                     (authState.user.displayName?.isNotEmpty ==
+              //                             true)
+              //                         ? authState.user.displayName![0]
+              //                             .toUpperCase()
+              //                         : (authState.user.email?.isNotEmpty ==
+              //                                 true)
+              //                             ? authState.user.email![0]
+              //                                 .toUpperCase()
+              //                             : 'U',
+              //                     style: KStyle.labelMdBoldTextStyle.copyWith(
+              //                       color: KStyle.cPrimaryColor,
+              //                       fontWeight: FontWeight.w700,
+              //                       fontSize: 18,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ),
+              //               const SizedBox(width: 12),
+              //               Expanded(
+              //                 child: Column(
+              //                   crossAxisAlignment: CrossAxisAlignment.start,
+              //                   children: [
+              //                     Text(
+              //                       authState.user.displayName ??
+              //                           authState.user.email.split('@')[0] ??
+              //                           'User',
+              //                       style:
+              //                           KStyle.labelMdRegularTextStyle.copyWith(
+              //                         color: KStyle.cWhiteColor,
+              //                         fontWeight: FontWeight.w500,
+              //                       ),
+              //                       maxLines: 1,
+              //                       overflow: TextOverflow.ellipsis,
+              //                     ),
+              //                     Text(
+              //                       'View Profile',
+              //                       style:
+              //                           KStyle.labelSmRegularTextStyle.copyWith(
+              //                         color:
+              //                             KStyle.cWhiteColor.withOpacity(0.7),
+              //                       ),
+              //                       maxLines: 1,
+              //                       overflow: TextOverflow.ellipsis,
+              //                     ),
+              //                   ],
+              //                 ),
+              //               ),
+              //               Icon(
+              //                 Icons.keyboard_arrow_up,
+              //                 color: KStyle.cWhiteColor,
+              //                 size: 20,
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
 
               // Main Content Area
               Expanded(
@@ -486,46 +494,46 @@ class _FormDetailScreenState extends State<FormDetailScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Breadcrumbs
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'My Forms',
-                                    style:
-                                        KStyle.labelSmRegularTextStyle.copyWith(
-                                      color: KStyle.c13BlackColor,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  ' / ',
-                                  style:
-                                      KStyle.labelSmRegularTextStyle.copyWith(
-                                    color: KStyle.c72GreyColor,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text(
-                                    _form!.title,
-                                    style:
-                                        KStyle.labelSmRegularTextStyle.copyWith(
-                                      color: KStyle.c72GreyColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            // Row(
+                            //   children: [
+                            //     GestureDetector(
+                            //       onTap: () {
+                            //         Navigator.of(context).push(
+                            //           MaterialPageRoute(
+                            //             builder: (context) =>
+                            //                 const HomeScreen(),
+                            //           ),
+                            //         );
+                            //       },
+                            //       child: Text(
+                            //         'My Forms',
+                            //         style:
+                            //             KStyle.labelSmRegularTextStyle.copyWith(
+                            //           color: KStyle.c13BlackColor,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     Text(
+                            //       ' / ',
+                            //       style:
+                            //           KStyle.labelSmRegularTextStyle.copyWith(
+                            //         color: KStyle.c72GreyColor,
+                            //       ),
+                            //     ),
+                            //     GestureDetector(
+                            //       onTap: () {
+                            //         Navigator.of(context).pop();
+                            //       },
+                            //       child: Text(
+                            //         _form!.title,
+                            //         style:
+                            //             KStyle.labelSmRegularTextStyle.copyWith(
+                            //           color: KStyle.c72GreyColor,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
                             const SizedBox(height: 8),
                             // Title and Actions Row
                             Row(

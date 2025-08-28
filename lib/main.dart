@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:formflow/screens/login_screen.dart';
 import 'package:formflow/screens/signup_screen.dart';
 import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/widgets/main_layout.dart';
 import 'package:formflow/screens/form_submission_screen.dart';
 import 'package:formflow/screens/form_detail_screen.dart';
 import 'package:formflow/screens/form_preview_screen.dart';
@@ -220,7 +221,7 @@ class FormFlowApp extends StatelessWidget {
               );
             case '/home':
               return MaterialPageRoute(
-                builder: (context) => const HomeScreen(),
+                builder: (context) => const MainLayout(initialIndex: 0),
               );
             // Add test route for debugging
             case '/test-form':

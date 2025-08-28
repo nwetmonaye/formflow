@@ -76,6 +76,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
         SnackBar(
           content: Text('Error loading cohorts: $e'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     }
@@ -147,6 +151,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
           content: Text(
               'Form "${widget.form.title}" shared with "${_selectedCohortIds.length} cohorts" successfully'),
           backgroundColor: KStyle.cApproveColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
 
@@ -161,6 +169,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
         SnackBar(
           content: Text('Error sharing form: $e'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {
@@ -196,6 +208,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
           content: Text(
               'Form "${widget.form.title}" shared with "${_selectedCohortIds.length} cohorts" successfully'),
           backgroundColor: KStyle.cE8GreenColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
 
@@ -207,6 +223,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
         SnackBar(
           content: Text('Error sharing form: $e'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {
@@ -812,6 +832,10 @@ class _ShareWithCohortsModalState extends State<ShareWithCohortsModal> {
       SnackBar(
         content: Text('Form link copied to clipboard'),
         backgroundColor: KStyle.cE8GreenColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }

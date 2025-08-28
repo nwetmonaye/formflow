@@ -58,6 +58,10 @@ class _CreateCohortModalState extends State<CreateCohortModal> {
         SnackBar(
           content: const Text('Please enter a cohort name'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
       return false;
@@ -70,6 +74,10 @@ class _CreateCohortModalState extends State<CreateCohortModal> {
           SnackBar(
             content: const Text('Please fill in all recipient fields'),
             backgroundColor: KStyle.cDBRedColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
         return false;
@@ -109,6 +117,10 @@ class _CreateCohortModalState extends State<CreateCohortModal> {
         SnackBar(
           content: Text('Error creating cohort: $e'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {

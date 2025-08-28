@@ -233,6 +233,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     content: Text(state.message),
                                     backgroundColor: Colors.red,
                                     duration: const Duration(seconds: 4),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 );
                               } else if (state is Authenticated) {
@@ -248,6 +252,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     content: Text(
                                         'Welcome back,  ${state.user.displayName ?? state.user.email}!'),
                                     backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 );
                                 // Navigate to HomeScreen after successful login

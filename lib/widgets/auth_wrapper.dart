@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/screens/home_screen.dart';
+import 'package:formflow/widgets/main_layout.dart';
 import 'package:formflow/screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -123,7 +124,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         if (state is Authenticated) {
-          return const HomeScreen();
+          return const MainLayout(initialIndex: 0);
         }
 
         // Unauthenticated or AuthError - show login screen

@@ -141,6 +141,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     content: Text(
                                         'Account created successfully! Please sign in to continue.'),
                                     backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 );
 
@@ -443,6 +447,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 content: Text(
                                     'Account created successfully! Please sign in to continue.'),
                                 backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             );
 

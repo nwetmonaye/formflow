@@ -445,6 +445,10 @@ class _CohortCardState extends State<CohortCard> {
           ),
           backgroundColor: KStyle.cPrimaryColor,
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
 
@@ -464,6 +468,10 @@ class _CohortCardState extends State<CohortCard> {
             'Form "${form.title}" shared with "${widget.cohort.name}" successfully!',
           ),
           backgroundColor: KStyle.cApproveColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } catch (e) {
@@ -474,6 +482,10 @@ class _CohortCardState extends State<CohortCard> {
             'Error sharing form: $e',
           ),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {
@@ -738,6 +750,10 @@ class _CohortCardState extends State<CohortCard> {
                         SnackBar(
                           content: Text('Please enter a cohort name'),
                           backgroundColor: KStyle.cDBRedColor,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       );
                       return;
@@ -753,6 +769,10 @@ class _CohortCardState extends State<CohortCard> {
                             content:
                                 Text('Please fill in all recipient fields'),
                             backgroundColor: KStyle.cDBRedColor,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         );
                         return;
@@ -766,6 +786,10 @@ class _CohortCardState extends State<CohortCard> {
                             content: Text(
                                 'Please enter a valid email for recipient ${i + 1}'),
                             backgroundColor: KStyle.cDBRedColor,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         );
                         return;
@@ -826,6 +850,10 @@ class _CohortCardState extends State<CohortCard> {
           ),
           backgroundColor: KStyle.cPrimaryColor,
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
 
@@ -849,6 +877,10 @@ class _CohortCardState extends State<CohortCard> {
             'Cohort "${newName}" updated successfully!',
           ),
           backgroundColor: KStyle.cE8GreenColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } catch (e) {
@@ -859,6 +891,10 @@ class _CohortCardState extends State<CohortCard> {
             'Error updating cohort: $e',
           ),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {
@@ -929,6 +965,10 @@ class _CohortCardState extends State<CohortCard> {
           SnackBar(
             content: Text('${widget.cohort.name} deleted successfully'),
             backgroundColor: KStyle.cE8GreenColor,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       } else {
@@ -939,6 +979,10 @@ class _CohortCardState extends State<CohortCard> {
         SnackBar(
           content: Text('Error deleting cohort: $e'),
           backgroundColor: KStyle.cDBRedColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       );
     } finally {

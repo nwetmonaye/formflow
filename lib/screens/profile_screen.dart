@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formflow/blocs/auth_bloc.dart';
 import 'package:formflow/constants/style.dart';
 import 'package:formflow/services/firebase_service.dart';
+import 'package:formflow/services/auth_service.dart';
 import 'package:formflow/screens/home_screen.dart';
 import 'package:formflow/screens/notification_screen.dart';
 import 'package:formflow/screens/cohorts_screen.dart';
@@ -158,548 +159,300 @@ class _ProfileScreenState extends State<ProfileScreen> {
     overlayState.insert(overlayEntry);
   }
 
-  Future<void> _loadUserData() async {
-    try {
-      final currentUser = FirebaseService.currentUser;
-      if (currentUser != null) {
-        setState(() {
-          _userName = currentUser.displayName ?? 'Thomas Willy';
-          _userEmail = currentUser.email ?? 'thomaswilly@gmail.com';
-          _userPhotoURL = currentUser.photoURL;
-          _nameController.text = _userName!;
-          _emailController.text = _userEmail!;
-        });
-      }
-    } catch (e) {
-      print('Error loading user data: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: KStyle.cBgColor,
-      body: Row(
-        children: [
-          // Left Sidebar
-          Container(
-            width: 280,
-            decoration: BoxDecoration(
-              color: KStyle.cPrimaryColor,
-              border: Border(
-                right: BorderSide(
-                  color: KStyle.cE3GreyColor,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: Column(
-              children: [
-                // Logo
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'form',
-                        style: KStyle.heading2TextStyle.copyWith(
-                          color: KStyle.cWhiteColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: KStyle.cWhiteColor,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                    ],
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return Scaffold(
+            backgroundColor: KStyle.cBackgroundColor,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    size: 64,
+                    color: KStyle.c72GreyColor,
                   ),
-                ),
-
-                // Navigation Menu
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildNavItem(
-                        icon: Icons.description_outlined,
-                        title: 'My Forms',
-                        isSelected: selectedNavItem == 0,
-                        notificationCount: null,
-                        onTap: () {
-                          setState(() {
-                            selectedNavItem = 0;
-                          });
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const HomeScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildNavItem(
-                        icon: Icons.group_outlined,
-                        title: 'Cohorts',
-                        isSelected: selectedNavItem == 1,
-                        notificationCount: null,
-                        onTap: () {
-                          setState(() {
-                            selectedNavItem = 1;
-                          });
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => const CohortsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      StreamBuilder<int>(
-                        stream:
-                            FirebaseService.getUnreadNotificationsCountStream(),
-                        builder: (context, snapshot) {
-                          final notificationCount = snapshot.data ?? 0;
-                          return _buildNavItem(
-                            icon: Icons.notifications_outlined,
-                            title: 'Notifications',
-                            isSelected: selectedNavItem == 2,
-                            notificationCount: notificationCount > 0
-                                ? notificationCount
-                                : null,
-                            onTap: () {
-                              setState(() {
-                                selectedNavItem = 2;
-                              });
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const NotificationScreen(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Profile Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: KStyle.cWhiteColor,
-                        width: 1,
-                      ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please sign in to view your profile',
+                    style: KStyle.heading3TextStyle.copyWith(
+                      color: KStyle.c72GreyColor,
                     ),
                   ),
-                  child: GestureDetector(
-                    onTap: () {
-                      _showProfileMenu(context, context.read<AuthBloc>().state);
-                    },
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: KStyle.cEDBlueColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Center(
-                            child: Text(
-                              (_userName?.isNotEmpty == true)
-                                  ? _userName![0].toUpperCase()
-                                  : 'U',
-                              style: KStyle.labelMdBoldTextStyle.copyWith(
-                                color: KStyle.cPrimaryColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: KStyle.cBackgroundColor,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Container(
+                decoration: BoxDecoration(
+                  color: KStyle.cWhiteColor,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: KStyle.cE3GreyColor,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                height: 150,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _userName ?? 'User',
-                                style: KStyle.labelMdRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor,
-                                  fontWeight: FontWeight.w500,
+                                'Profile',
+                                style: KStyle.headingTextStyle.copyWith(
+                                  color: KStyle.cBlackColor,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                'View Profile',
-                                style: KStyle.labelSmRegularTextStyle.copyWith(
-                                  color: KStyle.cWhiteColor.withOpacity(0.7),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_up,
-                          color: KStyle.cWhiteColor,
-                          size: 20,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: _buildProfileContent(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Profile Header
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: KStyle.cWhiteColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Profile Picture
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: KStyle.cPrimaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _userPhotoURL != null
+                      ? ClipOval(
+                          child: Image.network(
+                            _userPhotoURL!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                color: KStyle.cWhiteColor,
+                                size: 40,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.person,
+                          color: KStyle.cWhiteColor,
+                          size: 40,
+                        ),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _userName ?? 'User Name',
+                        style: KStyle.heading2TextStyle.copyWith(
+                          color: KStyle.cBlackColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _userEmail ?? 'user@example.com',
+                        style: KStyle.labelMdRegularTextStyle.copyWith(
+                          color: KStyle.c72GreyColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    // Edit profile
+                  },
+                  icon: Icon(
+                    Icons.edit,
+                    color: KStyle.cPrimaryColor,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Main Content Area
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: KStyle.cBackgroundColor,
-                border: Border(
-                  right: BorderSide(
-                    color: KStyle.cE3GreyColor,
-                    width: 1,
+          const SizedBox(height: 24),
+          // Profile Form
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: KStyle.cWhiteColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personal Information',
+                  style: KStyle.heading3TextStyle.copyWith(
+                    color: KStyle.cBlackColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  // Header Section
-                  Container(
-                    decoration: BoxDecoration(
-                      color: KStyle.cWhiteColor,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: KStyle.cE3GreyColor,
-                          width: 1,
+                const SizedBox(height: 24),
+                // Name Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Full Name',
+                      style: KStyle.labelMdBoldTextStyle.copyWith(
+                        color: KStyle.cBlackColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter your full name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: KStyle.cE3GreyColor,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: KStyle.cPrimaryColor,
+                          ),
                         ),
                       ),
                     ),
-                    height: 150,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Account Settings',
-                                    style: KStyle.headingTextStyle.copyWith(
-                                      color: KStyle.cBlackColor,
-                                    ),
-                                  ),
-                                ],
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Email Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Email Address',
+                      style: KStyle.labelMdBoldTextStyle.copyWith(
+                        color: KStyle.cE3GreyColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _emailController,
+                      enabled: false, // Email should not be editable
+                      decoration: InputDecoration(
+                        hintText: 'Enter your email address',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: KStyle.cE3GreyColor,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: KStyle.cBgColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                // Save Button
+                SizedBox(
+                  // width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KStyle.cPrimaryColor,
+                      foregroundColor: KStyle.cWhiteColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Main Content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Profile Section
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
+                            ),
+                          )
+                        : Text(
+                            'Save Changes',
+                            style: KStyle.labelMdBoldTextStyle.copyWith(
                               color: KStyle.cWhiteColor,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Profile',
-                                  style: KStyle.heading3TextStyle.copyWith(
-                                    color: KStyle.cBlackColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-
-                                // Profile Avatar
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Stack(
-                                    children: [
-                                      Container(
-                                        width: 120,
-                                        height: 120,
-                                        decoration: BoxDecoration(
-                                          color: KStyle.cEDBlueColor,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: KStyle.cF7Color,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            (_userName?.isNotEmpty == true)
-                                                ? _userName![0].toUpperCase()
-                                                : 'U',
-                                            style: KStyle.headingTextStyle
-                                                .copyWith(
-                                              color: KStyle.cPrimaryColor,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 48,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: Container(
-                                          width: 36,
-                                          height: 36,
-                                          decoration: BoxDecoration(
-                                            color: KStyle.cSelectedColor,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: KStyle.cWhiteColor,
-                                              width: 3,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.edit,
-                                            color: KStyle.cPrimaryColor,
-                                            size: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-
-                                // Name Field
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Name',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.cBlackColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextField(
-                                      controller: _nameController,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: KStyle.cWhiteColor,
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide(
-                                            color: KStyle.cE3GreyColor,
-                                          ),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide(
-                                            color: KStyle.cE3GreyColor,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide(
-                                            color: KStyle.cPrimaryColor,
-                                            width: 2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Email Field
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Email',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        color: KStyle.cBlackColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextField(
-                                      controller: _emailController,
-                                      enabled: false,
-                                      decoration: InputDecoration(
-                                        filled: true,
-                                        fillColor: KStyle.cBgColor,
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide(
-                                            color: KStyle.cE3GreyColor,
-                                          ),
-                                        ),
-                                        disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          borderSide: BorderSide(
-                                            color: KStyle.cE3GreyColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-
-                                // Log Out Button
-                                // Column(
-                                //   children: [
-                                //     ElevatedButton(
-                                //       onPressed: () async {
-                                //         Navigator.of(context).pop();
-                                //         context
-                                //             .read<AuthBloc>()
-                                //             .add(SignOutRequested());
-                                //       },
-                                //       style: ElevatedButton.styleFrom(
-                                //         backgroundColor: Color(0xFFFFE5E5),
-                                //         foregroundColor: KStyle.cDBRedColor,
-                                //         padding: const EdgeInsets.symmetric(
-                                //             horizontal: 16, vertical: 16),
-                                //         shape: RoundedRectangleBorder(
-                                //           borderRadius:
-                                //               BorderRadius.circular(8),
-                                //         ),
-                                //         elevation: 0,
-                                //       ),
-                                //       child: Text(
-                                //         'Log Out',
-                                //         style: KStyle.labelMdBoldTextStyle
-                                //             .copyWith(
-                                //           color: KStyle.cDBRedColor,
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   ],
-                                // ),
-                              ],
                             ),
                           ),
-                          const SizedBox(height: 24),
-
-                          // Change Password Section
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: KStyle.cWhiteColor,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Change Password',
-                                  style: KStyle.heading3TextStyle.copyWith(
-                                    color: KStyle.cBlackColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Update your password to keep your account secure.',
-                                  style:
-                                      KStyle.labelMdRegularTextStyle.copyWith(
-                                    color: KStyle.c72GreyColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-
-                                // Change Password Button
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: KStyle.cPrimaryColor,
-                                      foregroundColor: KStyle.cWhiteColor,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 20,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Change Password',
-                                      style: KStyle.labelMdRegularTextStyle
-                                          .copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
-                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -707,126 +460,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Navigation item builder
-  Widget _buildNavItem({
-    required IconData icon,
-    required String title,
-    required bool isSelected,
-    int? notificationCount,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? KStyle.cWhiteColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
-                ),
-                if (notificationCount != null)
-                  Positioned(
-                    right: -6,
-                    top: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: KStyle.cDBRedColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        notificationCount.toString(),
-                        style: KStyle.labelXsRegularTextStyle.copyWith(
-                          color: KStyle.cWhiteColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: KStyle.labelMdRegularTextStyle.copyWith(
-                color: isSelected ? KStyle.cPrimaryColor : KStyle.cWhiteColor,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseService.currentUser;
+      if (user != null) {
+        setState(() {
+          _userName = user.displayName;
+          _userEmail = user.email;
+          _userPhotoURL = user.photoURL;
+          _nameController.text = user.displayName ?? '';
+          _emailController.text = user.email ?? '';
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
   }
 
-  // User menu
-  // void _showUserMenu(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('User Menu'),
-  //         content: const Text('User menu options will be implemented here.'),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: const Text('Close'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  Future<void> _updateProfile() async {
+  Future<void> _saveProfile() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // TODO: Implement profile update logic
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+      // Update user profile
+      await AuthService.updateUserProfile(
+        displayName: _nameController.text,
+      );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Profile updated successfully'),
-          backgroundColor: KStyle.cE8GreenColor,
-        ),
-      );
+      setState(() {
+        _userName = _nameController.text;
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating profile: $e'),
-          backgroundColor: KStyle.cDBRedColor,
-        ),
-      );
-    } finally {
       setState(() {
         _isLoading = false;
       });
-    }
-  }
 
-  void _changePassword() {
-    // TODO: Implement change password logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            const Text('Change password functionality will be implemented'),
-        backgroundColor: KStyle.cPrimaryColor,
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
   }
 }
